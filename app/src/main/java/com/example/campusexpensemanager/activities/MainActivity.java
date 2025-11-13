@@ -1,5 +1,6 @@
 package com.example.campusexpensemanager.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -7,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
+import com.example.campusexpensemanager.utils.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 /**
@@ -24,9 +26,21 @@ public class MainActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
 
+    private SessionManager sessionManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialize session manager
+        sessionManager = new SessionManager(this);
+
+        // Check if user is logged in
+        if (!sessionManager.isLoggedIn()) {
+            navigateToLogin();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         // Initialize database
@@ -40,6 +54,16 @@ public class MainActivity extends AppCompatActivity {
 
         // Show default tab (Dashboard)
         showDashboard();
+    }
+
+    /**
+     * Navigate to LoginActivity if not authenticated
+     */
+    private void navigateToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     /**

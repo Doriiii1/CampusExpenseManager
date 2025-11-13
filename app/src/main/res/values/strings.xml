@@ -37,12 +37,12 @@
     <string name="auth_password">Password</string>
     <string name="auth_confirm_password">Confirm Password</string>
     <string name="auth_name">Full Name</string>
-    <string name="auth_address">Address</string>
+    <string name="auth_address">Address (e.g., Dorm, District)</string>
     <string name="auth_phone">Phone Number</string>
     <string name="auth_remember_me">Remember Me</string>
     <string name="auth_forgot_password">Forgot Password?</string>
-    <string name="auth_no_account">Don\'t have an account?</string>
-    <string name="auth_have_account">Already have an account?</string>
+    <string name="auth_no_account">Don\'t have an account? Sign Up</string>
+    <string name="auth_have_account">Already have an account? Sign In</string>
     <string name="auth_sign_in">Sign In</string>
     <string name="auth_sign_up">Sign Up</string>
 
@@ -156,7 +156,7 @@
 
     <!-- Empty States -->
     <string name="empty_expenses">No expenses yet</string>
-    <string name="empty_budgets">No budgets set</string>
+    <string name="empty_budgets">No budgets set. Tap + to create one!</string>
     <string name="empty_search">No results found</string>
 
     <!-- Loading & Status -->
