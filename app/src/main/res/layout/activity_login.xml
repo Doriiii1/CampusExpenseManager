@@ -106,7 +106,7 @@
                 android:layout_width="@dimen/icon_size_normal"
                 android:layout_height="@dimen/icon_size_normal"
                 android:layout_gravity="end"
-                android:layout_marginTop="-@dimen/spacing_xlarge"
+                android:layout_marginTop="@dimen/spacing_xlarge"
                 android:layout_marginEnd="@dimen/spacing_small"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Toggle password visibility"
