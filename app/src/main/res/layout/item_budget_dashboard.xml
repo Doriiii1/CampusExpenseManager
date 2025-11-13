@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/spacing_medium"
+    app:cardCornerRadius="@dimen/corner_radius_medium"
+    app:cardElevation="@dimen/elevation_default">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_medium">
+
+        <!-- Category Name -->
+        <TextView
+            android:id="@+id/tv_budget_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Category"
+            android:textAppearance="?attr/textAppearanceHeadline2"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spacing_small"
+            android:layout_marginBottom="@dimen/spacing_small"
+            android:background="?attr/colorOutline" />
+
+        <!-- Budget Amount -->
+        <TextView
+            android:id="@+id/tv_budget_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Budget: 0đ"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textColor="?attr/colorOnSurface" />
+
+        <!-- Spent Amount -->
+        <TextView
+            android:id="@+id/tv_spent_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_tiny"
+            android:text="Spent: 0đ (0%)"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textColor="?attr/colorOnSurface" />
+
+        <!-- Remaining Amount -->
+        <TextView
+            android:id="@+id/tv_remaining_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_tiny"
+            android:text="Remaining: 0đ"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_budget"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:max="100"
+            android:progress="0" />
+
+        <!-- Period -->
+        <TextView
+            android:id="@+id/tv_budget_period"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:drawableStart="@android:drawable/ic_menu_my_calendar"
+            android:drawablePadding="@dimen/spacing_tiny"
+            android:text="Period: ..."
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <!-- Prediction -->
+        <TextView
+            android:id="@+id/tv_prediction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:background="?attr/colorSurfaceVariant"
+            android:padding="@dimen/spacing_small"
+            android:text="Prediction: ..."
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?attr/colorOnSurface"
+            android:visibility="visible"
+            app:drawableStartCompat="@android:drawable/ic_dialog_info" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

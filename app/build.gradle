@@ -41,4 +41,6 @@ dependencies {
 
     implementation libs.recyclerview
     implementation libs.cardview
+
+    implementation libs.coordinatorlayout
 }

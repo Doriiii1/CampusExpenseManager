@@ -7,9 +7,15 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campusexpensemanager.R;
+import com.example.campusexpensemanager.models.Budget;
+import com.example.campusexpensemanager.models.Category;
+import com.example.campusexpensemanager.models.Expense;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * MainActivity serves as the main dashboard with bottom navigation
@@ -106,8 +112,92 @@ public class MainActivity extends AppCompatActivity {
         tvExpensesPlaceholder.setVisibility(TextView.GONE);
         tvProfilePlaceholder.setVisibility(TextView.GONE);
 
-        // TODO: Load dashboard data in Sprint 4
-        tvDashboardPlaceholder.setText("Dashboard\n\nComing Soon:\n• Total Spent Summary\n• Budget Overview\n• Quick Actions");
+        // Load dashboard data
+        loadDashboardData();
+    }
+
+    /**
+     * Load dashboard summary data
+     */
+    private void loadDashboardData() {
+        int userId = sessionManager.getUserId();
+
+        // Get user name for greeting
+        String userName = sessionManager.getUserName();
+        if (userName == null) {
+            userName = "User";
+        }
+
+        // Get current month expenses
+        List<Expense> expenses = dbHelper.getExpensesByUser(userId);
+
+        // Calculate this month's total
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        long monthStart = calendar.getTimeInMillis();
+
+        double monthlyTotal = 0;
+        java.util.Map<Integer, Double> categoryTotals = new java.util.HashMap<>();
+
+        for (Expense expense : expenses) {
+            if (expense.getDate() >= monthStart) {
+                monthlyTotal += expense.getAmount();
+
+                int categoryId = expense.getCategoryId();
+                categoryTotals.put(categoryId,
+                        categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+            }
+        }
+
+        // Get budgets
+        List<Budget> budgets = dbHelper.getBudgetsByUser(userId);
+        double totalBudget = 0;
+        for (Budget budget : budgets) {
+            if (budget.getPeriodEnd() >= System.currentTimeMillis()) {
+                totalBudget += budget.getAmount();
+            }
+        }
+
+        double budgetRemaining = totalBudget - monthlyTotal;
+
+        // Find top category
+        String topCategory = "None";
+        double topAmount = 0;
+        for (java.util.Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
+            if (entry.getValue() > topAmount) {
+                topAmount = entry.getValue();
+                Category cat = dbHelper.getCategoryById(entry.getKey());
+                if (cat != null) {
+                    topCategory = cat.getName();
+                }
+            }
+        }
+
+        // Format amounts
+        java.text.NumberFormat currencyFormat = java.text.NumberFormat.getInstance(
+                new java.util.Locale("vi", "VN"));
+        String formattedTotal = currencyFormat.format(monthlyTotal) + "đ";
+        String formattedRemaining = currencyFormat.format(budgetRemaining) + "đ";
+        String formattedTopAmount = currencyFormat.format(topAmount) + "đ";
+
+        // Build dashboard text
+        StringBuilder dashboard = new StringBuilder();
+        dashboard.append("Hello, ").append(userName).append("! 👋\n\n");
+        dashboard.append("📊 Monthly Summary\n");
+        dashboard.append("━━━━━━━━━━━━━━━━\n\n");
+        dashboard.append("💰 Total Spent: ").append(formattedTotal).append("\n");
+        dashboard.append("💵 Budget Remaining: ").append(formattedRemaining).append("\n");
+        dashboard.append("🏆 Top Category: ").append(topCategory)
+                .append(" (").append(formattedTopAmount).append(")\n\n");
+        dashboard.append("⚡ Quick Actions\n");
+        dashboard.append("━━━━━━━━━━━━━━━━\n\n");
+        dashboard.append("• Add Expense\n");
+        dashboard.append("• View Budget\n");
+        dashboard.append("• Generate Report\n");
+
+        tvDashboardPlaceholder.setText(dashboard.toString());
     }
 
     /**
