@@ -15,10 +15,10 @@
         android:layout_marginTop="@dimen/spacing_xxlarge"
         android:contentDescription="@string/app_name"
         android:src="@android:drawable/ic_dialog_info"
-        android:tint="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorPrimary" />
 
     <!-- App Title -->
     <TextView
@@ -111,7 +111,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Toggle password visibility"
                 android:src="@drawable/ic_eye"
-                android:tint="?attr/colorOnSurfaceVariant" />
+                app:tint="?attr/colorOnSurfaceVariant" />
 
             <!-- Remember Me & Forgot Password -->
             <LinearLayout

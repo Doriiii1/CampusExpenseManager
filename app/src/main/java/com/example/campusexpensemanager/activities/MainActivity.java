@@ -114,12 +114,9 @@ public class MainActivity extends AppCompatActivity {
      * Show Expenses tab
      */
     private void showExpenses() {
-        tvDashboardPlaceholder.setVisibility(TextView.GONE);
-        tvExpensesPlaceholder.setVisibility(TextView.VISIBLE);
-        tvProfilePlaceholder.setVisibility(TextView.GONE);
-
-        // TODO: Load expenses list in Sprint 3
-        tvExpensesPlaceholder.setText("Expenses\n\nComing Soon:\n• Add New Expense\n• View Expense List\n• Edit/Delete Expenses");
+        // Navigate to ExpenseListActivity instead of showing placeholder
+        Intent intent = new Intent(MainActivity.this, ExpenseListActivity.class);
+        startActivity(intent);
     }
 
     /**
@@ -130,8 +127,9 @@ public class MainActivity extends AppCompatActivity {
         tvExpensesPlaceholder.setVisibility(TextView.GONE);
         tvProfilePlaceholder.setVisibility(TextView.VISIBLE);
 
-        // TODO: Load profile data in Sprint 2
-        tvProfilePlaceholder.setText("Profile\n\nComing Soon:\n• View Profile Info\n• Edit Profile\n• Dark Mode Toggle\n• Logout");
+        // Navigate to ProfileActivity
+        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+        startActivity(intent);
     }
 
     @Override
