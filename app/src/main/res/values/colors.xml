@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors -->
+    <color name="primary_blue">#4FC3F7</color>
+    <color name="primary_blue_dark">#0288D1</color>
+    <color name="primary_blue_light">#81D4FA</color>
+
+    <!-- Secondary Colors -->
+    <color name="secondary_teal">#26A69A</color>
+    <color name="secondary_teal_dark">#00796B</color>
+    <color name="secondary_teal_light">#80CBC4</color>
+
+    <!-- Accent Colors -->
+    <color name="accent_orange">#FF7043</color>
+    <color name="accent_green">#66BB6A</color>
+    <color name="accent_red">#EF5350</color>
+    <color name="accent_yellow">#FFCA28</color>
+
+    <!-- Light Theme Colors -->
+    <color name="light_background">#FFFFFF</color>
+    <color name="light_surface">#FAFAFA</color>
+    <color name="light_surface_variant">#F5F5F5</color>
+    <color name="light_on_surface">#212121</color>
+    <color name="light_on_surface_variant">#757575</color>
+
+    <!-- Dark Theme Colors -->
+    <color name="dark_background">#121212</color>
+    <color name="dark_surface">#1E1E1E</color>
+    <color name="dark_surface_variant">#2C2C2C</color>
+    <color name="dark_on_surface">#E0E0E0</color>
+    <color name="dark_on_surface_variant">#BDBDBD</color>
+
+    <!-- Status Colors -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FFC107</color>
+    <color name="error">#F44336</color>
+    <color name="info">#2196F3</color>
+
+    <!-- Budget Progress Colors -->
+    <color name="budget_safe">#66BB6A</color>        <!-- <50% spent -->
+    <color name="budget_warning">#FFA726</color>     <!-- 50-80% spent -->
+    <color name="budget_danger">#EF5350</color>      <!-- >80% spent -->
+
+    <!-- Overlay Colors -->
+    <color name="overlay_light">#33000000</color>
+    <color name="overlay_dark">#33FFFFFF</color>
+
+    <!-- Transparent -->
+    <color name="transparent">#00000000</color>
+
+    <!-- Legacy Android Colors (for compatibility) -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Bottom Navigation State Colors -->
+    <color name="bottom_nav_selected">#4FC3F7</color>
+    <color name="bottom_nav_unselected">#757575</color>
+    <color name="bottom_nav_selected_dark">#81D4FA</color>
+    <color name="bottom_nav_unselected_dark">#BDBDBD</color>
+</resources>
