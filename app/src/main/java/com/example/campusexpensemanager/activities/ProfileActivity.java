@@ -41,32 +41,59 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
 
-        // Initialize helpers
+        // Initialize helpers first
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = new SessionManager(this);
 
-        // Check authentication
+        // Check authentication BEFORE setContentView
         if (!sessionManager.isLoggedIn()) {
             navigateToLogin();
             return;
         }
 
-        // Load current user
-        loadCurrentUser();
+        // Set content view
+        setContentView(R.layout.activity_profile);
 
         // Initialize views
         initializeViews();
 
-        // Setup dark mode
-        setupDarkMode();
+        // Load current user (with error handling)
+        try {
+            loadCurrentUser();
 
-        // Display user info
-        displayUserInfo();
+            // Only proceed if user loaded successfully
+            if (currentUser != null) {
+                // Display user info FIRST (without calling setEditMode)
+                populateFields();
 
-        // Setup click listeners
-        setupClickListeners();
+                // Setup dark mode
+                setupDarkMode();
+
+                // Setup click listeners
+                setupClickListeners();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error loading profile: " + e.getMessage(),
+                    Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        // Setup back pressed callback
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (isEditMode) {
+                    // Cancel edit mode instead of going back
+                    cancelEdit();
+                } else {
+                    // Allow default back behavior
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     private void initializeViews() {
@@ -99,26 +126,45 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadCurrentUser() {
-        int userId = sessionManager.getUserId();
-        currentUser = dbHelper.getUserById(userId);
+        try {
+            int userId = sessionManager.getUserId();
+            currentUser = dbHelper.getUserById(userId);
 
-        if (currentUser == null) {
-            Toast.makeText(this, "Error loading profile", Toast.LENGTH_SHORT).show();
+            if (currentUser == null) {
+                Toast.makeText(this, "Error loading profile", Toast.LENGTH_SHORT).show();
+                navigateToLogin();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             navigateToLogin();
         }
     }
 
-    private void displayUserInfo() {
-        etName.setText(currentUser.getName());
-        etEmail.setText(currentUser.getEmail());
-        etAddress.setText(currentUser.getAddress());
-        etPhone.setText(currentUser.getPhone());
+    /**
+     * Populate fields WITHOUT calling setEditMode (avoid recursion)
+     */
+    private void populateFields() {
+        if (currentUser == null) {
+            return;
+        }
 
-        // Email is not editable
+        // Set values
+        etName.setText(currentUser.getName() != null ? currentUser.getName() : "");
+        etEmail.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "");
+        etAddress.setText(currentUser.getAddress() != null ? currentUser.getAddress() : "");
+        etPhone.setText(currentUser.getPhone() != null ? currentUser.getPhone() : "");
+
+        // Email is always disabled
         etEmail.setEnabled(false);
 
-        // Set initial edit mode (disabled)
-        setEditMode(false);
+        // Set initial state to VIEW mode (all disabled except email)
+        etName.setEnabled(false);
+        etAddress.setEnabled(false);
+        etPhone.setEnabled(false);
+
+        btnEditMode.setText(getString(R.string.profile_edit));
+        btnSaveProfile.setVisibility(View.GONE);
     }
 
     private void setupDarkMode() {
@@ -136,7 +182,13 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         // Edit mode toggle
-        btnEditMode.setOnClickListener(v -> toggleEditMode());
+        btnEditMode.setOnClickListener(v -> {
+            if (isEditMode) {
+                cancelEdit();
+            } else {
+                enterEditMode();
+            }
+        });
 
         // Save profile
         btnSaveProfile.setOnClickListener(v -> saveProfile());
@@ -156,35 +208,39 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     /**
-     * Toggle edit mode for profile fields
+     * Enter edit mode - enable fields
      */
-    private void toggleEditMode() {
-        isEditMode = !isEditMode;
-        setEditMode(isEditMode);
+    private void enterEditMode() {
+        isEditMode = true;
+
+        etName.setEnabled(true);
+        etAddress.setEnabled(true);
+        etPhone.setEnabled(true);
+
+        btnEditMode.setText("Cancel");
+        btnSaveProfile.setVisibility(View.VISIBLE);
     }
 
     /**
-     * Set edit mode state
+     * Cancel edit mode - restore original values
      */
-    private void setEditMode(boolean enabled) {
-        isEditMode = enabled;
+    private void cancelEdit() {
+        isEditMode = false;
 
-        // Enable/disable fields
-        etName.setEnabled(enabled);
-        etAddress.setEnabled(enabled);
-        etPhone.setEnabled(enabled);
-
-        // Toggle button text
-        if (enabled) {
-            btnEditMode.setText("Cancel Edit");
-            btnSaveProfile.setVisibility(View.VISIBLE);
-        } else {
-            btnEditMode.setText(getString(R.string.profile_edit));
-            btnSaveProfile.setVisibility(View.GONE);
-
-            // Restore original values if cancelled
-            displayUserInfo();
+        // Restore original values
+        if (currentUser != null) {
+            etName.setText(currentUser.getName() != null ? currentUser.getName() : "");
+            etAddress.setText(currentUser.getAddress() != null ? currentUser.getAddress() : "");
+            etPhone.setText(currentUser.getPhone() != null ? currentUser.getPhone() : "");
         }
+
+        // Disable fields
+        etName.setEnabled(false);
+        etAddress.setEnabled(false);
+        etPhone.setEnabled(false);
+
+        btnEditMode.setText(getString(R.string.profile_edit));
+        btnSaveProfile.setVisibility(View.GONE);
     }
 
     /**
@@ -235,7 +291,9 @@ public class ProfileActivity extends AppCompatActivity {
             sessionManager.updateUserName(name);
 
             Toast.makeText(this, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show();
-            setEditMode(false);
+
+            // Exit edit mode
+            cancelEdit();
         } else {
             Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
         }
@@ -305,22 +363,29 @@ public class ProfileActivity extends AppCompatActivity {
      * Toggle dark mode with smooth transition
      */
     private void toggleDarkMode(boolean enabled) {
-        // Save preference
-        sessionManager.setDarkMode(enabled);
+        try {
+            // Save preference
+            sessionManager.setDarkMode(enabled);
 
-        // Update database
-        currentUser.setDarkModeEnabled(enabled);
-        dbHelper.updateUser(currentUser);
+            // Update database
+            if (currentUser != null) {
+                currentUser.setDarkModeEnabled(enabled);
+                dbHelper.updateUser(currentUser);
+            }
 
-        // Apply dark mode with animation
-        if (enabled) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            // Apply dark mode with animation
+            if (enabled) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }
+
+            // Recreate activity with fade animation
+            recreate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error toggling dark mode: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-
-        // Recreate activity with fade animation
-        recreate();
     }
 
     /**
@@ -352,25 +417,5 @@ public class ProfileActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Register OnBackPressedCallback for handling back gesture
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (isEditMode) {
-                    // Cancel edit mode instead of going back
-                    setEditMode(false);
-                } else {
-                    // Allow default back behavior
-                    setEnabled(false);
-                    getOnBackPressedDispatcher().onBackPressed();
-                }
-            }
-        });
     }
 }

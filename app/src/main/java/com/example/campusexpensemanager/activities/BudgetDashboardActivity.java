@@ -113,6 +113,14 @@ public class BudgetDashboardActivity extends AppCompatActivity {
             // Create card for each budget
             for (Budget budget : budgets) {
                 View budgetCard = createBudgetCard(budget);
+
+                // Add click listener to navigate to EditBudgetActivity
+                budgetCard.setOnClickListener(v -> {
+                    Intent intent = new Intent(BudgetDashboardActivity.this, EditBudgetActivity.class);
+                    intent.putExtra("budget_id", budget.getId());
+                    startActivity(intent);
+                });
+
                 budgetContainer.addView(budgetCard);
             }
         }

@@ -1,5 +1,6 @@
 package com.example.campusexpensemanager.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -247,8 +248,10 @@ public class SetBudgetActivity extends AppCompatActivity implements BudgetAdapte
 
     @Override
     public void onBudgetClick(Budget budget) {
-        // TODO: Navigate to edit budget (future enhancement)
-        Toast.makeText(this, "Edit budget feature coming soon", Toast.LENGTH_SHORT).show();
+        // Navigate to EditBudgetActivity
+        Intent intent = new Intent(SetBudgetActivity.this, EditBudgetActivity.class);
+        intent.putExtra("budget_id", budget.getId());
+        startActivity(intent);
     }
 
     @Override

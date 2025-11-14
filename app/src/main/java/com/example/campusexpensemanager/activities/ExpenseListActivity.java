@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,6 +47,12 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_expense_list);
 
+        // Enable back button in action bar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Expenses");
+        }
+
         // Initialize helpers
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = new SessionManager(this);
@@ -70,6 +77,21 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
 
         // Load expenses
         loadExpenses();
+
+        // Setup back pressed callback
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finish();
+            }
+        });
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        // Handle back button in action bar
+        onBackPressed();
+        return true;
     }
 
     private void initializeViews() {
@@ -197,9 +219,9 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        // Reload expenses when returning from add/edit
-        loadExpenses();
+    public void onBackPressed() {
+        // Return to MainActivity instead of reloading
+        super.onBackPressed();
+        finish();
     }
 }

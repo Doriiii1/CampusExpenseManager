@@ -1,8 +1,10 @@
 package com.example.campusexpensemanager.activities;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -16,6 +18,8 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.example.campusexpensemanager.R;
@@ -39,6 +43,8 @@ import java.util.Locale;
  * Features: Amount input, Category selection, Date/Time picker, Receipt photo
  */
 public class AddExpenseActivity extends AppCompatActivity {
+
+    private static final int CAMERA_PERMISSION_CODE = 100;
 
     private TextInputLayout tilAmount, tilDescription;
     private TextInputEditText etAmount, etDescription;
@@ -212,23 +218,66 @@ public class AddExpenseActivity extends AppCompatActivity {
      * Launch camera intent to capture receipt
      */
     private void captureReceipt() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Check camera permission first
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Request permission
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION_CODE);
+            return;
+        }
 
-        // Create file to save photo
-        File photoFile = createImageFile();
-        if (photoFile != null) {
-            receiptPhotoPath = photoFile.getAbsolutePath();
+        // Launch camera
+        launchCamera();
+    }
 
-            Uri photoURI = FileProvider.getUriForFile(
-                    this,
-                    "com.example.campusexpensemanager.fileprovider",
-                    photoFile
-            );
+    /**
+     * Launch camera with FileProvider
+     */
+    private void launchCamera() {
+        try {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-            cameraLauncher.launch(takePictureIntent);
-        } else {
-            Toast.makeText(this, "Failed to create photo file", Toast.LENGTH_SHORT).show();
+            // Check if camera app exists
+            if (takePictureIntent.resolveActivity(getPackageManager()) == null) {
+                Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Create file to save photo
+            File photoFile = createImageFile();
+            if (photoFile != null) {
+                receiptPhotoPath = photoFile.getAbsolutePath();
+
+                Uri photoURI = FileProvider.getUriForFile(
+                        this,
+                        "com.example.campusexpensemanager.fileprovider",
+                        photoFile
+                );
+
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                cameraLauncher.launch(takePictureIntent);
+            } else {
+                Toast.makeText(this, "Failed to create photo file", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Camera error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, launch camera
+                launchCamera();
+            } else {
+                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

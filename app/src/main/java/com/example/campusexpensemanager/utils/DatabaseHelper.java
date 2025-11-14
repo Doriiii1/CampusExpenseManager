@@ -59,6 +59,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_EXPENSE_DATE = "date";
     private static final String KEY_EXPENSE_DESCRIPTION = "description";
     private static final String KEY_EXPENSE_RECEIPT = "receipt_path";
+    private static final String KEY_EXPENSE_TYPE = "type"; // 0=expense, 1=income
 
     // Budget Table Columns
     private static final String KEY_BUDGET_USER_ID = "user_id";
@@ -131,6 +132,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + KEY_EXPENSE_DATE + " INTEGER NOT NULL,"
                 + KEY_EXPENSE_DESCRIPTION + " TEXT,"
                 + KEY_EXPENSE_RECEIPT + " TEXT,"
+                + KEY_EXPENSE_TYPE + " INTEGER DEFAULT 0," // 0=expense, 1=income
                 + KEY_CREATED_AT + " INTEGER NOT NULL,"
                 + "FOREIGN KEY(" + KEY_EXPENSE_USER_ID + ") REFERENCES "
                 + TABLE_USERS + "(" + KEY_ID + ") ON DELETE CASCADE,"
@@ -396,6 +398,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_DATE, expense.getDate());
         values.put(KEY_EXPENSE_DESCRIPTION, expense.getDescription());
         values.put(KEY_EXPENSE_RECEIPT, expense.getReceiptPath());
+        values.put(KEY_EXPENSE_TYPE, expense.getType()); // Add type field
         values.put(KEY_CREATED_AT, expense.getCreatedAt());
 
         long id = db.insert(TABLE_EXPENSES, null, values);
@@ -442,6 +445,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_DATE, expense.getDate());
         values.put(KEY_EXPENSE_DESCRIPTION, expense.getDescription());
         values.put(KEY_EXPENSE_RECEIPT, expense.getReceiptPath());
+        values.put(KEY_EXPENSE_TYPE, expense.getType()); // Add type field
 
         int rowsAffected = db.update(TABLE_EXPENSES, values, KEY_ID + "=?",
                 new String[]{String.valueOf(expense.getId())});
@@ -571,6 +575,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private Expense cursorToExpense(Cursor cursor) {
+        int typeIndex = cursor.getColumnIndex(KEY_EXPENSE_TYPE);
+        int type = (typeIndex >= 0) ? cursor.getInt(typeIndex) : 0; // Default to expense if column doesn't exist
+
         return new Expense(
                 cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
                 cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_USER_ID)),
@@ -580,7 +587,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.getLong(cursor.getColumnIndexOrThrow(KEY_EXPENSE_DATE)),
                 cursor.getString(cursor.getColumnIndexOrThrow(KEY_EXPENSE_DESCRIPTION)),
                 cursor.getString(cursor.getColumnIndexOrThrow(KEY_EXPENSE_RECEIPT)),
-                cursor.getLong(cursor.getColumnIndexOrThrow(KEY_CREATED_AT))
+                cursor.getLong(cursor.getColumnIndexOrThrow(KEY_CREATED_AT)),
+                type
         );
     }
 

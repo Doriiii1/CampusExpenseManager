@@ -1,10 +1,14 @@
 package com.example.campusexpensemanager.models;
 
 /**
- * Expense model class representing a single expense transaction
+ * Expense model class representing a single expense/income transaction
  * Links to User, Category, and Currency tables
  */
 public class Expense {
+    // Transaction types
+    public static final int TYPE_EXPENSE = 0; // Chi tiêu (red)
+    public static final int TYPE_INCOME = 1;  // Thu nhập (green)
+
     private int id;
     private int userId;
     private int categoryId;
@@ -14,11 +18,13 @@ public class Expense {
     private String description;
     private String receiptPath;
     private long createdAt;
+    private int type; // 0 = expense, 1 = income
 
     // Default constructor
     public Expense() {
         this.createdAt = System.currentTimeMillis();
         this.date = System.currentTimeMillis();
+        this.type = TYPE_EXPENSE; // Default to expense
     }
 
     // Constructor with essential fields (VND default, currencyId=1)
@@ -30,6 +36,19 @@ public class Expense {
         this.date = date;
         this.description = description;
         this.createdAt = System.currentTimeMillis();
+        this.type = TYPE_EXPENSE; // Default to expense
+    }
+
+    // Constructor with type
+    public Expense(int userId, int categoryId, double amount, long date, String description, int type) {
+        this.userId = userId;
+        this.categoryId = categoryId;
+        this.currencyId = 1;
+        this.amount = amount;
+        this.date = date;
+        this.description = description;
+        this.createdAt = System.currentTimeMillis();
+        this.type = type;
     }
 
     // Full constructor
@@ -44,6 +63,22 @@ public class Expense {
         this.description = description;
         this.receiptPath = receiptPath;
         this.createdAt = createdAt;
+        this.type = TYPE_EXPENSE; // Default
+    }
+
+    // Full constructor with type
+    public Expense(int id, int userId, int categoryId, int currencyId, double amount,
+                   long date, String description, String receiptPath, long createdAt, int type) {
+        this.id = id;
+        this.userId = userId;
+        this.categoryId = categoryId;
+        this.currencyId = currencyId;
+        this.amount = amount;
+        this.date = date;
+        this.description = description;
+        this.receiptPath = receiptPath;
+        this.createdAt = createdAt;
+        this.type = type;
     }
 
     // Getters and Setters
@@ -119,6 +154,22 @@ public class Expense {
         this.createdAt = createdAt;
     }
 
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public boolean isIncome() {
+        return type == TYPE_INCOME;
+    }
+
+    public boolean isExpense() {
+        return type == TYPE_EXPENSE;
+    }
+
     @Override
     public String toString() {
         return "Expense{" +
@@ -126,6 +177,7 @@ public class Expense {
                 ", userId=" + userId +
                 ", categoryId=" + categoryId +
                 ", amount=" + amount +
+                ", type=" + (type == TYPE_INCOME ? "INCOME" : "EXPENSE") +
                 ", date=" + date +
                 ", description='" + description + '\'' +
                 '}';
