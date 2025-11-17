@@ -13,24 +13,20 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.campusexpensemanager.R;
-import com.example.campusexpensemanager.models.Budget;
 import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
+import com.example.campusexpensemanager.utils.CurrencyConverter;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
 import com.example.campusexpensemanager.workers.RecurringExpenseWorker;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.card.MaterialCardView;
 
-import java.text.NumberFormat;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * MainActivity - Enhanced Dashboard with Income/Expense/Balance cards
- * Sprint 5: Shows 3-card balance summary
+ * MainActivity - Enhanced with proper Currency display
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -39,26 +35,20 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigation;
     private LinearLayout layoutDashboard;
 
-    // Balance summary cards
-    private MaterialCardView cardIncome, cardExpense, cardBalance;
     private TextView tvIncomeAmount, tvExpenseAmount, tvBalanceAmount;
-    private TextView tvIncomeLabel, tvExpenseLabel, tvBalanceLabel;
-
     private TextView tvGreeting, tvTopCategory;
     private Button btnAddExpense, btnViewBudget, btnGenerateReport;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
-    private NumberFormat currencyFormat;
+    private CurrencyConverter currencyConverter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize session manager
         sessionManager = new SessionManager(this);
 
-        // Check if user is logged in
         if (!sessionManager.isLoggedIn()) {
             navigateToLogin();
             return;
@@ -66,20 +56,12 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Initialize database and formatters
         dbHelper = DatabaseHelper.getInstance(this);
-        currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
+        currencyConverter = new CurrencyConverter(this);
 
-        // Initialize views
         initializeViews();
-
-        // Setup bottom navigation
         setupBottomNavigation();
-
-        // Setup recurring expense worker
         setupRecurringWorker();
-
-        // Show default tab (Dashboard)
         showDashboard();
     }
 
@@ -96,24 +78,14 @@ public class MainActivity extends AppCompatActivity {
         tvGreeting = findViewById(R.id.tv_greeting);
         tvTopCategory = findViewById(R.id.tv_top_category);
 
-        // Balance cards
-        cardIncome = findViewById(R.id.card_income);
-        cardExpense = findViewById(R.id.card_expense);
-        cardBalance = findViewById(R.id.card_balance);
-
         tvIncomeAmount = findViewById(R.id.tv_income_amount);
         tvExpenseAmount = findViewById(R.id.tv_expense_amount);
         tvBalanceAmount = findViewById(R.id.tv_balance_amount);
-
-        tvIncomeLabel = findViewById(R.id.tv_income_label);
-        tvExpenseLabel = findViewById(R.id.tv_expense_label);
-        tvBalanceLabel = findViewById(R.id.tv_balance_label);
 
         btnAddExpense = findViewById(R.id.btn_add_expense);
         btnViewBudget = findViewById(R.id.btn_view_budget);
         btnGenerateReport = findViewById(R.id.btn_generate_report);
 
-        // Setup button clicks
         btnAddExpense.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddExpenseActivity.class);
             startActivity(intent);
@@ -153,20 +125,15 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation.setSelectedItemId(R.id.nav_dashboard);
     }
 
-    /**
-     * Setup recurring expense background worker
-     * Runs daily at midnight
-     */
     private void setupRecurringWorker() {
         PeriodicWorkRequest recurringWork = new PeriodicWorkRequest.Builder(
                 RecurringExpenseWorker.class,
-                1, // Repeat interval
-                TimeUnit.DAYS // Every 1 day
+                1, TimeUnit.DAYS
         ).build();
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "recurring_expenses",
-                ExistingPeriodicWorkPolicy.KEEP, // Keep existing if already scheduled
+                ExistingPeriodicWorkPolicy.KEEP,
                 recurringWork
         );
     }
@@ -176,18 +143,19 @@ public class MainActivity extends AppCompatActivity {
         loadDashboardData();
     }
 
+    /**
+     * Load dashboard data with PROPER currency conversion to VND
+     */
     private void loadDashboardData() {
         try {
             int userId = sessionManager.getUserId();
 
-            // Greeting
             String userName = sessionManager.getUserName();
             if (userName == null || userName.isEmpty()) {
                 userName = "User";
             }
             tvGreeting.setText("Hello, " + userName + "! 👋");
 
-            // Get current month date range
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.DAY_OF_MONTH, 1);
             calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -198,15 +166,35 @@ public class MainActivity extends AppCompatActivity {
             calendar.add(Calendar.MONTH, 1);
             long monthEnd = calendar.getTimeInMillis();
 
-            // Calculate Income, Expense, Balance
-            double totalIncome = dbHelper.getTotalIncome(userId, monthStart, monthEnd);
-            double totalExpense = dbHelper.getTotalExpense(userId, monthStart, monthEnd);
-            double balance = totalIncome - totalExpense;
+            // Calculate Income, Expense, Balance (ALL IN VND)
+            double totalIncomeVnd = 0;
+            double totalExpenseVnd = 0;
 
-            // Format and display
-            String formattedIncome = currencyFormat.format(totalIncome) + "đ";
-            String formattedExpense = currencyFormat.format(totalExpense) + "đ";
-            String formattedBalance = currencyFormat.format(Math.abs(balance)) + "đ";
+            List<Expense> expenses = dbHelper.getExpensesByUser(userId);
+
+            for (Expense expense : expenses) {
+                if (expense.getDate() >= monthStart && expense.getDate() < monthEnd) {
+                    // Convert to VND using currency converter
+                    double amountInVnd = currencyConverter.convert(
+                            expense.getAmount(),
+                            expense.getCurrencyId(),
+                            1 // VND currency ID
+                    );
+
+                    if (expense.isIncome()) {
+                        totalIncomeVnd += amountInVnd;
+                    } else {
+                        totalExpenseVnd += amountInVnd;
+                    }
+                }
+            }
+
+            double balance = totalIncomeVnd - totalExpenseVnd;
+
+            // Format and display IN VND (currency ID = 1)
+            String formattedIncome = currencyConverter.format(totalIncomeVnd, 1);
+            String formattedExpense = currencyConverter.format(totalExpenseVnd, 1);
+            String formattedBalance = currencyConverter.format(Math.abs(balance), 1);
 
             tvIncomeAmount.setText("+" + formattedIncome);
             tvExpenseAmount.setText("-" + formattedExpense);
@@ -215,22 +203,24 @@ public class MainActivity extends AppCompatActivity {
             // Color coding for balance
             if (balance >= 0) {
                 tvBalanceAmount.setTextColor(getResources().getColor(R.color.success));
-                cardBalance.setCardBackgroundColor(getResources().getColor(R.color.light_surface));
             } else {
                 tvBalanceAmount.setTextColor(getResources().getColor(R.color.error));
-                cardBalance.setCardBackgroundColor(getResources().getColor(R.color.light_surface));
             }
 
-            // Top category
-            List<Expense> expenses = dbHelper.getExpensesByUser(userId);
+            // Top category (only expenses)
             java.util.Map<Integer, Double> categoryTotals = new java.util.HashMap<>();
 
             for (Expense expense : expenses) {
                 if (expense.getDate() >= monthStart && expense.getDate() < monthEnd) {
-                    if (expense.isExpense()) { // Only count expenses, not income
+                    if (expense.isExpense()) {
                         int categoryId = expense.getCategoryId();
+                        double amountInVnd = currencyConverter.convert(
+                                expense.getAmount(),
+                                expense.getCurrencyId(),
+                                1
+                        );
                         categoryTotals.put(categoryId,
-                                categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+                                categoryTotals.getOrDefault(categoryId, 0.0) + amountInVnd);
                     }
                 }
             }
@@ -247,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            String formattedTopAmount = currencyFormat.format(topAmount) + "đ";
+            String formattedTopAmount = currencyConverter.format(topAmount, 1);
             tvTopCategory.setText("Top Category: " + topCategory + " (" + formattedTopAmount + ")");
 
         } catch (Exception e) {

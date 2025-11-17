@@ -168,10 +168,9 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
         addExpenseLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() == RESULT_OK) {
-                        // Reload expenses when returning from Add
-                        loadExpenses();
-                    }
+                    // ALWAYS reload expenses when returning from Add/Edit
+                    // Even if result code is not OK (user may have added then pressed back)
+                    loadExpenses();
                 }
         );
     }

@@ -32,7 +32,6 @@ public class RecurringExpenseWorker extends Worker {
         Log.d(TAG, "RecurringExpenseWorker started");
 
         try {
-            // Get all recurring expenses that are due
             List<Expense> dueExpenses = dbHelper.getDueRecurringExpenses();
 
             if (dueExpenses.isEmpty()) {
@@ -41,13 +40,28 @@ public class RecurringExpenseWorker extends Worker {
             }
 
             int created = 0;
+            long currentTime = System.currentTimeMillis();
+
             for (Expense expense : dueExpenses) {
-                long newId = dbHelper.createRecurringOccurrence(expense);
-                if (newId != -1) {
-                    created++;
-                    Log.d(TAG, "Created recurring expense: " + newId +
-                            " (Original: " + expense.getId() + ")");
+                // FIX: Catch up ALL missed occurrences
+                long nextOcc = expense.getNextOccurrenceDate();
+
+                while (nextOcc <= currentTime) {
+                    // Create occurrence for this date
+                    long newId = dbHelper.createRecurringOccurrence(expense);
+                    if (newId != -1) {
+                        created++;
+                        Log.d(TAG, "Created recurring expense: " + newId +
+                                " (Original: " + expense.getId() + ", Date: " + nextOcc + ")");
+                    }
+
+                    // Move to next occurrence
+                    nextOcc = calculateNextOccurrence(nextOcc, expense.getRecurrencePeriod());
                 }
+
+                // Update the original expense with final next occurrence
+                expense.setNextOccurrenceDate(nextOcc);
+                dbHelper.updateExpense(expense);
             }
 
             Log.d(TAG, "RecurringExpenseWorker completed: " + created + " expenses created");
@@ -56,7 +70,30 @@ public class RecurringExpenseWorker extends Worker {
         } catch (Exception e) {
             Log.e(TAG, "Error in RecurringExpenseWorker: " + e.getMessage());
             e.printStackTrace();
-            return Result.retry(); // Retry on failure
+            return Result.retry();
         }
+    }
+
+    /**
+     * Calculate next occurrence date based on period
+     */
+    private long calculateNextOccurrence(long currentDate, String period) {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.setTimeInMillis(currentDate);
+
+        switch (period.toLowerCase()) {
+            case "daily":
+                calendar.add(java.util.Calendar.DAY_OF_MONTH, 1);
+                break;
+            case "weekly":
+                calendar.add(java.util.Calendar.WEEK_OF_YEAR, 1);
+                break;
+            case "monthly":
+            default:
+                calendar.add(java.util.Calendar.MONTH, 1);
+                break;
+        }
+
+        return calendar.getTimeInMillis();
     }
 }

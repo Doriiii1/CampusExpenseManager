@@ -393,6 +393,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         long newId = insertExpense(newExpense);
 
         if (newId != -1) {
+
+            Log.d(TAG, "Created recurring occurrence, ID: " + newId);
+
             // Update original expense's next_occurrence_date
             long nextOccurrence = calculateNextOccurrence(
                     originalExpense.getNextOccurrenceDate(),

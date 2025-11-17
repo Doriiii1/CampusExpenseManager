@@ -2,6 +2,7 @@ package com.example.campusexpensemanager.activities;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -216,6 +217,15 @@ public class EditExpenseActivity extends AppCompatActivity {
         // Receipt
         if (currentExpense.getReceiptPath() != null && !currentExpense.getReceiptPath().isEmpty()) {
             ivReceiptPreview.setVisibility(View.VISIBLE);
+            try {
+                Uri receiptUri = Uri.parse("file://" + currentExpense.getReceiptPath());
+                ivReceiptPreview.setImageURI(receiptUri);
+            } catch (Exception e) {
+                e.printStackTrace();
+                ivReceiptPreview.setVisibility(View.GONE);
+            }
+        } else {
+            ivReceiptPreview.setVisibility(View.GONE);
         }
     }
 

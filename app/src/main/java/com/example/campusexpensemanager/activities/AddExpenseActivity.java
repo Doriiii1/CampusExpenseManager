@@ -464,6 +464,9 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
 
             Toast.makeText(this, typeText + " added: " + formattedAmount,
                     Toast.LENGTH_SHORT).show();
+
+            // Set result OK to notify ExpenseListActivity to refresh
+            setResult(RESULT_OK);
             finish();
         } else {
             Toast.makeText(this, "Failed to add " +

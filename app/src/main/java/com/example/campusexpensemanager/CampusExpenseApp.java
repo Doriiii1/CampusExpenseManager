@@ -2,6 +2,7 @@ package com.example.campusexpensemanager;
 
 import android.app.Application;
 
+import androidx.annotation.NonNull;
 import androidx.work.Configuration;
 import androidx.work.WorkManager;
 
@@ -15,13 +16,14 @@ public class CampusExpenseApp extends Application implements Configuration.Provi
     public void onCreate() {
         super.onCreate();
 
-        // Manual WorkManager initialization
-        WorkManager.initialize(
-                this,
-                getWorkManagerConfiguration()
-        );
+//        // Manual WorkManager initialization
+//        WorkManager.initialize(
+//                this,
+//                getWorkManagerConfiguration()
+//        );
     }
 
+    @NonNull
     @Override
     public Configuration getWorkManagerConfiguration() {
         return new Configuration.Builder()

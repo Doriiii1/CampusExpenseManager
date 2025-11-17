@@ -1,35 +1,57 @@
 package com.example.campusexpensemanager.activities;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.models.User;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
+import com.example.campusexpensemanager.utils.LocaleHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-/**
- * ProfileActivity manages user profile viewing and editing
- * Features: Edit profile, Change password, Dark mode toggle, Logout
- */
-public class ProfileActivity extends AppCompatActivity {
+import java.io.File;
+import java.io.FileOutputStream;
 
+/**
+ * ProfileActivity - Sprint 6 Complete
+ * NEW: Avatar upload, Language selection (EN/VI/ZH)
+ */
+public class ProfileActivity extends BaseActivity {
+
+    private static final int CAMERA_PERMISSION_CODE = 200;
+
+    private ImageView ivAvatar;
+    private FloatingActionButton fabChangeAvatar;
     private TextInputLayout tilName, tilEmail, tilAddress, tilPhone;
     private TextInputLayout tilOldPassword, tilNewPassword, tilConfirmNewPassword;
     private TextInputEditText etName, etEmail, etAddress, etPhone;
     private TextInputEditText etOldPassword, etNewPassword, etConfirmNewPassword;
     private SwitchMaterial switchDarkMode;
+    private Spinner spinnerLanguage;
     private Button btnEditMode, btnSaveProfile, btnChangePassword, btnLogout;
 
     private DatabaseHelper dbHelper;
@@ -37,40 +59,32 @@ public class ProfileActivity extends AppCompatActivity {
     private User currentUser;
 
     private boolean isEditMode = false;
+    private ActivityResultLauncher<Intent> avatarLauncher;
+    private ActivityResultLauncher<Intent> galleryLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize helpers first
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = new SessionManager(this);
 
-        // Check authentication BEFORE setContentView
         if (!sessionManager.isLoggedIn()) {
             navigateToLogin();
             return;
         }
 
-        // Set content view
         setContentView(R.layout.activity_profile);
 
-        // Initialize views
         initializeViews();
+        setupAvatarLauncher();
 
-        // Load current user (with error handling)
         try {
             loadCurrentUser();
-
-            // Only proceed if user loaded successfully
             if (currentUser != null) {
-                // Display user info FIRST (without calling setEditMode)
                 populateFields();
-
-                // Setup dark mode
                 setupDarkMode();
-
-                // Setup click listeners
+                setupLanguageSelector();
                 setupClickListeners();
             }
         } catch (Exception e) {
@@ -80,15 +94,12 @@ public class ProfileActivity extends AppCompatActivity {
             finish();
         }
 
-        // Setup back pressed callback
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (isEditMode) {
-                    // Cancel edit mode instead of going back
                     cancelEdit();
                 } else {
-                    // Allow default back behavior
                     setEnabled(false);
                     getOnBackPressedDispatcher().onBackPressed();
                 }
@@ -97,7 +108,9 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-        // Profile fields
+        ivAvatar = findViewById(R.id.iv_avatar);
+        fabChangeAvatar = findViewById(R.id.fab_change_avatar);
+
         tilName = findViewById(R.id.til_profile_name);
         tilEmail = findViewById(R.id.til_profile_email);
         tilAddress = findViewById(R.id.til_profile_address);
@@ -108,7 +121,6 @@ public class ProfileActivity extends AppCompatActivity {
         etAddress = findViewById(R.id.et_profile_address);
         etPhone = findViewById(R.id.et_profile_phone);
 
-        // Password change fields
         tilOldPassword = findViewById(R.id.til_old_password);
         tilNewPassword = findViewById(R.id.til_new_password);
         tilConfirmNewPassword = findViewById(R.id.til_confirm_new_password);
@@ -117,12 +129,73 @@ public class ProfileActivity extends AppCompatActivity {
         etNewPassword = findViewById(R.id.et_new_password);
         etConfirmNewPassword = findViewById(R.id.et_confirm_new_password);
 
-        // Controls
         switchDarkMode = findViewById(R.id.switch_dark_mode);
+        spinnerLanguage = findViewById(R.id.spinner_language);
         btnEditMode = findViewById(R.id.btn_edit_mode);
         btnSaveProfile = findViewById(R.id.btn_save_profile);
         btnChangePassword = findViewById(R.id.btn_change_password);
         btnLogout = findViewById(R.id.btn_logout);
+    }
+
+    private void setupAvatarLauncher() {
+        avatarLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        try {
+                            Bundle extras = result.getData().getExtras();
+                            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+                            // Scale and save avatar
+                            Bitmap scaledBitmap = scaleAvatarImage(imageBitmap);
+                            String avatarPath = saveAvatar(scaledBitmap);
+                            if (avatarPath != null) {
+                                currentUser.setAvatarPath(avatarPath);
+                                dbHelper.updateUser(currentUser);
+                                ivAvatar.setImageBitmap(scaledBitmap);
+                                Toast.makeText(this, "Avatar updated", Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "Failed to update avatar", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+        );
+
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        try {
+                            Uri selectedImageUri = result.getData().getData();
+                            Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(
+                                    getContentResolver(), selectedImageUri);
+
+                            // Scale and save avatar
+                            Bitmap scaledBitmap = scaleAvatarImage(imageBitmap);
+                            String avatarPath = saveAvatar(scaledBitmap);
+                            if (avatarPath != null) {
+                                currentUser.setAvatarPath(avatarPath);
+                                dbHelper.updateUser(currentUser);
+                                ivAvatar.setImageBitmap(scaledBitmap);
+                                Toast.makeText(this, "Avatar updated", Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "Failed to update avatar", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+        );
+    }
+
+    /**
+     * Scale image to fit avatar circle (96dp = 96 * density pixels)
+     */
+    private Bitmap scaleAvatarImage(Bitmap original) {
+        int targetSize = (int) (96 * getResources().getDisplayMetrics().density);
+        return Bitmap.createScaledBitmap(original, targetSize, targetSize, true);
     }
 
     private void loadCurrentUser() {
@@ -133,6 +206,9 @@ public class ProfileActivity extends AppCompatActivity {
             if (currentUser == null) {
                 Toast.makeText(this, "Error loading profile", Toast.LENGTH_SHORT).show();
                 navigateToLogin();
+            } else {
+                // Load avatar if exists
+                loadAvatar();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,24 +217,52 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Populate fields WITHOUT calling setEditMode (avoid recursion)
-     */
+    private void loadAvatar() {
+        if (currentUser.getAvatarPath() != null && !currentUser.getAvatarPath().isEmpty()) {
+            try {
+                File avatarFile = new File(currentUser.getAvatarPath());
+                if (avatarFile.exists()) {
+                    Uri avatarUri = Uri.fromFile(avatarFile);
+                    ivAvatar.setImageURI(avatarUri);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String saveAvatar(Bitmap bitmap) {
+        try {
+            File avatarDir = new File(getFilesDir(), "avatars");
+            if (!avatarDir.exists()) {
+                avatarDir.mkdirs();
+            }
+
+            String fileName = "avatar_" + currentUser.getId() + ".jpg";
+            File avatarFile = new File(avatarDir, fileName);
+
+            FileOutputStream fos = new FileOutputStream(avatarFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.close();
+
+            return avatarFile.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private void populateFields() {
         if (currentUser == null) {
             return;
         }
 
-        // Set values
         etName.setText(currentUser.getName() != null ? currentUser.getName() : "");
         etEmail.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "");
         etAddress.setText(currentUser.getAddress() != null ? currentUser.getAddress() : "");
         etPhone.setText(currentUser.getPhone() != null ? currentUser.getPhone() : "");
 
-        // Email is always disabled
         etEmail.setEnabled(false);
-
-        // Set initial state to VIEW mode (all disabled except email)
         etName.setEnabled(false);
         etAddress.setEnabled(false);
         etPhone.setEnabled(false);
@@ -168,11 +272,9 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void setupDarkMode() {
-        // Set switch state from session
         boolean isDarkMode = sessionManager.isDarkModeEnabled();
         switchDarkMode.setChecked(isDarkMode);
 
-        // Apply dark mode
         if (isDarkMode) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         } else {
@@ -180,7 +282,54 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setup Language Selector (EN/VI/ZH)
+     */
+    private void setupLanguageSelector() {
+        String[] languages = LocaleHelper.getLanguageDisplayNames();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, R.layout.spinner_item, languages);
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+        spinnerLanguage.setAdapter(adapter);
+
+        // Set current language
+        String currentLang = LocaleHelper.getLanguage(this);
+        int position = 0;
+        switch (currentLang) {
+            case "vi":
+                position = 1;
+                break;
+            case "zh":
+                position = 2;
+                break;
+            default:
+                position = 0;
+        }
+        spinnerLanguage.setSelection(position);
+
+        // Listen for language changes
+        spinnerLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String[] langCodes = LocaleHelper.getAvailableLanguages();
+                String selectedLang = langCodes[position];
+                String currentLang = LocaleHelper.getLanguage(ProfileActivity.this);
+
+                if (!selectedLang.equals(currentLang)) {
+                    changeLanguage(selectedLang);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+    }
+
     private void setupClickListeners() {
+        // Avatar change
+        fabChangeAvatar.setOnClickListener(v -> showAvatarOptions());
+
         // Edit mode toggle
         btnEditMode.setOnClickListener(v -> {
             if (isEditMode) {
@@ -190,64 +339,90 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
-        // Save profile
         btnSaveProfile.setOnClickListener(v -> saveProfile());
-
-        // Change password
         btnChangePassword.setOnClickListener(v -> changePassword());
 
-        // Dark mode toggle
         switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (buttonView.isPressed()) { // Only respond to user interaction
+            if (buttonView.isPressed()) {
                 toggleDarkMode(isChecked);
             }
         });
 
-        // Logout
         btnLogout.setOnClickListener(v -> showLogoutDialog());
     }
 
-    /**
-     * Enter edit mode - enable fields
-     */
+    private void showAvatarOptions() {
+        String[] options = {"Take Photo", "Choose from Gallery", "Remove Avatar"};
+
+        new AlertDialog.Builder(this)
+                .setTitle("Change Avatar")
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            captureAvatar();
+                            break;
+                        case 1:
+                            chooseAvatarFromGallery();
+                            break;
+                        case 2:
+                            removeAvatar();
+                            break;
+                    }
+                })
+                .show();
+    }
+
+    private void chooseAvatarFromGallery() {
+        Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK);
+        pickPhotoIntent.setType("image/*");
+        galleryLauncher.launch(pickPhotoIntent);
+    }
+
+    private void captureAvatar() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+            return;
+        }
+
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            avatarLauncher.launch(takePictureIntent);
+        }
+    }
+
+    private void removeAvatar() {
+        ivAvatar.setImageResource(android.R.drawable.ic_menu_myplaces);
+        currentUser.setAvatarPath(null);
+        dbHelper.updateUser(currentUser);
+        Toast.makeText(this, "Avatar removed", Toast.LENGTH_SHORT).show();
+    }
+
     private void enterEditMode() {
         isEditMode = true;
-
         etName.setEnabled(true);
         etAddress.setEnabled(true);
         etPhone.setEnabled(true);
-
         btnEditMode.setText("Cancel");
         btnSaveProfile.setVisibility(View.VISIBLE);
     }
 
-    /**
-     * Cancel edit mode - restore original values
-     */
     private void cancelEdit() {
         isEditMode = false;
-
-        // Restore original values
         if (currentUser != null) {
             etName.setText(currentUser.getName() != null ? currentUser.getName() : "");
             etAddress.setText(currentUser.getAddress() != null ? currentUser.getAddress() : "");
             etPhone.setText(currentUser.getPhone() != null ? currentUser.getPhone() : "");
         }
-
-        // Disable fields
         etName.setEnabled(false);
         etAddress.setEnabled(false);
         etPhone.setEnabled(false);
-
         btnEditMode.setText(getString(R.string.profile_edit));
         btnSaveProfile.setVisibility(View.GONE);
     }
 
-    /**
-     * Save profile changes
-     */
     private void saveProfile() {
-        // Validate inputs
         String name = etName.getText().toString().trim();
         String address = etAddress.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
@@ -267,47 +442,35 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Validate phone format
         if (!phone.matches("^0\\d{9}$")) {
             tilPhone.setError(getString(R.string.error_invalid_phone));
             return;
         }
 
-        // Clear errors
         tilName.setError(null);
         tilAddress.setError(null);
         tilPhone.setError(null);
 
-        // Update user object
         currentUser.setName(name);
         currentUser.setAddress(address);
         currentUser.setPhone(phone);
 
-        // Save to database
         int rowsAffected = dbHelper.updateUser(currentUser);
 
         if (rowsAffected > 0) {
-            // Update session
             sessionManager.updateUserName(name);
-
             Toast.makeText(this, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show();
-
-            // Exit edit mode
             cancelEdit();
         } else {
             Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
         }
     }
 
-    /**
-     * Change password with validation
-     */
     private void changePassword() {
         String oldPassword = etOldPassword.getText().toString();
         String newPassword = etNewPassword.getText().toString();
         String confirmNewPassword = etConfirmNewPassword.getText().toString();
 
-        // Validate old password
         if (oldPassword.isEmpty()) {
             tilOldPassword.setError(getString(R.string.error_empty_field));
             return;
@@ -319,7 +482,6 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Validate new password
         if (newPassword.isEmpty()) {
             tilNewPassword.setError(getString(R.string.error_empty_field));
             return;
@@ -330,18 +492,15 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Validate confirm password
         if (!confirmNewPassword.equals(newPassword)) {
             tilConfirmNewPassword.setError(getString(R.string.error_password_mismatch));
             return;
         }
 
-        // Clear errors
         tilOldPassword.setError(null);
         tilNewPassword.setError(null);
         tilConfirmNewPassword.setError(null);
 
-        // Update password
         String newPasswordHash = SessionManager.hashPassword(newPassword);
         currentUser.setPasswordHash(newPasswordHash);
 
@@ -349,8 +508,6 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (rowsAffected > 0) {
             Toast.makeText(this, getString(R.string.profile_password_changed), Toast.LENGTH_SHORT).show();
-
-            // Clear password fields
             etOldPassword.setText("");
             etNewPassword.setText("");
             etConfirmNewPassword.setText("");
@@ -359,28 +516,21 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Toggle dark mode with smooth transition
-     */
     private void toggleDarkMode(boolean enabled) {
         try {
-            // Save preference
             sessionManager.setDarkMode(enabled);
 
-            // Update database
             if (currentUser != null) {
                 currentUser.setDarkModeEnabled(enabled);
                 dbHelper.updateUser(currentUser);
             }
 
-            // Apply dark mode with animation
             if (enabled) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             } else {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
 
-            // Recreate activity with fade animation
             recreate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -388,9 +538,6 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Show logout confirmation dialog
-     */
     private void showLogoutDialog() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.confirm_logout_title))
@@ -400,22 +547,28 @@ public class ProfileActivity extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Logout user and navigate to login
-     */
     private void logout() {
         sessionManager.logout();
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
         navigateToLogin();
     }
 
-    /**
-     * Navigate to LoginActivity
-     */
     private void navigateToLogin() {
         Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                captureAvatar();
+            } else {
+                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
