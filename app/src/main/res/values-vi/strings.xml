@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Quản Lý Chi Tiêu</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">Lưu</string>
+    <string name="action_cancel">Hủy</string>
+    <string name="action_delete">Xóa</string>
+    <string name="action_edit">Chỉnh sửa</string>
+    <string name="action_add">Thêm</string>
+    <string name="action_search">Tìm kiếm</string>
+    <string name="action_filter">Lọc</string>
+    <string name="action_export">Xuất</string>
+    <string name="action_share">Chia sẻ</string>
+    <string name="action_back">Quay lại</string>
+    <string name="action_done">Hoàn tất</string>
+    <string name="action_ok">OK</string>
+    <string name="action_yes">Có</string>
+    <string name="action_no">Không</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Trang chủ</string>
+    <string name="nav_expenses">Giao dịch</string>
+    <string name="nav_profile">Hồ sơ</string>
+
+    <!-- Authentication -->
+    <string name="auth_login">Đăng nhập</string>
+    <string name="auth_register">Đăng ký</string>
+    <string name="auth_logout">Đăng xuất</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Mật khẩu</string>
+    <string name="auth_confirm_password">Xác nhận mật khẩu</string>
+    <string name="auth_name">Họ và tên</string>
+    <string name="auth_address">Địa chỉ</string>
+    <string name="auth_phone">Số điện thoại</string>
+    <string name="auth_remember_me">Ghi nhớ đăng nhập</string>
+    <string name="auth_forgot_password">Quên mật khẩu?</string>
+    <string name="auth_no_account">Chưa có tài khoản? Đăng ký</string>
+    <string name="auth_have_account">Đã có tài khoản? Đăng nhập</string>
+    <string name="auth_sign_in">Đăng Nhập</string>
+    <string name="auth_sign_up">Đăng Ký</string>
+
+    <!-- Validation -->
+    <string name="error_empty_field">Trường này là bắt buộc</string>
+    <string name="error_invalid_email">Email không hợp lệ</string>
+    <string name="error_invalid_phone">Số điện thoại không hợp lệ</string>
+    <string name="error_password_short">Mật khẩu phải có ít nhất 8 ký tự</string>
+    <string name="error_password_mismatch">Mật khẩu không khớp</string>
+    <string name="error_email_exists">Email đã được đăng ký</string>
+    <string name="error_invalid_credentials">Email hoặc mật khẩu không đúng</string>
+    <string name="error_account_locked">Tài khoản bị khóa. Thử lại sau 5 phút</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Hồ sơ</string>
+    <string name="profile_edit">Chỉnh sửa hồ sơ</string>
+    <string name="profile_change_password">Đổi mật khẩu</string>
+    <string name="profile_old_password">Mật khẩu cũ</string>
+    <string name="profile_new_password">Mật khẩu mới</string>
+    <string name="profile_dark_mode">Chế độ tối</string>
+    <string name="profile_settings">Cài đặt</string>
+    <string name="profile_language">Ngôn ngữ</string>
+    <string name="profile_avatar">Ảnh đại diện</string>
+    <string name="profile_change_avatar">Đổi ảnh đại diện</string>
+    <string name="profile_about">Giới thiệu</string>
+    <string name="profile_updated">Cập nhật hồ sơ thành công</string>
+    <string name="profile_password_changed">Đổi mật khẩu thành công</string>
+
+    <!-- Expense/Income -->
+    <string name="expense_add">Thêm giao dịch</string>
+    <string name="expense_edit">Sửa giao dịch</string>
+    <string name="expense_delete">Xóa giao dịch</string>
+    <string name="expense_amount">Số tiền</string>
+    <string name="expense_category">Danh mục</string>
+    <string name="expense_date">Ngày</string>
+    <string name="expense_time">Giờ</string>
+    <string name="expense_description">Mô tả</string>
+    <string name="expense_receipt">Ảnh hóa đơn</string>
+    <string name="expense_added">Thêm giao dịch thành công</string>
+    <string name="expense_updated">Cập nhật giao dịch thành công</string>
+    <string name="expense_deleted">Đã xóa giao dịch</string>
+    <string name="expense_delete_confirm">Xóa giao dịch này?</string>
+    <string name="expense_total">Tổng Chi Tiêu</string>
+    <string name="expense_this_month">Tháng Này</string>
+    <string name="expense_undo">Hoàn tác</string>
+    <string name="expense_type_expense">Chi tiêu</string>
+    <string name="expense_type_income">Thu nhập</string>
+    <string name="income_total">Tổng thu nhập</string>
+    <string name="balance">Số dư</string>
+
+    <!-- Recurring -->
+    <string name="expense_type">Loại</string>
+    <string name="income_add">Thêm Thu Nhập</string>
+    <string name="recurring_enabled">Lặp lại</string>
+    <string name="recurring_period">Chu kỳ</string>
+    <string name="recurring_daily">Hàng ngày</string>
+    <string name="recurring_weekly">Hàng tuần</string>
+    <string name="recurring_monthly">Hàng tháng</string>
+
+    <!-- Currency -->
+    <string name="currency">Tiền tệ</string>
+    <string name="currency_vnd">Việt Nam Đồng (₫)</string>
+    <string name="currency_usd">Đô la Mỹ ($)</string>
+
+    <!-- Categories -->
+    <string name="category_food">Ăn uống</string>
+    <string name="category_transport">Di chuyển</string>
+    <string name="category_study">Học tập</string>
+    <string name="category_entertainment">Giải trí</string>
+    <string name="category_shopping">Mua sắm</string>
+    <string name="category_health">Y tế</string>
+    <string name="category_utilities">Tiện ích</string>
+    <string name="category_housing">Nhà ở</string>
+    <string name="category_personal">Cá nhân</string>
+    <string name="category_salary">Lương</string>
+    <string name="category_others">Khác</string>
+
+    <!-- Budget -->
+    <string name="budget_set">Đặt ngân sách</string>
+    <string name="budget_edit">Sửa ngân sách</string>
+    <string name="budget_amount">Số tiền ngân sách</string>
+    <string name="budget_period">Thời gian</string>
+    <string name="budget_period_week">Hàng tuần</string>
+    <string name="budget_period_month">Hàng tháng</string>
+    <string name="budget_remaining">Còn lại</string>
+    <string name="budget_spent">Đã chi</string>
+    <string name="budget_progress">Tiến Độ</string>
+    <string name="budget_alert">Cảnh Báo Ngân Sách</string>
+    <string name="budget_exceeded">Vượt Ngân Sách!</string>
+    <string name="budget_low">Cảnh Báo Ngân Sách Thấp</string>
+    <string name="budget_prediction">Dự Đoán</string>
+    <string name="budget_added">Đặt ngân sách thành công</string>
+    <string name="budget_updated">Cập nhật ngân sách thành công</string>
+
+    <!-- Report -->
+    <string name="report_title">Báo cáo</string>
+    <string name="report_generate">Tạo báo cáo</string>
+    <string name="report_export">Xuất báo cáo</string>
+    <string name="report_summary">Tóm tắt</string>
+    <string name="report_total_income">Tổng Thu Nhập</string>
+    <string name="report_total_expense">Tổng Chi Tiêu</string>
+    <string name="report_by_category">Theo Danh Mục</string>
+    <string name="report_date_range">Khoảng Thời Gian</string>
+    <string name="report_from">Từ</string>
+    <string name="report_to">Đến</string>
+    <string name="report_exported">Đã xuất báo cáo</string>
+    <string name="report_email_subject">Báo cáo chi tiêu - %s</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_greeting">Xin chào, %s!</string>
+    <string name="dashboard_total_spent">Tổng Chi Tiêu</string>
+    <string name="dashboard_budget_remaining">Ngân Sách Còn Lại</string>
+    <string name="dashboard_top_category">Danh Mục Hàng Đầu</string>
+    <string name="dashboard_quick_actions">Thao tác nhanh</string>
+
+    <!-- Search & Filter -->
+    <string name="search_hint">Tìm kiếm giao dịch…</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_category">Danh Mục</string>
+    <string name="filter_date_range">Khoảng Thời Gian</string>
+    <string name="filter_apply">Áp Dụng Lọc</string>
+    <string name="filter_reset">Đặt Lại</string>
+
+    <!-- Empty States -->
+    <string name="empty_expenses">Chưa có giao dịch</string>
+    <string name="empty_budgets">Chưa có ngân sách. Nhấn + để tạo!</string>
+    <string name="empty_search">Không tìm thấy kết quả</string>
+
+    <!-- Loading & Status -->
+    <string name="loading">Đang tải…</string>
+    <string name="refreshing">Đang làm mới…</string>
+    <string name="saving">Đang lưu…</string>
+    <string name="deleting">Đang xóa…</string>
+    <string name="exporting">Đang xuất…</string>
+
+    <!-- Success Messages -->
+    <string name="success_saved">Đã lưu thành công</string>
+    <string name="success_deleted">Đã xóa thành công</string>
+    <string name="success_updated">Đã cập nhật thành công</string>
+
+    <!-- Error Messages -->
+    <string name="error_generic">Đã xảy ra lỗi</string>
+    <string name="error_network">Lỗi mạng. Vui lòng kiểm tra kết nối của bạn</string>
+    <string name="error_database">Đã xảy ra lỗi cơ sở dữ liệu</string>
+    <string name="error_file_not_found">Không tìm thấy tệp</string>
+    <string name="error_permission_denied">Quyền bị từ chối</string>
+
+    <!-- Confirmation -->
+    <string name="confirm_delete_title">Xác Nhận Xóa</string>
+    <string name="confirm_delete_message">Bạn có chắc chắn muốn xóa mục này không?</string>
+    <string name="confirm_logout_title">Đăng xuất</string>
+    <string name="confirm_logout_message">Bạn có chắc muốn đăng xuất?</string>
+
+    <!-- Accessibility -->
+    <string name="content_description_icon">Biểu tượng</string>
+    <string name="content_description_avatar">Ảnh đại diện người dùng</string>
+    <string name="content_description_menu">Menu</string>
+    <string name="content_description_close">Đóng</string>
+    <string name="content_description_add">Thêm mục mới</string>
+    <string name="content_description_edit">Chỉnh sửa mục</string>
+    <string name="content_description_delete">Xóa mục</string>
+
+    <!-- About -->
+    <string name="about_version">Phiên bản %s</string>
+    <string name="about_description">CampusExpense Manager giúp sinh viên theo dõi chi phí và quản lý ngân sách hiệu quả.</string>
+    <string name="about_developer">Phát triển bởi Đội ngũ Campus</string>
+</resources>

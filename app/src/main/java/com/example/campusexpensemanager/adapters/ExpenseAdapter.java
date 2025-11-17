@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
+import com.example.campusexpensemanager.utils.CurrencyConverter;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
 
 import java.text.NumberFormat;
@@ -35,6 +36,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     private List<Expense> expensesFiltered;
     private DatabaseHelper dbHelper;
     private OnExpenseClickListener listener;
+    private CurrencyConverter currencyConverter;
 
     private NumberFormat currencyFormat;
     private SimpleDateFormat dateFormat;
@@ -49,6 +51,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         this.expensesFiltered = new ArrayList<>(expenses);
         this.listener = listener;
         this.dbHelper = DatabaseHelper.getInstance(context);
+        this.currencyConverter = new CurrencyConverter(context);
 
         this.currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         this.dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
@@ -73,9 +76,12 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             holder.tvCategoryName.setText(category.getName());
         }
 
-        // Format amount with +/- sign and color coding
-        String sign = expense.isIncome() ? "+" : "-";
-        String formattedAmount = sign + currencyFormat.format(expense.getAmount()) + "đ";
+        // Format amount with correct currency and +/- sign
+        String formattedAmount = currencyConverter.formatWithSign(
+                expense.getAmount(),
+                expense.getCurrencyId(),
+                expense.isIncome()
+        );
         holder.tvAmount.setText(formattedAmount);
 
         // Color coding based on type
