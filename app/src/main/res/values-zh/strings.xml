@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">校园支出管理器</string>
+
+    <!-- Common Actions -->
+    <string name="action_save">保存</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_delete">删除</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_add">添加</string>
+    <string name="action_search">搜索</string>
+    <string name="action_filter">筛选</string>
+    <string name="action_export">导出</string>
+    <string name="action_share">分享</string>
+    <string name="action_back">返回</string>
+    <string name="action_done">完成</string>
+    <string name="action_ok">确定</string>
+    <string name="action_yes">是</string>
+    <string name="action_no">否</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">主页</string>
+    <string name="nav_expenses">交易</string>
+    <string name="nav_profile">个人资料</string>
+
+    <!-- Authentication -->
+    <string name="auth_login">登录</string>
+    <string name="auth_register">注册</string>
+    <string name="auth_logout">退出登录</string>
+    <string name="auth_email">电子邮箱</string>
+    <string name="auth_password">密码</string>
+    <string name="auth_confirm_password">确认密码</string>
+    <string name="auth_name">姓名</string>
+    <string name="auth_address">地址</string>
+    <string name="auth_phone">电话号码</string>
+    <string name="auth_remember_me">记住我</string>
+    <string name="auth_forgot_password">忘记密码？</string>
+    <string name="auth_no_account">没有账户？注册</string>
+    <string name="auth_have_account">已有账户？登录</string>
+    <string name="auth_sign_in">登录</string>
+    <string name="auth_sign_up">注册</string>
+
+    <!-- Validation -->
+    <string name="error_empty_field">此字段为必填</string>
+    <string name="error_invalid_email">无效的电子邮箱</string>
+    <string name="error_invalid_phone">无效的电话号码</string>
+    <string name="error_password_short">密码必须至少8个字符</string>
+    <string name="error_password_mismatch">密码不匹配</string>
+    <string name="error_email_exists">电子邮箱已被注册</string>
+    <string name="error_invalid_credentials">电子邮箱或密码错误</string>
+    <string name="error_account_locked">账户已锁定。5分钟后重试</string>
+
+    <!-- Profile -->
+    <string name="profile_title">个人资料</string>
+    <string name="profile_edit">编辑个人资料</string>
+    <string name="profile_change_password">更改密码</string>
+    <string name="profile_old_password">旧密码</string>
+    <string name="profile_new_password">新密码</string>
+    <string name="profile_dark_mode">深色模式</string>
+    <string name="profile_settings">设置</string>
+    <string name="profile_language">语言</string>
+    <string name="profile_avatar">头像</string>
+    <string name="profile_change_avatar">更改头像</string>
+    <string name="profile_about">关于</string>
+    <string name="profile_updated">个人资料更新成功</string>
+    <string name="profile_password_changed">密码更改成功</string>
+
+    <!-- Expense/Income -->
+    <string name="expense_add">添加交易</string>
+    <string name="expense_edit">编辑交易</string>
+    <string name="expense_delete">删除交易</string>
+    <string name="expense_amount">金额</string>
+    <string name="expense_category">类别</string>
+    <string name="expense_date">日期</string>
+    <string name="expense_time">时间</string>
+    <string name="expense_description">描述</string>
+    <string name="expense_receipt">收据照片</string>
+    <string name="expense_added">交易添加成功</string>
+    <string name="expense_updated">交易更新成功</string>
+    <string name="expense_deleted">交易已删除</string>
+    <string name="expense_delete_confirm">删除此交易？</string>
+    <string name="expense_total">总支出</string>
+    <string name="expense_this_month">本月</string>
+    <string name="expense_undo">撤销</string>
+    <string name="expense_type_expense">支出</string>
+    <string name="expense_type_income">收入</string>
+    <string name="income_total">总收入</string>
+    <string name="balance">余额</string>
+
+    <!-- Recurring -->
+    <string name="expense_type">类型</string>
+    <string name="income_add">添加收入</string>
+    <string name="recurring_enabled">重复</string>
+    <string name="recurring_period">周期</string>
+    <string name="recurring_daily">每天</string>
+    <string name="recurring_weekly">每周</string>
+    <string name="recurring_monthly">每月</string>
+
+    <!-- Currency -->
+    <string name="currency">货币</string>
+    <string name="currency_vnd">越南盾 (₫)</string>
+    <string name="currency_usd">美元 ($)</string>
+
+    <!-- Categories -->
+    <string name="category_food">餐饮</string>
+    <string name="category_transport">交通</string>
+    <string name="category_study">学习</string>
+    <string name="category_entertainment">娱乐</string>
+    <string name="category_shopping">购物</string>
+    <string name="category_health">医疗</string>
+    <string name="category_utilities">公用事业</string>
+    <string name="category_housing">住房</string>
+    <string name="category_personal">个人护理</string>
+    <string name="category_salary">工资</string>
+    <string name="category_others">其他</string>
+
+    <!-- Budget -->
+    <string name="budget_set">设置预算</string>
+    <string name="budget_edit">编辑预算</string>
+    <string name="budget_amount">预算金额</string>
+    <string name="budget_period">期间</string>
+    <string name="budget_period_week">每周</string>
+    <string name="budget_period_month">每月</string>
+    <string name="budget_remaining">剩余</string>
+    <string name="budget_spent">已花费</string>
+    <string name="budget_progress">进度</string>
+    <string name="budget_alert">预算警报</string>
+    <string name="budget_exceeded">预算超支！</string>
+    <string name="budget_low">低预算警告</string>
+    <string name="budget_prediction">预测</string>
+    <string name="budget_added">预算设置成功</string>
+    <string name="budget_updated">预算更新成功</string>
+
+    <!-- Report -->
+    <string name="report_title">报告</string>
+    <string name="report_generate">生成报告</string>
+    <string name="report_export">导出报告</string>
+    <string name="report_summary">摘要</string>
+    <string name="report_total_income">总收入</string>
+    <string name="report_total_expense">总支出</string>
+    <string name="report_by_category">按类别</string>
+    <string name="report_date_range">日期范围</string>
+    <string name="report_from">从</string>
+    <string name="report_to">到</string>
+    <string name="report_exported">报告已导出</string>
+    <string name="report_email_subject">支出报告 - %s</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_greeting">你好，%s！</string>
+    <string name="dashboard_total_spent">总支出</string>
+    <string name="dashboard_budget_remaining">剩余预算</string>
+    <string name="dashboard_top_category">顶级类别</string>
+    <string name="dashboard_quick_actions">快速操作</string>
+
+    <!-- Search & Filter -->
+    <string name="search_hint">搜索交易…</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_category">类别</string>
+    <string name="filter_date_range">日期范围</string>
+    <string name="filter_apply">应用筛选</string>
+    <string name="filter_reset">重置</string>
+
+    <!-- Empty States -->
+    <string name="empty_expenses">暂无交易</string>
+    <string name="empty_budgets">暂无预算。点击+创建！</string>
+    <string name="empty_search">未找到结果</string>
+
+    <!-- Loading & Status -->
+    <string name="loading">加载中…</string>
+    <string name="refreshing">正在刷新…</string>
+    <string name="saving">正在保存…</string>
+    <string name="deleting">正在删除…</string>
+    <string name="exporting">正在导出…</string>
+
+    <!-- Success Messages -->
+    <string name="success_saved">保存成功</string>
+    <string name="success_deleted">删除成功</string>
+    <string name="success_updated">更新成功</string>
+
+    <!-- Error Messages -->
+    <string name="error_generic">出了点问题</string>
+    <string name="error_network">网络错误。请检查您的连接</string>
+    <string name="error_database">发生数据库错误</string>
+    <string name="error_file_not_found">文件未找到</string>
+    <string name="error_permission_denied">权限被拒绝</string>
+
+    <!-- Confirmation -->
+    <string name="confirm_delete_title">确认删除</string>
+    <string name="confirm_delete_message">您确定要删除此项目吗？</string>
+    <string name="confirm_logout_title">退出登录</string>
+    <string name="confirm_logout_message">您确定要退出登录吗？</string>
+
+    <!-- Accessibility -->
+    <string name="content_description_icon">图标</string>
+    <string name="content_description_avatar">用户头像</string>
+    <string name="content_description_menu">菜单</string>
+    <string name="content_description_close">关闭</string>
+    <string name="content_description_add">添加新项目</string>
+    <string name="content_description_edit">编辑项目</string>
+    <string name="content_description_delete">删除项目</string>
+
+    <!-- About -->
+    <string name="about_version">版本 %s</string>
+    <string name="about_description">CampusExpense Manager 帮助学生有效跟踪支出并管理预算。</string>
+    <string name="about_developer">由 Campus Team 开发</string>
+</resources>

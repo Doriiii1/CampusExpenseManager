@@ -9,6 +9,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,6 +20,8 @@ import com.example.campusexpensemanager.adapters.ExpenseAdapter;
 import com.example.campusexpensemanager.models.Expense;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.text.NumberFormat;
@@ -26,14 +30,19 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * ExpenseListActivity displays all user expenses in RecyclerView
- * Features: Search, filter, monthly summary, add new expense
+ * ExpenseListActivity - Enhanced Sprint 6
+ * NEW: Type filter (All/Income/Expense), Auto-refresh on add
  */
 public class ExpenseListActivity extends AppCompatActivity implements ExpenseAdapter.OnExpenseClickListener {
 
     private RecyclerView recyclerView;
     private ExpenseAdapter adapter;
     private EditText etSearch;
+
+    // Filter chips
+    private ChipGroup chipGroupFilter;
+    private Chip chipAll, chipIncome, chipExpense;
+
     private TextView tvMonthlyTotal, tvExpenseCount, tvEmptyState;
     private FloatingActionButton fabAddExpense;
 
@@ -41,44 +50,37 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
     private SessionManager sessionManager;
 
     private List<Expense> expenses;
+    private int currentFilter = -1; // -1=All, 0=Expense, 1=Income
+
+    // Activity Result Launcher for Add/Edit
+    private ActivityResultLauncher<Intent> addExpenseLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_expense_list);
 
-        // Enable back button in action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Expenses");
+            getSupportActionBar().setTitle("Giao dịch");
         }
 
-        // Initialize helpers
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = new SessionManager(this);
 
-        // Check authentication
         if (!sessionManager.isLoggedIn()) {
             finish();
             return;
         }
 
-        // Initialize views
         initializeViews();
-
-        // Setup RecyclerView
         setupRecyclerView();
-
-        // Setup search
         setupSearch();
-
-        // Setup click listeners
+        setupFilterChips();
         setupClickListeners();
-
-        // Load expenses
+        setupActivityLaunchers();
         loadExpenses();
 
-        // Setup back pressed callback
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -89,7 +91,6 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
 
     @Override
     public boolean onSupportNavigateUp() {
-        // Handle back button in action bar
         onBackPressed();
         return true;
     }
@@ -97,6 +98,12 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
     private void initializeViews() {
         recyclerView = findViewById(R.id.recycler_expenses);
         etSearch = findViewById(R.id.et_search);
+
+        chipGroupFilter = findViewById(R.id.chip_group_filter);
+        chipAll = findViewById(R.id.chip_all);
+        chipIncome = findViewById(R.id.chip_income);
+        chipExpense = findViewById(R.id.chip_expense);
+
         tvMonthlyTotal = findViewById(R.id.tv_monthly_total);
         tvExpenseCount = findViewById(R.id.tv_expense_count);
         tvEmptyState = findViewById(R.id.tv_empty_state);
@@ -125,58 +132,89 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
         });
     }
 
+    private void setupFilterChips() {
+        chipGroupFilter.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.chip_all) {
+                currentFilter = -1;
+            } else if (checkedId == R.id.chip_income) {
+                currentFilter = Expense.TYPE_INCOME;
+            } else if (checkedId == R.id.chip_expense) {
+                currentFilter = Expense.TYPE_EXPENSE;
+            }
+            applyTypeFilter();
+        });
+    }
+
     private void setupClickListeners() {
-        // Add new expense
         fabAddExpense.setOnClickListener(v -> {
             Intent intent = new Intent(ExpenseListActivity.this, AddExpenseActivity.class);
-            startActivity(intent);
+            addExpenseLauncher.launch(intent);
         });
 
-        // Animate FAB on scroll
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0) {
-                    // Scrolling down - hide FAB
                     fabAddExpense.hide();
                 } else if (dy < 0) {
-                    // Scrolling up - show FAB
                     fabAddExpense.show();
                 }
             }
         });
     }
 
-    /**
-     * Load expenses from database
-     */
+    private void setupActivityLaunchers() {
+        // Launcher for Add Expense - Auto refresh on result
+        addExpenseLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        // Reload expenses when returning from Add
+                        loadExpenses();
+                    }
+                }
+        );
+    }
+
     private void loadExpenses() {
         int userId = sessionManager.getUserId();
         expenses = dbHelper.getExpensesByUser(userId);
 
         if (expenses.isEmpty()) {
-            // Show empty state
             recyclerView.setVisibility(View.GONE);
             tvEmptyState.setVisibility(View.VISIBLE);
         } else {
-            // Show list
             recyclerView.setVisibility(View.VISIBLE);
             tvEmptyState.setVisibility(View.GONE);
 
-            // Create adapter
             adapter = new ExpenseAdapter(this, expenses, this);
             recyclerView.setAdapter(adapter);
+
+            // Apply current filter
+            applyTypeFilter();
         }
 
-        // Calculate and display summary
         updateSummary();
     }
 
-    /**
-     * Update monthly total and expense count
-     */
+    private void applyTypeFilter() {
+        if (adapter == null) return;
+
+        List<Expense> filtered = new java.util.ArrayList<>();
+
+        for (Expense expense : expenses) {
+            if (currentFilter == -1) {
+                filtered.add(expense); // Show all
+            } else if (expense.getType() == currentFilter) {
+                filtered.add(expense); // Show matching type
+            }
+        }
+
+        adapter.updateExpenses(filtered);
+        updateSummary();
+    }
+
     private void updateSummary() {
-        // Get current month's expenses
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -187,40 +225,51 @@ public class ExpenseListActivity extends AppCompatActivity implements ExpenseAda
         calendar.add(Calendar.MONTH, 1);
         long monthEnd = calendar.getTimeInMillis();
 
-        // Calculate total for this month
         double monthlyTotal = 0;
         int monthlyCount = 0;
 
         for (Expense expense : expenses) {
             if (expense.getDate() >= monthStart && expense.getDate() < monthEnd) {
-                monthlyTotal += expense.getAmount();
-                monthlyCount++;
+                // Apply filter
+                if (currentFilter == -1 || expense.getType() == currentFilter) {
+                    if (expense.isExpense()) {
+                        monthlyTotal += expense.getAmount();
+                    }
+                    monthlyCount++;
+                }
             }
         }
 
-        // Format and display
         NumberFormat currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         String formattedTotal = currencyFormat.format(monthlyTotal) + "đ";
 
-        tvMonthlyTotal.setText("Total This Month: " + formattedTotal);
-        tvExpenseCount.setText(monthlyCount + " expenses this month | " +
-                expenses.size() + " total");
+        String filterText = "";
+        if (currentFilter == Expense.TYPE_INCOME) {
+            filterText = " (Thu nhập)";
+        } else if (currentFilter == Expense.TYPE_EXPENSE) {
+            filterText = " (Chi tiêu)";
+        }
+
+        tvMonthlyTotal.setText("Tổng tháng này" + filterText + ": " + formattedTotal);
+        tvExpenseCount.setText(monthlyCount + " giao dịch tháng này | " +
+                expenses.size() + " tổng cộng");
     }
 
-    /**
-     * Handle expense item click
-     */
     @Override
     public void onExpenseClick(Expense expense) {
-        // Navigate to edit activity
         Intent intent = new Intent(ExpenseListActivity.this, EditExpenseActivity.class);
         intent.putExtra("expense_id", expense.getId());
-        startActivity(intent);
+        addExpenseLauncher.launch(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadExpenses();
     }
 
     @Override
     public void onBackPressed() {
-        // Return to MainActivity instead of reloading
         super.onBackPressed();
         finish();
     }

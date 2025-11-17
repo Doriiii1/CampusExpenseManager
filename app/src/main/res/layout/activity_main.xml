@@ -6,8 +6,6 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
     tools:context=".activities.MainActivity">
-
-    <!-- Content Container -->
     <ScrollView
         android:id="@+id/content_container"
         android:layout_width="0dp"
@@ -17,21 +15,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="@dimen/spacing_medium">
-
-            <!-- Dashboard Content -->
             <LinearLayout
                 android:id="@+id/layout_dashboard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:visibility="visible">
-
                 <!-- Greeting -->
                 <TextView
                     android:id="@+id/tv_greeting"
@@ -41,15 +35,47 @@
                     android:textAppearance="?attr/textAppearanceHeadline2"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
-
-                <!-- Balance Summary Cards (3 Cards) -->
+                <!-- NEW LAYOUT: Balance Card on Top (Full Width) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_balance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_medium"
+                    app:cardCornerRadius="@dimen/corner_radius_medium"
+                    app:cardElevation="@dimen/elevation_default"
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_large"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tv_balance_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📊 Balance"
+                            android:textAppearance="?attr/textAppearanceBody1"
+                            android:textColor="?attr/colorOnPrimaryContainer" />
+                        <TextView
+                            android:id="@+id/tv_balance_amount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_small"
+                            android:text="0đ"
+                            android:textAppearance="?attr/textAppearanceHeadline1"
+                            android:textColor="?attr/colorOnPrimaryContainer"
+                            android:textStyle="bold"
+                            android:textSize="32sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <!-- Income & Expense Cards (2 columns below Balance) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:orientation="horizontal"
-                    android:weightSum="3">
-
+                    android:weightSum="2">
                     <!-- Income Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/card_income"
@@ -60,22 +86,25 @@
                         app:cardCornerRadius="@dimen/corner_radius_medium"
                         app:cardElevation="@dimen/elevation_default"
                         app:cardBackgroundColor="@color/light_surface">
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:padding="@dimen/spacing_medium"
                             android:gravity="center">
-
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="💰"
+                                android:textSize="32sp" />
                             <TextView
                                 android:id="@+id/tv_income_label"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="💰 Thu"
+                                android:layout_marginTop="@dimen/spacing_tiny"
+                                android:text="Income"
                                 android:textAppearance="?attr/textAppearanceBody2"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
-
                             <TextView
                                 android:id="@+id/tv_income_amount"
                                 android:layout_width="wrap_content"
@@ -87,7 +116,6 @@
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                     <!-- Expense Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/card_expense"
@@ -95,26 +123,28 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/spacing_small"
-                        android:layout_marginEnd="@dimen/spacing_small"
                         app:cardCornerRadius="@dimen/corner_radius_medium"
                         app:cardElevation="@dimen/elevation_default"
                         app:cardBackgroundColor="@color/light_surface">
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:padding="@dimen/spacing_medium"
                             android:gravity="center">
-
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="💸"
+                                android:textSize="32sp" />
                             <TextView
                                 android:id="@+id/tv_expense_label"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="💸 Chi"
+                                android:layout_marginTop="@dimen/spacing_tiny"
+                                android:text="Expense"
                                 android:textAppearance="?attr/textAppearanceBody2"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
-
                             <TextView
                                 android:id="@+id/tv_expense_amount"
                                 android:layout_width="wrap_content"
@@ -126,47 +156,7 @@
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Balance Card -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/card_balance"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="@dimen/spacing_small"
-                        app:cardCornerRadius="@dimen/corner_radius_medium"
-                        app:cardElevation="@dimen/elevation_default"
-                        app:cardBackgroundColor="@color/light_surface">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="@dimen/spacing_medium"
-                            android:gravity="center">
-
-                            <TextView
-                                android:id="@+id/tv_balance_label"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📊 Số dư"
-                                android:textAppearance="?attr/textAppearanceBody2"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
-
-                            <TextView
-                                android:id="@+id/tv_balance_amount"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/spacing_tiny"
-                                android:text="0đ"
-                                android:textAppearance="?attr/textAppearanceBody1"
-                                android:textColor="@color/success"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
                 </LinearLayout>
-
                 <!-- Top Category Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
@@ -174,13 +164,11 @@
                     android:layout_marginTop="@dimen/spacing_medium"
                     app:cardCornerRadius="@dimen/corner_radius_medium"
                     app:cardElevation="@dimen/elevation_default">
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="@dimen/spacing_medium">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -188,7 +176,6 @@
                             android:textAppearance="?attr/textAppearanceBody1"
                             android:textColor="?attr/colorPrimary"
                             android:textStyle="bold" />
-
                         <TextView
                             android:id="@+id/tv_top_category"
                             android:layout_width="wrap_content"
@@ -198,7 +185,6 @@
                             android:textAppearance="?attr/textAppearanceBody2" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
-
                 <!-- Quick Actions -->
                 <TextView
                     android:layout_width="wrap_content"
@@ -208,13 +194,11 @@
                     android:textAppearance="?attr/textAppearanceBody1"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
                     android:orientation="horizontal">
-
                     <Button
                         android:id="@+id/btn_add_expense"
                         style="@style/Widget.App.Button.Outlined"
@@ -222,8 +206,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="Add Expense" />
-
+                        android:text="Add Transaction" />
                     <Button
                         android:id="@+id/btn_view_budget"
                         style="@style/Widget.App.Button.Outlined"
@@ -233,7 +216,6 @@
                         android:layout_weight="1"
                         android:text="View Budget" />
                 </LinearLayout>
-
                 <Button
                     android:id="@+id/btn_generate_report"
                     style="@style/Widget.App.Button.Outlined"
@@ -242,11 +224,8 @@
                     android:layout_marginTop="@dimen/spacing_small"
                     android:text="Generate Report" />
             </LinearLayout>
-
         </LinearLayout>
     </ScrollView>
-
-    <!-- Bottom Navigation View -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="0dp"
@@ -260,5 +239,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_navigation_menu" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
