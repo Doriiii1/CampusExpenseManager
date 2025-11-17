@@ -24,12 +24,7 @@
     <string name="nav_expenses">Expenses</string>
     <string name="nav_profile">Profile</string>
 
-    <!-- Placeholder Texts (Sprint 1) -->
-    <string name="dashboard_placeholder">Dashboard\n\nComing Soon:\n• Total Spent Summary\n• Budget Overview\n• Quick Actions</string>
-    <string name="expenses_placeholder">Expenses\n\nComing Soon:\n• Add New Expense\n• View Expense List\n• Edit/Delete Expenses</string>
-    <string name="profile_placeholder">Profile\n\nComing Soon:\n• View Profile Info\n• Edit Profile\n• Dark Mode Toggle\n• Logout</string>
-
-    <!-- Authentication (Sprint 2) -->
+    <!-- Authentication -->
     <string name="auth_login">Login</string>
     <string name="auth_register">Register</string>
     <string name="auth_logout">Logout</string>
@@ -56,7 +51,7 @@
     <string name="error_invalid_credentials">Invalid email or password</string>
     <string name="error_account_locked">Account locked. Try again in 5 minutes</string>
 
-    <!-- Profile (Sprint 2) -->
+    <!-- Profile -->
     <string name="profile_title">Profile</string>
     <string name="profile_edit">Edit Profile</string>
     <string name="profile_change_password">Change Password</string>
@@ -68,10 +63,10 @@
     <string name="profile_updated">Profile updated successfully</string>
     <string name="profile_password_changed">Password changed successfully</string>
 
-    <!-- Expense (Sprint 3) -->
-    <string name="expense_add">Add Expense</string>
-    <string name="expense_edit">Edit Expense</string>
-    <string name="expense_delete">Delete Expense</string>
+    <!-- Expense (Sprint 5 Enhanced) -->
+    <string name="expense_add">Add Transaction</string>
+    <string name="expense_edit">Edit Transaction</string>
+    <string name="expense_delete">Delete Transaction</string>
     <string name="expense_amount">Amount</string>
     <string name="expense_category">Category</string>
     <string name="expense_date">Date</string>
@@ -80,13 +75,33 @@
     <string name="expense_receipt">Receipt Photo</string>
     <string name="expense_total">Total Spent</string>
     <string name="expense_this_month">This Month</string>
-    <string name="expense_added">Expense added successfully</string>
-    <string name="expense_updated">Expense updated successfully</string>
-    <string name="expense_deleted">Expense deleted</string>
-    <string name="expense_delete_confirm">Delete this expense?</string>
+    <string name="expense_added">Transaction added successfully</string>
+    <string name="expense_updated">Transaction updated successfully</string>
+    <string name="expense_deleted">Transaction deleted</string>
+    <string name="expense_delete_confirm">Delete this transaction?</string>
     <string name="expense_undo">Undo</string>
 
-    <!-- Categories (Pre-populated) -->
+    <!-- NEW: Income/Expense (Sprint 5) -->
+    <string name="expense_type">Type</string>
+    <string name="expense_type_expense">Expense</string>
+    <string name="expense_type_income">Income</string>
+    <string name="income_add">Add Income</string>
+    <string name="income_total">Total Income</string>
+    <string name="balance">Balance</string>
+
+    <!-- NEW: Recurring (Sprint 5) -->
+    <string name="recurring_enabled">Recurring</string>
+    <string name="recurring_period">Repeat</string>
+    <string name="recurring_daily">Daily</string>
+    <string name="recurring_weekly">Weekly</string>
+    <string name="recurring_monthly">Monthly</string>
+
+    <!-- NEW: Currency (Sprint 5) -->
+    <string name="currency">Currency</string>
+    <string name="currency_vnd">Vietnamese Dong (₫)</string>
+    <string name="currency_usd">US Dollar ($)</string>
+
+    <!-- Categories -->
     <string name="category_food">Food &amp; Dining</string>
     <string name="category_transport">Transportation</string>
     <string name="category_study">Study &amp; Books</string>
@@ -96,9 +111,10 @@
     <string name="category_utilities">Utilities</string>
     <string name="category_housing">Housing</string>
     <string name="category_personal">Personal Care</string>
+    <string name="category_salary">Salary</string>
     <string name="category_others">Others</string>
 
-    <!-- Budget (Sprint 4) -->
+    <!-- Budget -->
     <string name="budget_set">Set Budget</string>
     <string name="budget_edit">Edit Budget</string>
     <string name="budget_amount">Budget Amount</string>
@@ -115,7 +131,7 @@
     <string name="budget_added">Budget set successfully</string>
     <string name="budget_updated">Budget updated successfully</string>
 
-    <!-- Report (Sprint 4) -->
+    <!-- Report -->
     <string name="report_title">Reports</string>
     <string name="report_generate">Generate Report</string>
     <string name="report_export">Export Report</string>
@@ -136,16 +152,6 @@
     <string name="dashboard_top_category">Top Category</string>
     <string name="dashboard_quick_actions">Quick Actions</string>
 
-    <!-- Currency -->
-    <string name="currency_vnd">VND</string>
-    <string name="currency_format">%,.0f đ</string>
-    <string name="currency_format_short">%,.0fđ</string>
-
-    <!-- Date/Time Formats -->
-    <string name="date_format">dd MMM yyyy</string>
-    <string name="time_format">HH:mm</string>
-    <string name="datetime_format">dd MMM yyyy, HH:mm</string>
-
     <!-- Search & Filter -->
     <string name="search_hint">Search expenses…</string>
     <string name="filter_all">All</string>
@@ -155,7 +161,7 @@
     <string name="filter_reset">Reset</string>
 
     <!-- Empty States -->
-    <string name="empty_expenses">No expenses yet</string>
+    <string name="empty_expenses">No transactions yet</string>
     <string name="empty_budgets">No budgets set. Tap + to create one!</string>
     <string name="empty_search">No results found</string>
 

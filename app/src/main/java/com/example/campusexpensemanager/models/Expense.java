@@ -1,13 +1,18 @@
 package com.example.campusexpensemanager.models;
 
 /**
- * Expense model class representing a single expense/income transaction
- * Links to User, Category, and Currency tables
+ * Expense model - Enhanced for Sprint 5
+ * NEW: Recurring expenses, Income tracking
  */
 public class Expense {
     // Transaction types
     public static final int TYPE_EXPENSE = 0; // Chi tiêu (red)
     public static final int TYPE_INCOME = 1;  // Thu nhập (green)
+
+    // Recurrence periods
+    public static final String PERIOD_DAILY = "daily";
+    public static final String PERIOD_WEEKLY = "weekly";
+    public static final String PERIOD_MONTHLY = "monthly";
 
     private int id;
     private int userId;
@@ -20,14 +25,21 @@ public class Expense {
     private long createdAt;
     private int type; // 0 = expense, 1 = income
 
+    // NEW: Recurring fields
+    private boolean isRecurring;
+    private String recurrencePeriod; // daily/weekly/monthly
+    private long nextOccurrenceDate; // Unix timestamp
+
     // Default constructor
     public Expense() {
         this.createdAt = System.currentTimeMillis();
         this.date = System.currentTimeMillis();
-        this.type = TYPE_EXPENSE; // Default to expense
+        this.type = TYPE_EXPENSE;
+        this.currencyId = 1; // Default VND
+        this.isRecurring = false;
     }
 
-    // Constructor with essential fields (VND default, currencyId=1)
+    // Constructor with essential fields
     public Expense(int userId, int categoryId, double amount, long date, String description) {
         this.userId = userId;
         this.categoryId = categoryId;
@@ -36,7 +48,8 @@ public class Expense {
         this.date = date;
         this.description = description;
         this.createdAt = System.currentTimeMillis();
-        this.type = TYPE_EXPENSE; // Default to expense
+        this.type = TYPE_EXPENSE;
+        this.isRecurring = false;
     }
 
     // Constructor with type
@@ -49,24 +62,10 @@ public class Expense {
         this.description = description;
         this.createdAt = System.currentTimeMillis();
         this.type = type;
+        this.isRecurring = false;
     }
 
-    // Full constructor
-    public Expense(int id, int userId, int categoryId, int currencyId, double amount,
-                   long date, String description, String receiptPath, long createdAt) {
-        this.id = id;
-        this.userId = userId;
-        this.categoryId = categoryId;
-        this.currencyId = currencyId;
-        this.amount = amount;
-        this.date = date;
-        this.description = description;
-        this.receiptPath = receiptPath;
-        this.createdAt = createdAt;
-        this.type = TYPE_EXPENSE; // Default
-    }
-
-    // Full constructor with type
+    // Full constructor (from database)
     public Expense(int id, int userId, int categoryId, int currencyId, double amount,
                    long date, String description, String receiptPath, long createdAt, int type) {
         this.id = id;
@@ -79,6 +78,7 @@ public class Expense {
         this.receiptPath = receiptPath;
         this.createdAt = createdAt;
         this.type = type;
+        this.isRecurring = false;
     }
 
     // Getters and Setters
@@ -162,12 +162,69 @@ public class Expense {
         this.type = type;
     }
 
+    // NEW: Recurring getters/setters
+    public boolean isRecurring() {
+        return isRecurring;
+    }
+
+    public void setIsRecurring(boolean isRecurring) {
+        this.isRecurring = isRecurring;
+    }
+
+    public String getRecurrencePeriod() {
+        return recurrencePeriod;
+    }
+
+    public void setRecurrencePeriod(String recurrencePeriod) {
+        this.recurrencePeriod = recurrencePeriod;
+    }
+
+    public long getNextOccurrenceDate() {
+        return nextOccurrenceDate;
+    }
+
+    public void setNextOccurrenceDate(long nextOccurrenceDate) {
+        this.nextOccurrenceDate = nextOccurrenceDate;
+    }
+
+    // Helper methods
     public boolean isIncome() {
         return type == TYPE_INCOME;
     }
 
     public boolean isExpense() {
         return type == TYPE_EXPENSE;
+    }
+
+    /**
+     * Get formatted amount with sign
+     * @return "+1,000đ" for income, "-500đ" for expense
+     */
+    public String getFormattedAmount() {
+        java.text.NumberFormat format = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+        String amountStr = format.format(amount) + "đ";
+
+        if (isIncome()) {
+            return "+" + amountStr;
+        } else {
+            return "-" + amountStr;
+        }
+    }
+
+    /**
+     * Get color resource based on type
+     * @return Color res ID
+     */
+    public int getAmountColor(android.content.Context context) {
+        if (isIncome()) {
+            return context.getResources().getColor(
+                    context.getResources().getIdentifier("success", "color", context.getPackageName())
+            );
+        } else {
+            return context.getResources().getColor(
+                    context.getResources().getIdentifier("error", "color", context.getPackageName())
+            );
+        }
     }
 
     @Override
@@ -178,8 +235,9 @@ public class Expense {
                 ", categoryId=" + categoryId +
                 ", amount=" + amount +
                 ", type=" + (type == TYPE_INCOME ? "INCOME" : "EXPENSE") +
+                ", recurring=" + isRecurring +
+                ", period=" + recurrencePeriod +
                 ", date=" + date +
-                ", description='" + description + '\'' +
                 '}';
     }
 }

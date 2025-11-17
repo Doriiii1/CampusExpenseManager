@@ -25,6 +25,33 @@
                 android:textColor="?attr/colorPrimary"
                 android:textStyle="bold" />
 
+            <!-- Type Toggle -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_medium"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_expense"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="💸 Chi tiêu"
+                    android:textAlignment="center" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_income"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="💰 Thu nhập"
+                    android:textAlignment="center" />
+            </com.google.android.material.chip.ChipGroup>
+
             <!-- Form Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -39,25 +66,39 @@
                     android:orientation="vertical"
                     android:padding="@dimen/spacing_medium">
 
-                    <!-- Amount -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/til_amount"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    <!-- Amount + Currency -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/expense_amount"
-                        app:prefixText="₫ "
-                        app:startIconDrawable="@android:drawable/ic_dialog_info">
+                        android:orientation="horizontal">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/et_amount"
-                            android:layout_width="match_parent"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/til_amount"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:inputType="numberDecimal"
-                            android:maxLines="1" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/spacing_small"
+                            android:hint="@string/expense_amount"
+                            app:startIconDrawable="@android:drawable/ic_dialog_info">
 
-                    <!-- Category Spinner -->
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/et_amount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="numberDecimal"
+                                android:maxLines="1" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <Spinner
+                            android:id="@+id/spinner_currency"
+                            android:layout_width="100dp"
+                            android:layout_height="@dimen/input_field_height"
+                            android:background="@android:drawable/edit_text"
+                            android:padding="@dimen/spacing_small" />
+                    </LinearLayout>
+
+                    <!-- Category -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -101,6 +142,24 @@
                             android:drawableLeft="@android:drawable/ic_menu_recent_history"
                             android:text="@string/expense_time" />
                     </LinearLayout>
+
+                    <!-- Recurring -->
+                    <CheckBox
+                        android:id="@+id/cb_recurring"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_medium"
+                        android:text="🔁 Lặp lại tự động"
+                        android:textAppearance="?attr/textAppearanceBody1" />
+
+                    <Spinner
+                        android:id="@+id/spinner_recurrence_period"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/input_field_height"
+                        android:layout_marginTop="@dimen/spacing_small"
+                        android:background="@android:drawable/edit_text"
+                        android:padding="@dimen/spacing_small"
+                        android:visibility="gone" />
 
                     <!-- Description -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -149,7 +208,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Floating Action Button (Update) -->
+    <!-- FAB Update -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_update"
         android:layout_width="wrap_content"

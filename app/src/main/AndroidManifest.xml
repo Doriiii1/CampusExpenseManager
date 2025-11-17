@@ -86,7 +86,18 @@
                 android:resource="@xml/file_provider_paths" />
         </provider>
 
+        <!-- ✅ NEW: WorkManager initialization (Sprint 5) -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
     </application>
 
 </manifest>
-<!-- Compare this snippet from app/src/main/res/layout/activity_add_expense.xml: -->

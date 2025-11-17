@@ -8,6 +8,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.models.Budget;
@@ -15,14 +18,19 @@ import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
+import com.example.campusexpensemanager.workers.RecurringExpenseWorker;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.card.MaterialCardView;
 
+import java.text.NumberFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
- * MainActivity serves as the main dashboard with bottom navigation
- * Manages navigation between Dashboard, Expenses, and Profile tabs
+ * MainActivity - Enhanced Dashboard with Income/Expense/Balance cards
+ * Sprint 5: Shows 3-card balance summary
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -30,11 +38,18 @@ public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigation;
     private LinearLayout layoutDashboard;
-    private TextView tvGreeting, tvMonthlyTotal, tvBudgetRemaining, tvTopCategory;
+
+    // Balance summary cards
+    private MaterialCardView cardIncome, cardExpense, cardBalance;
+    private TextView tvIncomeAmount, tvExpenseAmount, tvBalanceAmount;
+    private TextView tvIncomeLabel, tvExpenseLabel, tvBalanceLabel;
+
+    private TextView tvGreeting, tvTopCategory;
     private Button btnAddExpense, btnViewBudget, btnGenerateReport;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
+    private NumberFormat currencyFormat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +66,9 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Initialize database
+        // Initialize database and formatters
         dbHelper = DatabaseHelper.getInstance(this);
+        currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
 
         // Initialize views
         initializeViews();
@@ -60,13 +76,13 @@ public class MainActivity extends AppCompatActivity {
         // Setup bottom navigation
         setupBottomNavigation();
 
+        // Setup recurring expense worker
+        setupRecurringWorker();
+
         // Show default tab (Dashboard)
         showDashboard();
     }
 
-    /**
-     * Navigate to LoginActivity if not authenticated
-     */
     private void navigateToLogin() {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -74,16 +90,25 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    /**
-     * Initialize all view components
-     */
     private void initializeViews() {
         bottomNavigation = findViewById(R.id.bottom_navigation);
         layoutDashboard = findViewById(R.id.layout_dashboard);
         tvGreeting = findViewById(R.id.tv_greeting);
-        tvMonthlyTotal = findViewById(R.id.tv_monthly_total);
-        tvBudgetRemaining = findViewById(R.id.tv_budget_remaining);
         tvTopCategory = findViewById(R.id.tv_top_category);
+
+        // Balance cards
+        cardIncome = findViewById(R.id.card_income);
+        cardExpense = findViewById(R.id.card_expense);
+        cardBalance = findViewById(R.id.card_balance);
+
+        tvIncomeAmount = findViewById(R.id.tv_income_amount);
+        tvExpenseAmount = findViewById(R.id.tv_expense_amount);
+        tvBalanceAmount = findViewById(R.id.tv_balance_amount);
+
+        tvIncomeLabel = findViewById(R.id.tv_income_label);
+        tvExpenseLabel = findViewById(R.id.tv_expense_label);
+        tvBalanceLabel = findViewById(R.id.tv_balance_label);
+
         btnAddExpense = findViewById(R.id.btn_add_expense);
         btnViewBudget = findViewById(R.id.btn_view_budget);
         btnGenerateReport = findViewById(R.id.btn_generate_report);
@@ -105,64 +130,64 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Setup bottom navigation with item selection listener
-     */
     private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_dashboard) {
-                // Stay on dashboard - just show it
                 showDashboard();
                 return true;
             } else if (itemId == R.id.nav_expenses) {
-                // Navigate to Expenses Activity
                 Intent intent = new Intent(MainActivity.this, ExpenseListActivity.class);
                 startActivity(intent);
-                // Don't return true to prevent bottom nav selection change
                 return false;
             } else if (itemId == R.id.nav_profile) {
-                // Navigate to Profile Activity
                 Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
                 startActivity(intent);
-                // Don't return true to prevent bottom nav selection change
                 return false;
             }
 
             return false;
         });
 
-        // Set default selection to Dashboard
         bottomNavigation.setSelectedItemId(R.id.nav_dashboard);
     }
 
     /**
-     * Show Dashboard tab
+     * Setup recurring expense background worker
+     * Runs daily at midnight
      */
+    private void setupRecurringWorker() {
+        PeriodicWorkRequest recurringWork = new PeriodicWorkRequest.Builder(
+                RecurringExpenseWorker.class,
+                1, // Repeat interval
+                TimeUnit.DAYS // Every 1 day
+        ).build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "recurring_expenses",
+                ExistingPeriodicWorkPolicy.KEEP, // Keep existing if already scheduled
+                recurringWork
+        );
+    }
+
     private void showDashboard() {
         layoutDashboard.setVisibility(View.VISIBLE);
         loadDashboardData();
     }
 
-    /**
-     * Load dashboard summary data
-     */
     private void loadDashboardData() {
         try {
             int userId = sessionManager.getUserId();
 
-            // Get user name for greeting
+            // Greeting
             String userName = sessionManager.getUserName();
             if (userName == null || userName.isEmpty()) {
                 userName = "User";
             }
             tvGreeting.setText("Hello, " + userName + "! 👋");
 
-            // Get current month expenses
-            List<Expense> expenses = dbHelper.getExpensesByUser(userId);
-
-            // Calculate this month's total
+            // Get current month date range
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.DAY_OF_MONTH, 1);
             calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -170,31 +195,46 @@ public class MainActivity extends AppCompatActivity {
             calendar.set(Calendar.SECOND, 0);
             long monthStart = calendar.getTimeInMillis();
 
-            double monthlyTotal = 0;
+            calendar.add(Calendar.MONTH, 1);
+            long monthEnd = calendar.getTimeInMillis();
+
+            // Calculate Income, Expense, Balance
+            double totalIncome = dbHelper.getTotalIncome(userId, monthStart, monthEnd);
+            double totalExpense = dbHelper.getTotalExpense(userId, monthStart, monthEnd);
+            double balance = totalIncome - totalExpense;
+
+            // Format and display
+            String formattedIncome = currencyFormat.format(totalIncome) + "đ";
+            String formattedExpense = currencyFormat.format(totalExpense) + "đ";
+            String formattedBalance = currencyFormat.format(Math.abs(balance)) + "đ";
+
+            tvIncomeAmount.setText("+" + formattedIncome);
+            tvExpenseAmount.setText("-" + formattedExpense);
+            tvBalanceAmount.setText((balance >= 0 ? "+" : "-") + formattedBalance);
+
+            // Color coding for balance
+            if (balance >= 0) {
+                tvBalanceAmount.setTextColor(getResources().getColor(R.color.success));
+                cardBalance.setCardBackgroundColor(getResources().getColor(R.color.light_surface));
+            } else {
+                tvBalanceAmount.setTextColor(getResources().getColor(R.color.error));
+                cardBalance.setCardBackgroundColor(getResources().getColor(R.color.light_surface));
+            }
+
+            // Top category
+            List<Expense> expenses = dbHelper.getExpensesByUser(userId);
             java.util.Map<Integer, Double> categoryTotals = new java.util.HashMap<>();
 
             for (Expense expense : expenses) {
-                if (expense.getDate() >= monthStart) {
-                    monthlyTotal += expense.getAmount();
-
-                    int categoryId = expense.getCategoryId();
-                    categoryTotals.put(categoryId,
-                            categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+                if (expense.getDate() >= monthStart && expense.getDate() < monthEnd) {
+                    if (expense.isExpense()) { // Only count expenses, not income
+                        int categoryId = expense.getCategoryId();
+                        categoryTotals.put(categoryId,
+                                categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+                    }
                 }
             }
 
-            // Get budgets
-            List<Budget> budgets = dbHelper.getBudgetsByUser(userId);
-            double totalBudget = 0;
-            for (Budget budget : budgets) {
-                if (budget.getPeriodEnd() >= System.currentTimeMillis()) {
-                    totalBudget += budget.getAmount();
-                }
-            }
-
-            double budgetRemaining = totalBudget - monthlyTotal;
-
-            // Find top category
             String topCategory = "None";
             double topAmount = 0;
             for (java.util.Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
@@ -207,23 +247,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // Format amounts
-            java.text.NumberFormat currencyFormat = java.text.NumberFormat.getInstance(
-                    new java.util.Locale("vi", "VN"));
-            String formattedTotal = currencyFormat.format(monthlyTotal) + "đ";
-            String formattedRemaining = currencyFormat.format(Math.max(0, budgetRemaining)) + "đ";
             String formattedTopAmount = currencyFormat.format(topAmount) + "đ";
-
-            // Update UI
-            tvMonthlyTotal.setText("Total Spent: " + formattedTotal);
-            tvBudgetRemaining.setText("Budget Remaining: " + formattedRemaining);
             tvTopCategory.setText("Top Category: " + topCategory + " (" + formattedTopAmount + ")");
 
         } catch (Exception e) {
             e.printStackTrace();
             tvGreeting.setText("Hello, User! 👋");
-            tvMonthlyTotal.setText("Total Spent: 0đ");
-            tvBudgetRemaining.setText("Budget Remaining: 0đ");
+            tvIncomeAmount.setText("+0đ");
+            tvExpenseAmount.setText("-0đ");
+            tvBalanceAmount.setText("0đ");
             tvTopCategory.setText("Top Category: None");
         }
     }
@@ -231,12 +263,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh dashboard when returning from other activities
         if (layoutDashboard != null && layoutDashboard.getVisibility() == View.VISIBLE) {
             loadDashboardData();
         }
 
-        // Always reset bottom nav to dashboard when returning
         if (bottomNavigation != null) {
             bottomNavigation.setSelectedItemId(R.id.nav_dashboard);
         }

@@ -25,18 +25,17 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * ExpenseAdapter for RecyclerView displaying expense list
- * Features: Category icon, formatted amount, date, truncated description
+ * ExpenseAdapter - Enhanced for Sprint 5
+ * NEW: Income/Expense color coding with +/- signs
  */
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
 
     private Context context;
     private List<Expense> expenses;
-    private List<Expense> expensesFiltered; // For search functionality
+    private List<Expense> expensesFiltered;
     private DatabaseHelper dbHelper;
     private OnExpenseClickListener listener;
 
-    // Currency formatter
     private NumberFormat currencyFormat;
     private SimpleDateFormat dateFormat;
 
@@ -51,7 +50,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         this.listener = listener;
         this.dbHelper = DatabaseHelper.getInstance(context);
 
-        // Initialize formatters
         this.currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         this.dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
     }
@@ -73,19 +71,44 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
         if (category != null) {
             holder.tvCategoryName.setText(category.getName());
-            // TODO: Set category icon from resources (ic_food, ic_transport, etc.)
-            // For now, use default icon
         }
 
-        // Format amount
-        String formattedAmount = currencyFormat.format(expense.getAmount()) + "đ";
+        // Format amount with +/- sign and color coding
+        String sign = expense.isIncome() ? "+" : "-";
+        String formattedAmount = sign + currencyFormat.format(expense.getAmount()) + "đ";
         holder.tvAmount.setText(formattedAmount);
+
+        // Color coding based on type
+        if (expense.isIncome()) {
+            // Green for income
+            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.success));
+            holder.cardView.setCardBackgroundColor(
+                    context.getResources().getColor(R.color.light_surface));
+        } else {
+            // Red for expense
+            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.error));
+            holder.cardView.setCardBackgroundColor(
+                    context.getResources().getColor(R.color.light_surface));
+        }
+
+        // Show recurring indicator
+        if (expense.isRecurring()) {
+            holder.ivReceiptIndicator.setVisibility(View.VISIBLE);
+            holder.ivReceiptIndicator.setImageResource(android.R.drawable.ic_menu_rotate);
+            holder.ivReceiptIndicator.setColorFilter(
+                    context.getResources().getColor(R.color.primary_blue));
+        } else if (expense.getReceiptPath() != null && !expense.getReceiptPath().isEmpty()) {
+            holder.ivReceiptIndicator.setVisibility(View.VISIBLE);
+            holder.ivReceiptIndicator.setImageResource(android.R.drawable.ic_menu_camera);
+        } else {
+            holder.ivReceiptIndicator.setVisibility(View.GONE);
+        }
 
         // Format date
         String formattedDate = dateFormat.format(new Date(expense.getDate()));
         holder.tvDate.setText(formattedDate);
 
-        // Truncate description (max 50 chars)
+        // Description
         String description = expense.getDescription();
         if (description != null && !description.isEmpty()) {
             if (description.length() > 50) {
@@ -97,13 +120,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             holder.tvDescription.setVisibility(View.GONE);
         }
 
-        // Show receipt indicator if available
-        if (expense.getReceiptPath() != null && !expense.getReceiptPath().isEmpty()) {
-            holder.ivReceiptIndicator.setVisibility(View.VISIBLE);
-        } else {
-            holder.ivReceiptIndicator.setVisibility(View.GONE);
-        }
-
         // Click listener
         holder.cardView.setOnClickListener(v -> {
             if (listener != null) {
@@ -111,7 +127,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             }
         });
 
-        // Add scale animation on click
+        // Add scale animation on touch
         holder.cardView.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
                 case android.view.MotionEvent.ACTION_DOWN:
@@ -131,18 +147,12 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         return expensesFiltered.size();
     }
 
-    /**
-     * Update expense list and refresh adapter
-     */
     public void updateExpenses(List<Expense> newExpenses) {
         this.expenses = newExpenses;
         this.expensesFiltered = new ArrayList<>(newExpenses);
         notifyDataSetChanged();
     }
 
-    /**
-     * Filter expenses by description
-     */
     public void filter(String query) {
         expensesFiltered.clear();
 
@@ -152,7 +162,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             String lowerCaseQuery = query.toLowerCase();
 
             for (Expense expense : expenses) {
-                // Filter by description or category name
                 String description = expense.getDescription();
                 Category category = dbHelper.getCategoryById(expense.getCategoryId());
 
@@ -170,14 +179,10 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         notifyDataSetChanged();
     }
 
-    /**
-     * Filter expenses by category
-     */
     public void filterByCategory(int categoryId) {
         expensesFiltered.clear();
 
         if (categoryId == 0) {
-            // Show all
             expensesFiltered.addAll(expenses);
         } else {
             for (Expense expense : expenses) {
@@ -190,9 +195,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         notifyDataSetChanged();
     }
 
-    /**
-     * Filter expenses by date range
-     */
     public void filterByDateRange(long startDate, long endDate) {
         expensesFiltered.clear();
 

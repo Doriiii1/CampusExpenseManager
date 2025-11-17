@@ -10,22 +10,21 @@ import android.util.Log;
 import com.example.campusexpensemanager.models.Budget;
 import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
+import com.example.campusexpensemanager.models.ExpenseTemplate;
 import com.example.campusexpensemanager.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DatabaseHelper manages SQLite database for CampusExpense Manager
- * Handles CRUD operations for User, Category, Expense, Budget, and Currency tables
+ * DatabaseHelper - Sprint 5 Enhanced
+ * NEW: Recurring expenses, Income tracking, Expense templates
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
-
-    // Database Info
     private static final String DATABASE_NAME = "CampusExpense.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2; // ✅ UPGRADED from 1 to 2
 
     // Table Names
     private static final String TABLE_USERS = "users";
@@ -33,12 +32,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_EXPENSES = "expenses";
     private static final String TABLE_BUDGETS = "budgets";
     private static final String TABLE_CURRENCIES = "currencies";
+    private static final String TABLE_TEMPLATES = "expense_templates"; // NEW
 
-    // Common Column Names
+    // Common Columns
     private static final String KEY_ID = "id";
     private static final String KEY_CREATED_AT = "created_at";
 
-    // User Table Columns
+    // User Columns
     private static final String KEY_USER_EMAIL = "email";
     private static final String KEY_USER_PASSWORD = "password_hash";
     private static final String KEY_USER_NAME = "name";
@@ -47,11 +47,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_USER_AVATAR = "avatar_path";
     private static final String KEY_USER_DARK_MODE = "dark_mode_enabled";
 
-    // Category Table Columns
+    // Category Columns
     private static final String KEY_CATEGORY_NAME = "name";
     private static final String KEY_CATEGORY_ICON = "icon_resource";
 
-    // Expense Table Columns
+    // Expense Columns (ENHANCED)
     private static final String KEY_EXPENSE_USER_ID = "user_id";
     private static final String KEY_EXPENSE_CATEGORY_ID = "category_id";
     private static final String KEY_EXPENSE_CURRENCY_ID = "currency_id";
@@ -60,22 +60,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_EXPENSE_DESCRIPTION = "description";
     private static final String KEY_EXPENSE_RECEIPT = "receipt_path";
     private static final String KEY_EXPENSE_TYPE = "type"; // 0=expense, 1=income
+    // NEW RECURRING COLUMNS
+    private static final String KEY_EXPENSE_IS_RECURRING = "is_recurring";
+    private static final String KEY_EXPENSE_RECURRENCE_PERIOD = "recurrence_period"; // daily/weekly/monthly
+    private static final String KEY_EXPENSE_NEXT_OCCURRENCE = "next_occurrence_date";
 
-    // Budget Table Columns
+    // Budget Columns
     private static final String KEY_BUDGET_USER_ID = "user_id";
     private static final String KEY_BUDGET_CATEGORY_ID = "category_id";
     private static final String KEY_BUDGET_AMOUNT = "amount";
     private static final String KEY_BUDGET_PERIOD_START = "period_start";
     private static final String KEY_BUDGET_PERIOD_END = "period_end";
 
-    // Currency Table Columns
+    // Currency Columns
     private static final String KEY_CURRENCY_CODE = "code";
     private static final String KEY_CURRENCY_RATE = "rate_to_vnd";
     private static final String KEY_CURRENCY_UPDATED = "last_updated";
 
+    // Template Columns (NEW)
+    private static final String KEY_TEMPLATE_NAME = "name";
+    private static final String KEY_TEMPLATE_CATEGORY_ID = "category_id";
+    private static final String KEY_TEMPLATE_DEFAULT_AMOUNT = "default_amount";
+    private static final String KEY_TEMPLATE_ICON = "icon_resource";
+
     private static DatabaseHelper instance;
 
-    // Singleton pattern
     public static synchronized DatabaseHelper getInstance(Context context) {
         if (instance == null) {
             instance = new DatabaseHelper(context.getApplicationContext());
@@ -91,7 +100,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         Log.d(TAG, "Creating database tables...");
 
-        // Create Users Table
+        // Users Table
         String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_USERS + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + KEY_USER_EMAIL + " TEXT UNIQUE NOT NULL,"
@@ -105,7 +114,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + ")";
         db.execSQL(CREATE_USERS_TABLE);
 
-        // Create Categories Table
+        // Categories Table
         String CREATE_CATEGORIES_TABLE = "CREATE TABLE " + TABLE_CATEGORIES + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + KEY_CATEGORY_NAME + " TEXT NOT NULL,"
@@ -113,7 +122,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + ")";
         db.execSQL(CREATE_CATEGORIES_TABLE);
 
-        // Create Currencies Table
+        // Currencies Table
         String CREATE_CURRENCIES_TABLE = "CREATE TABLE " + TABLE_CURRENCIES + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + KEY_CURRENCY_CODE + " TEXT UNIQUE NOT NULL,"
@@ -122,7 +131,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + ")";
         db.execSQL(CREATE_CURRENCIES_TABLE);
 
-        // Create Expenses Table with Foreign Keys
+        // Expenses Table (ENHANCED with Recurring + Type)
         String CREATE_EXPENSES_TABLE = "CREATE TABLE " + TABLE_EXPENSES + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + KEY_EXPENSE_USER_ID + " INTEGER NOT NULL,"
@@ -133,6 +142,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + KEY_EXPENSE_DESCRIPTION + " TEXT,"
                 + KEY_EXPENSE_RECEIPT + " TEXT,"
                 + KEY_EXPENSE_TYPE + " INTEGER DEFAULT 0," // 0=expense, 1=income
+                + KEY_EXPENSE_IS_RECURRING + " INTEGER DEFAULT 0," // NEW
+                + KEY_EXPENSE_RECURRENCE_PERIOD + " TEXT," // NEW: daily/weekly/monthly
+                + KEY_EXPENSE_NEXT_OCCURRENCE + " INTEGER," // NEW: timestamp
                 + KEY_CREATED_AT + " INTEGER NOT NULL,"
                 + "FOREIGN KEY(" + KEY_EXPENSE_USER_ID + ") REFERENCES "
                 + TABLE_USERS + "(" + KEY_ID + ") ON DELETE CASCADE,"
@@ -143,7 +155,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + ")";
         db.execSQL(CREATE_EXPENSES_TABLE);
 
-        // Create Budgets Table with Foreign Keys
+        // Budgets Table
         String CREATE_BUDGETS_TABLE = "CREATE TABLE " + TABLE_BUDGETS + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + KEY_BUDGET_USER_ID + " INTEGER NOT NULL,"
@@ -159,43 +171,72 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + ")";
         db.execSQL(CREATE_BUDGETS_TABLE);
 
-        // Enable foreign key constraints
+        // Expense Templates Table (NEW)
+        String CREATE_TEMPLATES_TABLE = "CREATE TABLE " + TABLE_TEMPLATES + "("
+                + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + KEY_TEMPLATE_NAME + " TEXT NOT NULL,"
+                + KEY_TEMPLATE_CATEGORY_ID + " INTEGER NOT NULL,"
+                + KEY_TEMPLATE_DEFAULT_AMOUNT + " REAL DEFAULT 0,"
+                + KEY_TEMPLATE_ICON + " TEXT,"
+                + "FOREIGN KEY(" + KEY_TEMPLATE_CATEGORY_ID + ") REFERENCES "
+                + TABLE_CATEGORIES + "(" + KEY_ID + ")"
+                + ")";
+        db.execSQL(CREATE_TEMPLATES_TABLE);
+
+        // Enable foreign keys
         db.execSQL("PRAGMA foreign_keys=ON");
 
-        // Pre-populate categories
+        // Pre-populate data
         prepopulateCategories(db);
-
-        // Pre-populate currencies
         prepopulateCurrencies(db);
+        prepopulateTemplates(db); // NEW
 
-        Log.d(TAG, "Database tables created successfully");
+        Log.d(TAG, "Database v2 created successfully with Sprint 5 enhancements");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        Log.d(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
+        Log.d(TAG, "Upgrading database from v" + oldVersion + " to v" + newVersion);
 
-        // Drop older tables if existed
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_BUDGETS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXPENSES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CURRENCIES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+        if (oldVersion < 2) {
+            // Add new columns to existing Expenses table
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_EXPENSES + " ADD COLUMN "
+                        + KEY_EXPENSE_IS_RECURRING + " INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE " + TABLE_EXPENSES + " ADD COLUMN "
+                        + KEY_EXPENSE_RECURRENCE_PERIOD + " TEXT");
+                db.execSQL("ALTER TABLE " + TABLE_EXPENSES + " ADD COLUMN "
+                        + KEY_EXPENSE_NEXT_OCCURRENCE + " INTEGER");
 
-        // Create tables again
-        onCreate(db);
+                // Create Templates table
+                String CREATE_TEMPLATES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TEMPLATES + "("
+                        + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + KEY_TEMPLATE_NAME + " TEXT NOT NULL,"
+                        + KEY_TEMPLATE_CATEGORY_ID + " INTEGER NOT NULL,"
+                        + KEY_TEMPLATE_DEFAULT_AMOUNT + " REAL DEFAULT 0,"
+                        + KEY_TEMPLATE_ICON + " TEXT,"
+                        + "FOREIGN KEY(" + KEY_TEMPLATE_CATEGORY_ID + ") REFERENCES "
+                        + TABLE_CATEGORIES + "(" + KEY_ID + ")"
+                        + ")";
+                db.execSQL(CREATE_TEMPLATES_TABLE);
+
+                prepopulateTemplates(db);
+                Log.d(TAG, "Database upgraded to v2 successfully");
+            } catch (Exception e) {
+                Log.e(TAG, "Error upgrading database: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
-        // Enable foreign key constraints
         db.execSQL("PRAGMA foreign_keys=ON");
     }
 
-    /**
-     * Pre-populate categories with default expense types
-     */
+    // =============== PRE-POPULATE DATA ===============
+
     private void prepopulateCategories(SQLiteDatabase db) {
         String[] categories = {
                 "Food & Dining", "ic_food",
@@ -207,6 +248,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "Utilities", "ic_utilities",
                 "Housing", "ic_housing",
                 "Personal Care", "ic_personal",
+                "Salary", "ic_salary", // NEW for income
                 "Others", "ic_others"
         };
 
@@ -216,177 +258,249 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_CATEGORY_ICON, categories[i + 1]);
             db.insert(TABLE_CATEGORIES, null, values);
         }
-
-        Log.d(TAG, "Pre-populated " + (categories.length / 2) + " categories");
+        Log.d(TAG, "Pre-populated categories");
     }
 
-    /**
-     * Pre-populate currencies with VND default
-     */
     private void prepopulateCurrencies(SQLiteDatabase db) {
-        ContentValues values = new ContentValues();
-        values.put(KEY_CURRENCY_CODE, "VND");
-        values.put(KEY_CURRENCY_RATE, 1.0);
-        values.put(KEY_CURRENCY_UPDATED, System.currentTimeMillis());
-        db.insert(TABLE_CURRENCIES, null, values);
+        // VND
+        ContentValues vnd = new ContentValues();
+        vnd.put(KEY_CURRENCY_CODE, "VND");
+        vnd.put(KEY_CURRENCY_RATE, 1.0);
+        vnd.put(KEY_CURRENCY_UPDATED, System.currentTimeMillis());
+        db.insert(TABLE_CURRENCIES, null, vnd);
 
-        Log.d(TAG, "Pre-populated VND currency");
+        // USD (example rate: 1 USD = 24,000 VND)
+        ContentValues usd = new ContentValues();
+        usd.put(KEY_CURRENCY_CODE, "USD");
+        usd.put(KEY_CURRENCY_RATE, 24000.0);
+        usd.put(KEY_CURRENCY_UPDATED, System.currentTimeMillis());
+        db.insert(TABLE_CURRENCIES, null, usd);
+
+        Log.d(TAG, "Pre-populated currencies");
     }
 
-    // =============== USER CRUD OPERATIONS ===============
+    private void prepopulateTemplates(SQLiteDatabase db) {
+        // Quick templates (name, category_id, default_amount, icon)
+        Object[][] templates = {
+                {"Tiền trọ", 8, 1500000.0, "🏠"}, // Housing
+                {"Ăn sáng", 1, 25000.0, "🍜"},     // Food
+                {"Ăn trưa", 1, 40000.0, "🍱"},     // Food
+                {"Ăn tối", 1, 35000.0, "🍲"},      // Food
+                {"Cà phê", 1, 30000.0, "☕"},      // Food
+                {"Xe bus", 2, 7000.0, "🚌"},       // Transport
+                {"Grab", 2, 50000.0, "🚗"},        // Transport
+                {"Xăng xe", 2, 100000.0, "⛽"},    // Transport
+                {"Điện nước", 7, 200000.0, "⚡"},  // Utilities
+                {"Internet", 7, 150000.0, "📡"},   // Utilities
+                {"Học phí", 3, 5000000.0, "📚"},   // Study
+                {"Sách vở", 3, 100000.0, "📖"},    // Study
+                {"Xem phim", 4, 80000.0, "🎬"},    // Entertainment
+                {"Đi chơi", 4, 200000.0, "🎮"},    // Entertainment
+        };
 
-    /**
-     * Insert new user into database
-     * @param user User object to insert
-     * @return User ID if successful, -1 if failed
-     */
-    public long insertUser(User user) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(KEY_USER_EMAIL, user.getEmail());
-        values.put(KEY_USER_PASSWORD, user.getPasswordHash());
-        values.put(KEY_USER_NAME, user.getName());
-        values.put(KEY_USER_ADDRESS, user.getAddress());
-        values.put(KEY_USER_PHONE, user.getPhone());
-        values.put(KEY_USER_AVATAR, user.getAvatarPath());
-        values.put(KEY_USER_DARK_MODE, user.isDarkModeEnabled() ? 1 : 0);
-        values.put(KEY_CREATED_AT, user.getCreatedAt());
-
-        long id = db.insert(TABLE_USERS, null, values);
-        Log.d(TAG, "User inserted with ID: " + id);
-
-        return id;
-    }
-
-    /**
-     * Get user by ID
-     * @param userId User ID
-     * @return User object or null if not found
-     */
-    public User getUserById(int userId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_USERS, null, KEY_ID + "=?",
-                new String[]{String.valueOf(userId)}, null, null, null);
-
-        User user = null;
-        if (cursor != null && cursor.moveToFirst()) {
-            user = cursorToUser(cursor);
-            cursor.close();
+        for (Object[] template : templates) {
+            ContentValues values = new ContentValues();
+            values.put(KEY_TEMPLATE_NAME, (String) template[0]);
+            values.put(KEY_TEMPLATE_CATEGORY_ID, (Integer) template[1]);
+            values.put(KEY_TEMPLATE_DEFAULT_AMOUNT, (Double) template[2]);
+            values.put(KEY_TEMPLATE_ICON, (String) template[3]);
+            db.insert(TABLE_TEMPLATES, null, values);
         }
-
-        return user;
+        Log.d(TAG, "Pre-populated expense templates");
     }
 
-    /**
-     * Get user by email
-     * @param email User email
-     * @return User object or null if not found
-     */
-    public User getUserByEmail(String email) {
+    // =============== EXPENSE TEMPLATE CRUD ===============
+
+    public List<ExpenseTemplate> getAllTemplates() {
+        List<ExpenseTemplate> templates = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_USERS, null, KEY_USER_EMAIL + "=?",
-                new String[]{email}, null, null, null);
-
-        User user = null;
-        if (cursor != null && cursor.moveToFirst()) {
-            user = cursorToUser(cursor);
-            cursor.close();
-        }
-
-        return user;
-    }
-
-    /**
-     * Update user information
-     * @param user User object with updated data
-     * @return Number of rows affected
-     */
-    public int updateUser(User user) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(KEY_USER_EMAIL, user.getEmail());
-        values.put(KEY_USER_PASSWORD, user.getPasswordHash());
-        values.put(KEY_USER_NAME, user.getName());
-        values.put(KEY_USER_ADDRESS, user.getAddress());
-        values.put(KEY_USER_PHONE, user.getPhone());
-        values.put(KEY_USER_AVATAR, user.getAvatarPath());
-        values.put(KEY_USER_DARK_MODE, user.isDarkModeEnabled() ? 1 : 0);
-
-        int rowsAffected = db.update(TABLE_USERS, values, KEY_ID + "=?",
-                new String[]{String.valueOf(user.getId())});
-
-        Log.d(TAG, "User updated: " + rowsAffected + " rows");
-        return rowsAffected;
-    }
-
-    /**
-     * Delete user by ID
-     * @param userId User ID
-     * @return Number of rows deleted
-     */
-    public int deleteUser(int userId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        int rowsDeleted = db.delete(TABLE_USERS, KEY_ID + "=?",
-                new String[]{String.valueOf(userId)});
-
-        Log.d(TAG, "User deleted: " + rowsDeleted + " rows");
-        return rowsDeleted;
-    }
-
-    // =============== CATEGORY CRUD OPERATIONS ===============
-
-    /**
-     * Get all categories
-     * @return List of Category objects
-     */
-    public List<Category> getAllCategories() {
-        List<Category> categories = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_CATEGORIES, null, null, null, null, null, KEY_CATEGORY_NAME);
+        Cursor cursor = db.query(TABLE_TEMPLATES, null, null, null, null, null, KEY_TEMPLATE_NAME);
 
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                Category category = cursorToCategory(cursor);
-                categories.add(category);
+                ExpenseTemplate template = cursorToTemplate(cursor);
+                templates.add(template);
             } while (cursor.moveToNext());
             cursor.close();
         }
 
-        return categories;
+        return templates;
     }
 
+    public ExpenseTemplate getTemplateById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_TEMPLATES, null, KEY_ID + "=?",
+                new String[]{String.valueOf(id)}, null, null, null);
+
+        ExpenseTemplate template = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            template = cursorToTemplate(cursor);
+            cursor.close();
+        }
+        return template;
+    }
+
+    // =============== RECURRING EXPENSE METHODS ===============
+
     /**
-     * Get category by ID
-     * @param categoryId Category ID
-     * @return Category object or null
+     * Get all recurring expenses that need to be created
+     * @return List of expenses due for recurrence
      */
-    public Category getCategoryById(int categoryId) {
+    public List<Expense> getDueRecurringExpenses() {
+        List<Expense> dueExpenses = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_CATEGORIES, null, KEY_ID + "=?",
-                new String[]{String.valueOf(categoryId)}, null, null, null);
+        long currentTime = System.currentTimeMillis();
 
-        Category category = null;
+        String query = "SELECT * FROM " + TABLE_EXPENSES
+                + " WHERE " + KEY_EXPENSE_IS_RECURRING + "=1"
+                + " AND " + KEY_EXPENSE_NEXT_OCCURRENCE + "<=" + currentTime;
+
+        Cursor cursor = db.rawQuery(query, null);
+
         if (cursor != null && cursor.moveToFirst()) {
-            category = cursorToCategory(cursor);
+            do {
+                Expense expense = cursorToExpense(cursor);
+                dueExpenses.add(expense);
+            } while (cursor.moveToNext());
             cursor.close();
         }
 
-        return category;
+        return dueExpenses;
     }
 
-    // =============== EXPENSE CRUD OPERATIONS ===============
+    /**
+     * Create new occurrence of recurring expense
+     * @param originalExpense The recurring expense template
+     * @return ID of new expense
+     */
+    public long createRecurringOccurrence(Expense originalExpense) {
+        // Create new expense with current date
+        Expense newExpense = new Expense(
+                originalExpense.getUserId(),
+                originalExpense.getCategoryId(),
+                originalExpense.getAmount(),
+                System.currentTimeMillis(),
+                originalExpense.getDescription(),
+                originalExpense.getType()
+        );
+        newExpense.setCurrencyId(originalExpense.getCurrencyId());
+        newExpense.setIsRecurring(false); // New occurrence is NOT recurring
+        newExpense.setReceiptPath(null); // No receipt for auto-created
+
+        // Insert new expense
+        long newId = insertExpense(newExpense);
+
+        if (newId != -1) {
+            // Update original expense's next_occurrence_date
+            long nextOccurrence = calculateNextOccurrence(
+                    originalExpense.getNextOccurrenceDate(),
+                    originalExpense.getRecurrencePeriod()
+            );
+
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(KEY_EXPENSE_NEXT_OCCURRENCE, nextOccurrence);
+
+            db.update(TABLE_EXPENSES, values, KEY_ID + "=?",
+                    new String[]{String.valueOf(originalExpense.getId())});
+
+            Log.d(TAG, "Created recurring occurrence, next due: " + nextOccurrence);
+        }
+
+        return newId;
+    }
 
     /**
-     * Insert new expense
-     * @param expense Expense object
-     * @return Expense ID if successful, -1 if failed
+     * Calculate next occurrence date based on period
      */
+    private long calculateNextOccurrence(long currentDate, String period) {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.setTimeInMillis(currentDate);
+
+        switch (period.toLowerCase()) {
+            case "daily":
+                calendar.add(java.util.Calendar.DAY_OF_MONTH, 1);
+                break;
+            case "weekly":
+                calendar.add(java.util.Calendar.WEEK_OF_YEAR, 1);
+                break;
+            case "monthly":
+                calendar.add(java.util.Calendar.MONTH, 1);
+                break;
+            default:
+                calendar.add(java.util.Calendar.MONTH, 1); // Default monthly
+        }
+
+        return calendar.getTimeInMillis();
+    }
+
+    // =============== INCOME/EXPENSE STATISTICS ===============
+
+    /**
+     * Calculate total income for a user in date range
+     */
+    public double getTotalIncome(int userId, long startDate, long endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        double total = 0;
+
+        String query = "SELECT SUM(" + KEY_EXPENSE_AMOUNT + ") as total FROM " + TABLE_EXPENSES
+                + " WHERE " + KEY_EXPENSE_USER_ID + "=?"
+                + " AND " + KEY_EXPENSE_TYPE + "=" + Expense.TYPE_INCOME
+                + " AND " + KEY_EXPENSE_DATE + " BETWEEN ? AND ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{
+                String.valueOf(userId),
+                String.valueOf(startDate),
+                String.valueOf(endDate)
+        });
+
+        if (cursor != null && cursor.moveToFirst()) {
+            total = cursor.getDouble(cursor.getColumnIndexOrThrow("total"));
+            cursor.close();
+        }
+
+        return total;
+    }
+
+    /**
+     * Calculate total expense for a user in date range
+     */
+    public double getTotalExpense(int userId, long startDate, long endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        double total = 0;
+
+        String query = "SELECT SUM(" + KEY_EXPENSE_AMOUNT + ") as total FROM " + TABLE_EXPENSES
+                + " WHERE " + KEY_EXPENSE_USER_ID + "=?"
+                + " AND " + KEY_EXPENSE_TYPE + "=" + Expense.TYPE_EXPENSE
+                + " AND " + KEY_EXPENSE_DATE + " BETWEEN ? AND ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{
+                String.valueOf(userId),
+                String.valueOf(startDate),
+                String.valueOf(endDate)
+        });
+
+        if (cursor != null && cursor.moveToFirst()) {
+            total = cursor.getDouble(cursor.getColumnIndexOrThrow("total"));
+            cursor.close();
+        }
+
+        return total;
+    }
+
+    /**
+     * Get balance (Income - Expense)
+     */
+    public double getBalance(int userId, long startDate, long endDate) {
+        double income = getTotalIncome(userId, startDate, endDate);
+        double expense = getTotalExpense(userId, startDate, endDate);
+        return income - expense;
+    }
+
+    // =============== EXISTING CRUD (Updated) ===============
+
     public long insertExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -398,43 +512,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_DATE, expense.getDate());
         values.put(KEY_EXPENSE_DESCRIPTION, expense.getDescription());
         values.put(KEY_EXPENSE_RECEIPT, expense.getReceiptPath());
-        values.put(KEY_EXPENSE_TYPE, expense.getType()); // Add type field
+        values.put(KEY_EXPENSE_TYPE, expense.getType());
+
+        // NEW: Recurring fields
+        values.put(KEY_EXPENSE_IS_RECURRING, expense.isRecurring() ? 1 : 0);
+        values.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
+        values.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
+
         values.put(KEY_CREATED_AT, expense.getCreatedAt());
 
         long id = db.insert(TABLE_EXPENSES, null, values);
-        Log.d(TAG, "Expense inserted with ID: " + id);
+        Log.d(TAG, "Expense inserted: " + id + " (Type: " +
+                (expense.isIncome() ? "INCOME" : "EXPENSE") +
+                ", Recurring: " + expense.isRecurring() + ")");
 
         return id;
     }
 
-    /**
-     * Get all expenses for a user
-     * @param userId User ID
-     * @return List of Expense objects
-     */
-    public List<Expense> getExpensesByUser(int userId) {
-        List<Expense> expenses = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_EXPENSES, null, KEY_EXPENSE_USER_ID + "=?",
-                new String[]{String.valueOf(userId)}, null, null, KEY_EXPENSE_DATE + " DESC");
-
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                Expense expense = cursorToExpense(cursor);
-                expenses.add(expense);
-            } while (cursor.moveToNext());
-            cursor.close();
-        }
-
-        return expenses;
-    }
-
-    /**
-     * Update expense
-     * @param expense Expense object with updated data
-     * @return Number of rows affected
-     */
     public int updateExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -445,7 +539,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_DATE, expense.getDate());
         values.put(KEY_EXPENSE_DESCRIPTION, expense.getDescription());
         values.put(KEY_EXPENSE_RECEIPT, expense.getReceiptPath());
-        values.put(KEY_EXPENSE_TYPE, expense.getType()); // Add type field
+        values.put(KEY_EXPENSE_TYPE, expense.getType());
+
+        // NEW: Recurring fields
+        values.put(KEY_EXPENSE_IS_RECURRING, expense.isRecurring() ? 1 : 0);
+        values.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
+        values.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
 
         int rowsAffected = db.update(TABLE_EXPENSES, values, KEY_ID + "=?",
                 new String[]{String.valueOf(expense.getId())});
@@ -454,30 +553,162 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rowsAffected;
     }
 
-    /**
-     * Delete expense
-     * @param expenseId Expense ID
-     * @return Number of rows deleted
-     */
-    public int deleteExpense(int expenseId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        int rowsDeleted = db.delete(TABLE_EXPENSES, KEY_ID + "=?",
-                new String[]{String.valueOf(expenseId)});
+    // =============== HELPER METHODS ===============
 
-        Log.d(TAG, "Expense deleted: " + rowsDeleted + " rows");
-        return rowsDeleted;
+    private ExpenseTemplate cursorToTemplate(Cursor cursor) {
+        return new ExpenseTemplate(
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
+                cursor.getString(cursor.getColumnIndexOrThrow(KEY_TEMPLATE_NAME)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_TEMPLATE_CATEGORY_ID)),
+                cursor.getDouble(cursor.getColumnIndexOrThrow(KEY_TEMPLATE_DEFAULT_AMOUNT)),
+                cursor.getString(cursor.getColumnIndexOrThrow(KEY_TEMPLATE_ICON))
+        );
     }
 
-    // =============== BUDGET CRUD OPERATIONS ===============
+    private Expense cursorToExpense(Cursor cursor) {
+        int typeIndex = cursor.getColumnIndex(KEY_EXPENSE_TYPE);
+        int type = (typeIndex >= 0) ? cursor.getInt(typeIndex) : 0;
 
-    /**
-     * Insert new budget
-     * @param budget Budget object
-     * @return Budget ID if successful, -1 if failed
-     */
+        // NEW: Recurring fields
+        int isRecurringIndex = cursor.getColumnIndex(KEY_EXPENSE_IS_RECURRING);
+        boolean isRecurring = (isRecurringIndex >= 0) && cursor.getInt(isRecurringIndex) == 1;
+
+        int periodIndex = cursor.getColumnIndex(KEY_EXPENSE_RECURRENCE_PERIOD);
+        String period = (periodIndex >= 0) ? cursor.getString(periodIndex) : null;
+
+        int nextOccIndex = cursor.getColumnIndex(KEY_EXPENSE_NEXT_OCCURRENCE);
+        long nextOcc = (nextOccIndex >= 0) ? cursor.getLong(nextOccIndex) : 0;
+
+        Expense expense = new Expense(
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_USER_ID)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_CATEGORY_ID)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_CURRENCY_ID)),
+                cursor.getDouble(cursor.getColumnIndexOrThrow(KEY_EXPENSE_AMOUNT)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(KEY_EXPENSE_DATE)),
+                cursor.getString(cursor.getColumnIndexOrThrow(KEY_EXPENSE_DESCRIPTION)),
+                cursor.getString(cursor.getColumnIndexOrThrow(KEY_EXPENSE_RECEIPT)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(KEY_CREATED_AT)),
+                type
+        );
+
+        expense.setIsRecurring(isRecurring);
+        expense.setRecurrencePeriod(period);
+        expense.setNextOccurrenceDate(nextOcc);
+
+        return expense;
+    }
+
+    // Keep existing methods: getUserById, getUserByEmail, updateUser, deleteUser,
+    // getAllCategories, getCategoryById, getExpensesByUser, deleteExpense,
+    // insertBudget, getBudgetsByUser, updateBudget, deleteBudget, cursorToUser,
+    // cursorToCategory, cursorToBudget
+
+    // (Copy from original DatabaseHelper.java - not repeating here for brevity)
+
+    public User getUserById(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, null, KEY_ID + "=?",
+                new String[]{String.valueOf(userId)}, null, null, null);
+        User user = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            user = cursorToUser(cursor);
+            cursor.close();
+        }
+        return user;
+    }
+
+    public User getUserByEmail(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, null, KEY_USER_EMAIL + "=?",
+                new String[]{email}, null, null, null);
+        User user = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            user = cursorToUser(cursor);
+            cursor.close();
+        }
+        return user;
+    }
+
+    public int updateUser(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_USER_EMAIL, user.getEmail());
+        values.put(KEY_USER_PASSWORD, user.getPasswordHash());
+        values.put(KEY_USER_NAME, user.getName());
+        values.put(KEY_USER_ADDRESS, user.getAddress());
+        values.put(KEY_USER_PHONE, user.getPhone());
+        values.put(KEY_USER_AVATAR, user.getAvatarPath());
+        values.put(KEY_USER_DARK_MODE, user.isDarkModeEnabled() ? 1 : 0);
+        return db.update(TABLE_USERS, values, KEY_ID + "=?",
+                new String[]{String.valueOf(user.getId())});
+    }
+
+    public long insertUser(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_USER_EMAIL, user.getEmail());
+        values.put(KEY_USER_PASSWORD, user.getPasswordHash());
+        values.put(KEY_USER_NAME, user.getName());
+        values.put(KEY_USER_ADDRESS, user.getAddress());
+        values.put(KEY_USER_PHONE, user.getPhone());
+        values.put(KEY_USER_AVATAR, user.getAvatarPath());
+        values.put(KEY_USER_DARK_MODE, user.isDarkModeEnabled() ? 1 : 0);
+        values.put(KEY_CREATED_AT, user.getCreatedAt());
+        return db.insert(TABLE_USERS, null, values);
+    }
+
+    public int deleteUser(int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_USERS, KEY_ID + "=?", new String[]{String.valueOf(userId)});
+    }
+
+    public List<Category> getAllCategories() {
+        List<Category> categories = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CATEGORIES, null, null, null, null, null, KEY_CATEGORY_NAME);
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                categories.add(cursorToCategory(cursor));
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return categories;
+    }
+
+    public Category getCategoryById(int categoryId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CATEGORIES, null, KEY_ID + "=?",
+                new String[]{String.valueOf(categoryId)}, null, null, null);
+        Category category = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            category = cursorToCategory(cursor);
+            cursor.close();
+        }
+        return category;
+    }
+
+    public List<Expense> getExpensesByUser(int userId) {
+        List<Expense> expenses = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_EXPENSES, null, KEY_EXPENSE_USER_ID + "=?",
+                new String[]{String.valueOf(userId)}, null, null, KEY_EXPENSE_DATE + " DESC");
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                expenses.add(cursorToExpense(cursor));
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return expenses;
+    }
+
+    public int deleteExpense(int expenseId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_EXPENSES, KEY_ID + "=?", new String[]{String.valueOf(expenseId)});
+    }
+
     public long insertBudget(Budget budget) {
         SQLiteDatabase db = this.getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(KEY_BUDGET_USER_ID, budget.getUserId());
         values.put(KEY_BUDGET_CATEGORY_ID, budget.getCategoryId());
@@ -485,72 +716,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_BUDGET_PERIOD_START, budget.getPeriodStart());
         values.put(KEY_BUDGET_PERIOD_END, budget.getPeriodEnd());
         values.put(KEY_CREATED_AT, budget.getCreatedAt());
-
-        long id = db.insert(TABLE_BUDGETS, null, values);
-        Log.d(TAG, "Budget inserted with ID: " + id);
-
-        return id;
+        return db.insert(TABLE_BUDGETS, null, values);
     }
 
-    /**
-     * Get all budgets for a user
-     * @param userId User ID
-     * @return List of Budget objects
-     */
     public List<Budget> getBudgetsByUser(int userId) {
         List<Budget> budgets = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-
         Cursor cursor = db.query(TABLE_BUDGETS, null, KEY_BUDGET_USER_ID + "=?",
                 new String[]{String.valueOf(userId)}, null, null, KEY_BUDGET_PERIOD_END + " DESC");
-
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                Budget budget = cursorToBudget(cursor);
-                budgets.add(budget);
+                budgets.add(cursorToBudget(cursor));
             } while (cursor.moveToNext());
             cursor.close();
         }
-
         return budgets;
     }
 
-    /**
-     * Update budget
-     * @param budget Budget object with updated data
-     * @return Number of rows affected
-     */
     public int updateBudget(Budget budget) {
         SQLiteDatabase db = this.getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(KEY_BUDGET_CATEGORY_ID, budget.getCategoryId());
         values.put(KEY_BUDGET_AMOUNT, budget.getAmount());
         values.put(KEY_BUDGET_PERIOD_START, budget.getPeriodStart());
         values.put(KEY_BUDGET_PERIOD_END, budget.getPeriodEnd());
-
-        int rowsAffected = db.update(TABLE_BUDGETS, values, KEY_ID + "=?",
+        return db.update(TABLE_BUDGETS, values, KEY_ID + "=?",
                 new String[]{String.valueOf(budget.getId())});
-
-        Log.d(TAG, "Budget updated: " + rowsAffected + " rows");
-        return rowsAffected;
     }
 
-    /**
-     * Delete budget
-     * @param budgetId Budget ID
-     * @return Number of rows deleted
-     */
     public int deleteBudget(int budgetId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        int rowsDeleted = db.delete(TABLE_BUDGETS, KEY_ID + "=?",
-                new String[]{String.valueOf(budgetId)});
-
-        Log.d(TAG, "Budget deleted: " + rowsDeleted + " rows");
-        return rowsDeleted;
+        return db.delete(TABLE_BUDGETS, KEY_ID + "=?", new String[]{String.valueOf(budgetId)});
     }
-
-    // =============== HELPER METHODS ===============
 
     private User cursorToUser(Cursor cursor) {
         return new User(
@@ -571,24 +768,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
                 cursor.getString(cursor.getColumnIndexOrThrow(KEY_CATEGORY_NAME)),
                 cursor.getString(cursor.getColumnIndexOrThrow(KEY_CATEGORY_ICON))
-        );
-    }
-
-    private Expense cursorToExpense(Cursor cursor) {
-        int typeIndex = cursor.getColumnIndex(KEY_EXPENSE_TYPE);
-        int type = (typeIndex >= 0) ? cursor.getInt(typeIndex) : 0; // Default to expense if column doesn't exist
-
-        return new Expense(
-                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
-                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_USER_ID)),
-                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_CATEGORY_ID)),
-                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_CURRENCY_ID)),
-                cursor.getDouble(cursor.getColumnIndexOrThrow(KEY_EXPENSE_AMOUNT)),
-                cursor.getLong(cursor.getColumnIndexOrThrow(KEY_EXPENSE_DATE)),
-                cursor.getString(cursor.getColumnIndexOrThrow(KEY_EXPENSE_DESCRIPTION)),
-                cursor.getString(cursor.getColumnIndexOrThrow(KEY_EXPENSE_RECEIPT)),
-                cursor.getLong(cursor.getColumnIndexOrThrow(KEY_CREATED_AT)),
-                type
         );
     }
 

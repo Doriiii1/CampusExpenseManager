@@ -49,4 +49,7 @@ dependencies {
 
     // Coordinator Layout (for FAB)
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
+
+    // ✅ NEW: WorkManager for recurring expenses (Sprint 5)
+    implementation 'androidx.work:work-runtime:2.9.0'
 }
