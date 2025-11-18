@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         btnViewBudget = findViewById(R.id.btn_view_budget);
         btnGenerateReport = findViewById(R.id.btn_generate_report);
 
-        btnViewOverview = findViewById(R.id.btn_view_overview);
+        Button btnViewOverview = findViewById(R.id.btn_view_overview);
 
         btnAddExpense.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddExpenseActivity.class);
