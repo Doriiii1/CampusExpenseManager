@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/bg_balance_gradient.xml -->
+<!-- ✅ Sera UI Style: Gradient background for Balance card -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Gradient from primary to secondary -->
+    <gradient
+        android:angle="135"
+        android:startColor="@color/primary_blue"
+        android:centerColor="@color/primary_blue_light"
+        android:endColor="@color/secondary_teal"
+        android:type="linear" />
+
+    <!-- Rounded corners -->
+    <corners android:radius="16dp" />
+
+</shape>
