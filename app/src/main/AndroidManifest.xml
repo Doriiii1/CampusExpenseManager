@@ -93,6 +93,17 @@
             android:exported="false"
             android:label="Expense Overview" />
 
+        <!-- Priority 4: Feedback Activity -->
+        <activity
+            android:name=".activities.FeedbackActivity"
+            android:exported="false"
+            android:label="@string/feedback_title"
+            android:parentActivityName=".activities.ProfileActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.ProfileActivity" />
+        </activity>
+
         <!-- ✅ WorkManager auto-initializes by default (Sprint 5) -->
         <!-- No manual configuration needed -->
 

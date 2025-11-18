@@ -41,10 +41,10 @@
                         android:contentDescription="@string/content_description_avatar"
                         android:padding="@dimen/spacing_medium"
                         android:src="@android:drawable/ic_menu_myplaces"
-                        android:tint="?attr/colorPrimary"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:tint="?attr/colorPrimary" />
 
                     <!-- Change Avatar Button -->
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -358,6 +358,50 @@
                         style="@style/Widget.AppCompat.Spinner.Underlined"/>
 
                 </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Feedback & Support Card (NEW - Priority 4) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_feedback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_medium"
+            app:cardCornerRadius="@dimen/corner_radius_medium"
+            app:cardElevation="@dimen/elevation_default">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_medium">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/feedback_section_title"
+                    android:textAppearance="?attr/textAppearanceBody1"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_tiny"
+                    android:text="@string/feedback_section_subtitle"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- Feedback Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_send_feedback"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_medium"
+                    android:text="@string/feedback_send"
+                    app:icon="@android:drawable/ic_dialog_email"
+                    app:iconGravity="start" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

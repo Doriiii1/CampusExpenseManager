@@ -206,4 +206,36 @@
     <string name="about_version">Version %s</string>
     <string name="about_description">CampusExpense Manager helps students track expenses and manage budgets effectively.</string>
     <string name="about_developer">Developed by Campus Team</string>
+
+    <!-- Feedback & Support (Priority 4) -->
+    <string name="feedback_title">Feedback &amp; Support</string>
+    <string name="feedback_subtitle">Help us improve CampusExpense Manager</string>
+    <string name="feedback_section_title">Feedback &amp; Support</string>
+    <string name="feedback_section_subtitle">Share your experience or report issues</string>
+    <string name="feedback_send">Send Feedback</string>
+    <string name="feedback_submit">Submit Feedback</string>
+
+    <string name="feedback_rating_label">How would you rate our app?</string>
+    <string name="feedback_rating_hint">Tap the stars to rate</string>
+    <string name="feedback_rating_excellent">Excellent</string>
+    <string name="feedback_rating_very_good">Very Good</string>
+    <string name="feedback_rating_good">Good</string>
+    <string name="feedback_rating_fair">Fair</string>
+    <string name="feedback_rating_poor">Poor</string>
+
+    <string name="feedback_content_label">Tell us more (optional)</string>
+    <string name="feedback_content_hint">Share your thoughts, suggestions, or report bugs…</string>
+
+    <string name="feedback_suggestions">Quick suggestions:</string>
+    <string name="feedback_chip_ui">UI/Design</string>
+    <string name="feedback_chip_performance">Performance</string>
+    <string name="feedback_chip_features">New Features</string>
+    <string name="feedback_chip_bugs">Bug Report</string>
+
+    <string name="feedback_success">Thank you for your feedback!</string>
+    <string name="feedback_thank_you_positive">We\'re glad you\'re enjoying the app! 🎉</string>
+    <string name="feedback_error_no_rating">Please select a rating</string>
+    <string name="feedback_error_submit">Failed to submit feedback. Please try again.</string>
+
+    <string name="feedback_icon">Feedback Icon</string>
 </resources>

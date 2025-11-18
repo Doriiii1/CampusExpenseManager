@@ -204,4 +204,30 @@
     <string name="about_version">Phiên bản %s</string>
     <string name="about_description">CampusExpense Manager giúp sinh viên theo dõi chi phí và quản lý ngân sách hiệu quả.</string>
     <string name="about_developer">Phát triển bởi Đội ngũ Campus</string>
+
+    <string name="feedback_title">Phản Hồi &amp; Hỗ Trợ</string>
+    <string name="feedback_subtitle">Giúp chúng tôi cải thiện CampusExpense Manager</string>
+    <string name="feedback_section_title">Phản Hồi &amp; Hỗ Trợ</string>
+    <string name="feedback_section_subtitle">Chia sẻ trải nghiệm của bạn hoặc báo cáo vấn đề</string>
+    <string name="feedback_send">Gửi Phản Hồi</string>
+    <string name="feedback_submit">Gửi Phản Hồi</string>
+    <string name="feedback_rating_label">Bạn đánh giá ứng dụng của chúng tôi như thế nào?</string>
+    <string name="feedback_rating_hint">Nhấn vào các ngôi sao để đánh giá</string>
+    <string name="feedback_rating_excellent">Xuất Sắc</string>
+    <string name="feedback_rating_very_good">Rất Tốt</string>
+    <string name="feedback_rating_good">Tốt</string>
+    <string name="feedback_rating_fair">Khá</string>
+    <string name="feedback_rating_poor">Kém</string>
+    <string name="feedback_content_label">Hãy cho chúng tôi biết thêm (tùy chọn)</string>
+    <string name="feedback_content_hint">Chia sẻ suy nghĩ, gợi ý hoặc báo lỗi của bạn…</string>
+    <string name="feedback_suggestions">Gợi ý nhanh:</string>
+    <string name="feedback_chip_ui">Giao Diện/Thiết Kế</string>
+    <string name="feedback_chip_performance">Hiệu Suất</string>
+    <string name="feedback_chip_features">Tính Năng Mới</string>
+    <string name="feedback_chip_bugs">Báo Lỗi</string>
+    <string name="feedback_success">Cảm ơn phản hồi của bạn!</string>
+    <string name="feedback_thank_you_positive">Chúng tôi rất vui vì bạn đang thích ứng dụng! 🎉</string>
+    <string name="feedback_error_no_rating">Vui lòng chọn đánh giá</string>
+    <string name="feedback_error_submit">Không thể gửi phản hồi. Vui lòng thử lại.</string>
+    <string name="feedback_icon">Biểu Tượng Phản Hồi</string>
 </resources>

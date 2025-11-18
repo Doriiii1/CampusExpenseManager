@@ -62,6 +62,8 @@ public class ProfileActivity extends BaseActivity {
     private ActivityResultLauncher<Intent> avatarLauncher;
     private ActivityResultLauncher<Intent> galleryLauncher;
 
+    private Button btnSendFeedback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -135,6 +137,8 @@ public class ProfileActivity extends BaseActivity {
         btnSaveProfile = findViewById(R.id.btn_save_profile);
         btnChangePassword = findViewById(R.id.btn_change_password);
         btnLogout = findViewById(R.id.btn_logout);
+
+        btnSendFeedback = findViewById(R.id.btn_send_feedback);
     }
 
     private void setupAvatarLauncher() {
@@ -349,6 +353,13 @@ public class ProfileActivity extends BaseActivity {
         });
 
         btnLogout.setOnClickListener(v -> showLogoutDialog());
+
+        btnSendFeedback.setOnClickListener(v -> openFeedbackActivity());
+    }
+
+    private void openFeedbackActivity() {
+        Intent intent = new Intent(ProfileActivity.this, FeedbackActivity.class);
+        startActivity(intent);
     }
 
     private void showAvatarOptions() {

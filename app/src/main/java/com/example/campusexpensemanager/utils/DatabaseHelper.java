@@ -11,6 +11,7 @@ import com.example.campusexpensemanager.models.Budget;
 import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
 import com.example.campusexpensemanager.models.ExpenseTemplate;
+import com.example.campusexpensemanager.models.Feedback;
 import com.example.campusexpensemanager.models.User;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
     private static final String DATABASE_NAME = "CampusExpense.db";
-    private static final int DATABASE_VERSION = 2; // ✅ UPGRADED from 1 to 2
+    private static final int DATABASE_VERSION = 3; // ✅ UPGRADED from 2 to 3
 
     // Table Names
     private static final String TABLE_USERS = "users";
@@ -48,6 +49,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_USER_PHONE = "phone";
     private static final String KEY_USER_AVATAR = "avatar_path";
     private static final String KEY_USER_DARK_MODE = "dark_mode_enabled";
+
+    // Add these constants at the top with other table names
+    private static final String TABLE_FEEDBACK = "feedback";
+
+    // Feedback Columns
+    private static final String KEY_FEEDBACK_USER_ID = "user_id";
+    private static final String KEY_FEEDBACK_RATING = "rating";
+    private static final String KEY_FEEDBACK_CONTENT = "content";
+    private static final String KEY_FEEDBACK_TIMESTAMP = "timestamp";
 
     // Category Columns
     private static final String KEY_CATEGORY_NAME = "name";
@@ -194,6 +204,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         prepopulateTemplates(db); // NEW
 
         Log.d(TAG, "Database v2 created successfully with Sprint 5 enhancements");
+
+        // Feedback Table (NEW - Priority 4)
+        String CREATE_FEEDBACK_TABLE = "CREATE TABLE " + TABLE_FEEDBACK + "("
+                + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + KEY_FEEDBACK_USER_ID + " INTEGER NOT NULL,"
+                + KEY_FEEDBACK_RATING + " INTEGER NOT NULL,"
+                + KEY_FEEDBACK_CONTENT + " TEXT,"
+                + KEY_FEEDBACK_TIMESTAMP + " INTEGER NOT NULL,"
+                + "FOREIGN KEY(" + KEY_FEEDBACK_USER_ID + ") REFERENCES "
+                + TABLE_USERS + "(" + KEY_ID + ") ON DELETE CASCADE"
+                + ")";
+        db.execSQL(CREATE_FEEDBACK_TABLE);
+
+        Log.d(TAG, "Feedback table created successfully");
     }
 
     @Override
@@ -226,6 +250,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Log.d(TAG, "Database upgraded to v2 successfully");
             } catch (Exception e) {
                 Log.e(TAG, "Error upgrading database: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        if (oldVersion < 3) {
+            // Add Feedback table
+            try {
+                String CREATE_FEEDBACK_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_FEEDBACK + "("
+                        + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + KEY_FEEDBACK_USER_ID + " INTEGER NOT NULL,"
+                        + KEY_FEEDBACK_RATING + " INTEGER NOT NULL,"
+                        + KEY_FEEDBACK_CONTENT + " TEXT,"
+                        + KEY_FEEDBACK_TIMESTAMP + " INTEGER NOT NULL,"
+                        + "FOREIGN KEY(" + KEY_FEEDBACK_USER_ID + ") REFERENCES "
+                        + TABLE_USERS + "(" + KEY_ID + ") ON DELETE CASCADE"
+                        + ")";
+                db.execSQL(CREATE_FEEDBACK_TABLE);
+                Log.d(TAG, "Database upgraded to v3 - Feedback table added");
+            } catch (Exception e) {
+                Log.e(TAG, "Error upgrading to v3: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -1014,5 +1058,139 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         public double getBalance() {
             return totalIncome - totalExpense;
         }
+    }
+
+    // =============== ADD NEW METHODS FOR FEEDBACK ===============
+
+    /**
+     * Insert feedback into database
+     * @param userId User ID
+     * @param rating Rating (1-5 stars)
+     * @param content Feedback content
+     * @return Feedback ID or -1 if failed
+     */
+    public long insertFeedback(int userId, int rating, String content) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_FEEDBACK_USER_ID, userId);
+        values.put(KEY_FEEDBACK_RATING, rating);
+        values.put(KEY_FEEDBACK_CONTENT, content);
+        values.put(KEY_FEEDBACK_TIMESTAMP, System.currentTimeMillis());
+
+        long id = db.insert(TABLE_FEEDBACK, null, values);
+        Log.d(TAG, "Feedback inserted: " + id + " (Rating: " + rating + " stars)");
+
+        return id;
+    }
+
+    /**
+     * Get all feedback from a user
+     * @param userId User ID
+     * @return List of feedback
+     */
+    public List<Feedback> getFeedbackByUser(int userId) {
+        List<Feedback> feedbackList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_FEEDBACK, null,
+                KEY_FEEDBACK_USER_ID + "=?",
+                new String[]{String.valueOf(userId)},
+                null, null,
+                KEY_FEEDBACK_TIMESTAMP + " DESC");
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                Feedback feedback = cursorToFeedback(cursor);
+                feedbackList.add(feedback);
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+
+        return feedbackList;
+    }
+
+    /**
+     * Get feedback count for a user
+     * @param userId User ID
+     * @return Number of feedback submitted
+     */
+    public int getFeedbackCount(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int count = 0;
+
+        try {
+            String query = "SELECT COUNT(*) as count FROM " + TABLE_FEEDBACK
+                    + " WHERE " + KEY_FEEDBACK_USER_ID + "=?";
+
+            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int countIndex = cursor.getColumnIndex("count");
+                if (countIndex >= 0) {
+                    count = cursor.getInt(countIndex);
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error counting feedback: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
+    /**
+     * Get average rating for a user
+     * @param userId User ID
+     * @return Average rating (0-5) or 0 if no feedback
+     */
+    public float getAverageRating(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        float avgRating = 0;
+
+        try {
+            String query = "SELECT AVG(" + KEY_FEEDBACK_RATING + ") as avg_rating FROM " + TABLE_FEEDBACK
+                    + " WHERE " + KEY_FEEDBACK_USER_ID + "=?";
+
+            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int avgIndex = cursor.getColumnIndex("avg_rating");
+                if (avgIndex >= 0 && !cursor.isNull(avgIndex)) {
+                    avgRating = cursor.getFloat(avgIndex);
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating average rating: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return avgRating;
+    }
+
+    /**
+     * Delete feedback
+     * @param feedbackId Feedback ID
+     * @return Number of rows affected
+     */
+    public int deleteFeedback(int feedbackId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_FEEDBACK, KEY_ID + "=?",
+                new String[]{String.valueOf(feedbackId)});
+    }
+
+    /**
+     * Helper method to convert cursor to Feedback object
+     */
+    private Feedback cursorToFeedback(Cursor cursor) {
+        return new Feedback(
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_FEEDBACK_USER_ID)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(KEY_FEEDBACK_RATING)),
+                cursor.getString(cursor.getColumnIndexOrThrow(KEY_FEEDBACK_CONTENT)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(KEY_FEEDBACK_TIMESTAMP))
+        );
     }
 }

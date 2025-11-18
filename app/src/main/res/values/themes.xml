@@ -156,4 +156,10 @@
     <style name="ShapeAppearance.App.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
         <item name="cornerSize">@dimen/corner_radius_large</item>
     </style>
+
+    <!-- RatingBar Style for Feedback -->
+    <style name="RatingBarStyle" parent="Widget.AppCompat.RatingBar">
+        <item name="colorControlNormal">@color/light_on_surface_variant</item>
+        <item name="colorControlActivated">@color/accent_yellow</item>
+    </style>
 </resources>
