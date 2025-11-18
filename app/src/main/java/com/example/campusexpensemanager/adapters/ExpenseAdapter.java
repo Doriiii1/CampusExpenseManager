@@ -2,7 +2,10 @@ package com.example.campusexpensemanager.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -10,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campusexpensemanager.R;
@@ -27,8 +31,7 @@ import java.util.Locale;
 
 /**
  * ExpenseAdapter - Enhanced for Sprint 5 + Sera UI
- * FIXED: Dark Mode support with theme attributes
- * NEW: Gradient backgrounds, better visual hierarchy
+ * FIXED: Dark Mode support, dynamic category icons, scroll sensitivity
  */
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
 
@@ -41,6 +44,10 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
     private NumberFormat currencyFormat;
     private SimpleDateFormat dateFormat;
+
+    // ✅ NEW: Touch detection for scroll sensitivity fix
+    private static final int CLICK_ACTION_THRESHOLD = 200; // milliseconds
+    private long touchDownTime;
 
     public interface OnExpenseClickListener {
         void onExpenseClick(Expense expense);
@@ -75,6 +82,9 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
         if (category != null) {
             holder.tvCategoryName.setText(category.getName());
+
+            // ✅ FIX 2A: Load dynamic category icon
+            loadCategoryIcon(holder.ivCategoryIcon, category.getIconResource());
         }
 
         // Format amount with correct currency and +/- sign
@@ -85,28 +95,32 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         );
         holder.tvAmount.setText(formattedAmount);
 
-        // ✅ FIX: Use theme-aware colors instead of hardcoded R.color
+        // ✅ FIX: Use theme-aware colors with proper API
         if (expense.isIncome()) {
             // Green for income
-            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.success, context.getTheme()));
+            holder.tvAmount.setTextColor(
+                    ContextCompat.getColor(context, R.color.success)
+            );
         } else {
             // Red for expense
-            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.error, context.getTheme()));
+            holder.tvAmount.setTextColor(
+                    ContextCompat.getColor(context, R.color.error)
+            );
         }
 
-        // ✅ REMOVED: No longer set card background color here - let XML theme handle it
-        // Old code (DELETED):
-        // holder.cardView.setCardBackgroundColor(context.getResources().getColor(R.color.light_surface));
-
-        // Show recurring indicator
+        // Show recurring/receipt indicators
         if (expense.isRecurring()) {
             holder.ivReceiptIndicator.setVisibility(View.VISIBLE);
             holder.ivReceiptIndicator.setImageResource(android.R.drawable.ic_menu_rotate);
             holder.ivReceiptIndicator.setColorFilter(
-                    context.getResources().getColor(R.color.primary_blue, context.getTheme()));
+                    ContextCompat.getColor(context, R.color.primary_blue)
+            );
         } else if (expense.getReceiptPath() != null && !expense.getReceiptPath().isEmpty()) {
             holder.ivReceiptIndicator.setVisibility(View.VISIBLE);
             holder.ivReceiptIndicator.setImageResource(android.R.drawable.ic_menu_camera);
+            holder.ivReceiptIndicator.setColorFilter(
+                    ContextCompat.getColor(context, R.color.secondary_teal)
+            );
         } else {
             holder.ivReceiptIndicator.setVisibility(View.GONE);
         }
@@ -127,35 +141,75 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             holder.tvDescription.setVisibility(View.GONE);
         }
 
-        // Click listener
-        holder.cardView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onExpenseClick(expense);
-            }
-        });
-
-        // ✅ SERA UI: Smooth scale animation on touch
+        // ✅ FIX 2B: Improved click detection to avoid false triggers during scroll
         holder.cardView.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
-                case android.view.MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_DOWN:
+                    touchDownTime = System.currentTimeMillis();
                     v.animate()
                             .scaleX(0.97f)
                             .scaleY(0.97f)
-                            .setDuration(150)
+                            .setDuration(100)
                             .start();
                     break;
-                case android.view.MotionEvent.ACTION_UP:
-                case android.view.MotionEvent.ACTION_CANCEL:
+
+                case MotionEvent.ACTION_UP:
+                    long clickDuration = System.currentTimeMillis() - touchDownTime;
                     v.animate()
                             .scaleX(1.0f)
                             .scaleY(1.0f)
-                            .setDuration(150)
+                            .setDuration(100)
                             .start();
-                    v.performClick(); // Accessibility
+
+                    // Only trigger click if touch was short (not a scroll)
+                    if (clickDuration < CLICK_ACTION_THRESHOLD) {
+                        v.performClick();
+                        if (listener != null) {
+                            listener.onExpenseClick(expense);
+                        }
+                    }
+                    break;
+
+                case MotionEvent.ACTION_CANCEL:
+                    v.animate()
+                            .scaleX(1.0f)
+                            .scaleY(1.0f)
+                            .setDuration(100)
+                            .start();
                     break;
             }
-            return false;
+            return true; // Consume touch event
         });
+    }
+
+    /**
+     * ✅ FIX 2A: Load category icon dynamically from drawable resources
+     * @param imageView Target ImageView
+     * @param iconName Icon resource name (e.g., "ic_food", "ic_transport")
+     */
+    private void loadCategoryIcon(ImageView imageView, String iconName) {
+        try {
+            // Get resource ID from drawable name
+            Resources resources = context.getResources();
+            int iconResId = resources.getIdentifier(
+                    iconName,
+                    "drawable",
+                    context.getPackageName()
+            );
+
+            if (iconResId != 0) {
+                // Icon found - load it
+                Drawable icon = ContextCompat.getDrawable(context, iconResId);
+                imageView.setImageDrawable(icon);
+            } else {
+                // Fallback to default icon
+                imageView.setImageResource(android.R.drawable.ic_dialog_info);
+            }
+        } catch (Exception e) {
+            // Error loading icon - use default
+            imageView.setImageResource(android.R.drawable.ic_dialog_info);
+            e.printStackTrace();
+        }
     }
 
     @Override

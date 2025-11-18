@@ -8,7 +8,8 @@
     android:layout_marginVertical="@dimen/spacing_small"
     android:clickable="true"
     android:focusable="true"
-    app:cardCornerRadius="20dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="16dp"
     app:cardElevation="@dimen/elevation_default"
     app:cardBackgroundColor="?attr/colorSurface"
     app:strokeWidth="0dp">
@@ -18,19 +19,19 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/spacing_medium">
 
-        <!-- Category Icon Background (Sera UI Gradient Effect) -->
+        <!-- Category Icon Container (Gradient Background) -->
         <FrameLayout
             android:id="@+id/icon_container"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_category_icon_gradient"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_category_icon_circle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/iv_category_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/content_description_icon"
                 android:src="@android:drawable/ic_dialog_info"
@@ -54,7 +55,7 @@
             app:layout_constraintStart_toEndOf="@id/icon_container"
             app:layout_constraintTop_toTopOf="@id/icon_container" />
 
-        <!-- Amount (Dynamic Color - Set in Adapter) -->
+        <!-- Amount (Dynamic Color Set in Adapter) -->
         <TextView
             android:id="@+id/tv_amount"
             android:layout_width="wrap_content"
@@ -62,7 +63,7 @@
             android:text="+50,000₫"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textStyle="bold"
-            android:textSize="18sp"
+            android:textSize="17sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -85,9 +86,9 @@
         <!-- Receipt/Recurring Indicator -->
         <ImageView
             android:id="@+id/iv_receipt_indicator"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginStart="@dimen/spacing_small"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="6dp"
             android:contentDescription="Has receipt"
             android:src="@android:drawable/ic_menu_camera"
             android:visibility="gone"
