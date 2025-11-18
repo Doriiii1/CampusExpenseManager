@@ -26,8 +26,9 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * ExpenseAdapter - Enhanced for Sprint 5
- * NEW: Income/Expense color coding with +/- signs
+ * ExpenseAdapter - Enhanced for Sprint 5 + Sera UI
+ * FIXED: Dark Mode support with theme attributes
+ * NEW: Gradient backgrounds, better visual hierarchy
  */
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
 
@@ -84,25 +85,25 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         );
         holder.tvAmount.setText(formattedAmount);
 
-        // Color coding based on type
+        // ✅ FIX: Use theme-aware colors instead of hardcoded R.color
         if (expense.isIncome()) {
             // Green for income
-            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.success));
-            holder.cardView.setCardBackgroundColor(
-                    context.getResources().getColor(R.color.light_surface));
+            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.success, context.getTheme()));
         } else {
             // Red for expense
-            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.error));
-            holder.cardView.setCardBackgroundColor(
-                    context.getResources().getColor(R.color.light_surface));
+            holder.tvAmount.setTextColor(context.getResources().getColor(R.color.error, context.getTheme()));
         }
+
+        // ✅ REMOVED: No longer set card background color here - let XML theme handle it
+        // Old code (DELETED):
+        // holder.cardView.setCardBackgroundColor(context.getResources().getColor(R.color.light_surface));
 
         // Show recurring indicator
         if (expense.isRecurring()) {
             holder.ivReceiptIndicator.setVisibility(View.VISIBLE);
             holder.ivReceiptIndicator.setImageResource(android.R.drawable.ic_menu_rotate);
             holder.ivReceiptIndicator.setColorFilter(
-                    context.getResources().getColor(R.color.primary_blue));
+                    context.getResources().getColor(R.color.primary_blue, context.getTheme()));
         } else if (expense.getReceiptPath() != null && !expense.getReceiptPath().isEmpty()) {
             holder.ivReceiptIndicator.setVisibility(View.VISIBLE);
             holder.ivReceiptIndicator.setImageResource(android.R.drawable.ic_menu_camera);
@@ -133,15 +134,24 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             }
         });
 
-        // Add scale animation on touch
+        // ✅ SERA UI: Smooth scale animation on touch
         holder.cardView.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
                 case android.view.MotionEvent.ACTION_DOWN:
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100).start();
+                    v.animate()
+                            .scaleX(0.97f)
+                            .scaleY(0.97f)
+                            .setDuration(150)
+                            .start();
                     break;
                 case android.view.MotionEvent.ACTION_UP:
                 case android.view.MotionEvent.ACTION_CANCEL:
-                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start();
+                    v.animate()
+                            .scaleX(1.0f)
+                            .scaleY(1.0f)
+                            .setDuration(150)
+                            .start();
+                    v.performClick(); // Accessibility
                     break;
             }
             return false;

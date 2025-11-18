@@ -4,27 +4,38 @@
     android:id="@+id/card_expense_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/spacing_small"
+    android:layout_marginHorizontal="@dimen/spacing_medium"
+    android:layout_marginVertical="@dimen/spacing_small"
     android:clickable="true"
     android:focusable="true"
-    app:cardCornerRadius="@dimen/corner_radius_medium"
-    app:cardElevation="@dimen/elevation_default">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="@dimen/elevation_default"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/spacing_medium">
 
-        <!-- Category Icon -->
-        <ImageView
-            android:id="@+id/iv_category_icon"
-            android:layout_width="@dimen/icon_size_large"
-            android:layout_height="@dimen/icon_size_large"
-            android:contentDescription="Category icon"
-            android:src="@android:drawable/ic_dialog_info"
+        <!-- Category Icon Background (Sera UI Gradient Effect) -->
+        <FrameLayout
+            android:id="@+id/icon_container"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_category_icon_gradient"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="?attr/colorPrimary" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/iv_category_icon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/content_description_icon"
+                android:src="@android:drawable/ic_dialog_info"
+                app:tint="?attr/colorPrimary" />
+        </FrameLayout>
 
         <!-- Category Name -->
         <TextView
@@ -33,45 +44,49 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/spacing_medium"
             android:layout_marginEnd="@dimen/spacing_small"
-            android:text="Category"
+            android:text="@string/category_food"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            android:ellipsize="end"
+            android:maxLines="1"
             app:layout_constraintEnd_toStartOf="@id/tv_amount"
-            app:layout_constraintStart_toEndOf="@id/iv_category_icon"
-            app:layout_constraintTop_toTopOf="@id/iv_category_icon" />
+            app:layout_constraintStart_toEndOf="@id/icon_container"
+            app:layout_constraintTop_toTopOf="@id/icon_container" />
 
-        <!-- Amount -->
+        <!-- Amount (Dynamic Color - Set in Adapter) -->
         <TextView
             android:id="@+id/tv_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="50,000đ"
+            android:text="+50,000₫"
             android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="?attr/colorPrimary"
             android:textStyle="bold"
+            android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Date -->
+        <!-- Date with Icon -->
         <TextView
             android:id="@+id/tv_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_tiny"
+            android:layout_marginTop="4dp"
             android:drawableStart="@android:drawable/ic_menu_my_calendar"
-            android:drawablePadding="@dimen/spacing_tiny"
+            android:drawablePadding="4dp"
+            android:drawableTint="?attr/colorOnSurfaceVariant"
             android:text="12 Nov 2025"
             android:textAppearance="?attr/textAppearanceBody2"
             android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="13sp"
             app:layout_constraintStart_toStartOf="@id/tv_category_name"
             app:layout_constraintTop_toBottomOf="@id/tv_category_name" />
 
-        <!-- Receipt Indicator -->
+        <!-- Receipt/Recurring Indicator -->
         <ImageView
             android:id="@+id/iv_receipt_indicator"
-            android:layout_width="@dimen/icon_size_small"
-            android:layout_height="@dimen/icon_size_small"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:layout_marginStart="@dimen/spacing_small"
             android:contentDescription="Has receipt"
             android:src="@android:drawable/ic_menu_camera"
@@ -89,9 +104,11 @@
             android:layout_marginTop="@dimen/spacing_small"
             android:ellipsize="end"
             android:maxLines="2"
-            android:text="Description of the expense..."
+            android:text="Lunch at campus cafeteria"
             android:textAppearance="?attr/textAppearanceBody2"
             android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="13sp"
+            android:lineSpacingExtra="2dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@id/tv_category_name"
             app:layout_constraintTop_toBottomOf="@id/tv_date" />
