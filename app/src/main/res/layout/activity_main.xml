@@ -222,13 +222,33 @@
                         android:layout_weight="1"
                         android:text="View Budget" />
                 </LinearLayout>
-                <Button
-                    android:id="@+id/btn_generate_report"
-                    style="@style/Widget.App.Button.Outlined"
+                <!-- ✅ NEW: Second row with Overview and Report -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
-                    android:text="Generate Report" />
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btn_view_overview"
+                        style="@style/Widget.App.Button.Outlined"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/spacing_small"
+                        android:layout_weight="1"
+                        android:drawableStart="@android:drawable/ic_menu_view"
+                        android:text="📊 Overview"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/btn_generate_report"
+                        style="@style/Widget.App.Button.Outlined"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/spacing_small"
+                        android:layout_weight="1"
+                        android:text="Generate Report" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

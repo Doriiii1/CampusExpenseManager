@@ -14,7 +14,9 @@ import com.example.campusexpensemanager.models.ExpenseTemplate;
 import com.example.campusexpensemanager.models.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * DatabaseHelper - Sprint 5 Enhanced
@@ -784,5 +786,233 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.getLong(cursor.getColumnIndexOrThrow(KEY_BUDGET_PERIOD_END)),
                 cursor.getLong(cursor.getColumnIndexOrThrow(KEY_CREATED_AT))
         );
+    }
+
+    // ✅ NEW OPTIMIZED METHODS - Add to DatabaseHelper.java
+// Insert these methods into the existing DatabaseHelper class
+
+    /**
+     * ✅ OPTIMIZED: Get total income for current month using SQL SUM
+     * Replaces Java loop calculation in MainActivity
+     *
+     * @param userId User ID
+     * @param startDate Month start timestamp
+     * @param endDate Month end timestamp
+     * @return Total income amount in VND
+     */
+    public double getMonthlyIncomeOptimized(int userId, long startDate, long endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        double total = 0;
+
+        try {
+            // Use SQL SUM instead of Java loop
+            String query = "SELECT SUM(" + KEY_EXPENSE_AMOUNT + ") as total FROM " + TABLE_EXPENSES
+                    + " WHERE " + KEY_EXPENSE_USER_ID + "=?"
+                    + " AND " + KEY_EXPENSE_TYPE + "=" + Expense.TYPE_INCOME
+                    + " AND " + KEY_EXPENSE_DATE + " BETWEEN ? AND ?";
+
+            Cursor cursor = db.rawQuery(query, new String[]{
+                    String.valueOf(userId),
+                    String.valueOf(startDate),
+                    String.valueOf(endDate)
+            });
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int totalIndex = cursor.getColumnIndex("total");
+                if (totalIndex >= 0 && !cursor.isNull(totalIndex)) {
+                    total = cursor.getDouble(totalIndex);
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating monthly income: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return total;
+    }
+
+    /**
+     * ✅ OPTIMIZED: Get total expense for current month using SQL SUM
+     *
+     * @param userId User ID
+     * @param startDate Month start timestamp
+     * @param endDate Month end timestamp
+     * @return Total expense amount in VND
+     */
+    public double getMonthlyExpenseOptimized(int userId, long startDate, long endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        double total = 0;
+
+        try {
+            String query = "SELECT SUM(" + KEY_EXPENSE_AMOUNT + ") as total FROM " + TABLE_EXPENSES
+                    + " WHERE " + KEY_EXPENSE_USER_ID + "=?"
+                    + " AND " + KEY_EXPENSE_TYPE + "=" + Expense.TYPE_EXPENSE
+                    + " AND " + KEY_EXPENSE_DATE + " BETWEEN ? AND ?";
+
+            Cursor cursor = db.rawQuery(query, new String[]{
+                    String.valueOf(userId),
+                    String.valueOf(startDate),
+                    String.valueOf(endDate)
+            });
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int totalIndex = cursor.getColumnIndex("total");
+                if (totalIndex >= 0 && !cursor.isNull(totalIndex)) {
+                    total = cursor.getDouble(totalIndex);
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating monthly expense: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return total;
+    }
+
+    /**
+     * ✅ OPTIMIZED: Get expense count for current month using SQL COUNT
+     *
+     * @param userId User ID
+     * @param startDate Month start timestamp
+     * @param endDate Month end timestamp
+     * @return Number of expenses in period
+     */
+    public int getMonthlyExpenseCountOptimized(int userId, long startDate, long endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int count = 0;
+
+        try {
+            String query = "SELECT COUNT(*) as count FROM " + TABLE_EXPENSES
+                    + " WHERE " + KEY_EXPENSE_USER_ID + "=?"
+                    + " AND " + KEY_EXPENSE_DATE + " BETWEEN ? AND ?";
+
+            Cursor cursor = db.rawQuery(query, new String[]{
+                    String.valueOf(userId),
+                    String.valueOf(startDate),
+                    String.valueOf(endDate)
+            });
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int countIndex = cursor.getColumnIndex("count");
+                if (countIndex >= 0) {
+                    count = cursor.getInt(countIndex);
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error counting monthly expenses: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
+    /**
+     * ✅ OPTIMIZED: Get top spending category for current month using SQL GROUP BY
+     *
+     * @param userId User ID
+     * @param startDate Month start timestamp
+     * @param endDate Month end timestamp
+     * @return Map with category_id -> total_amount
+     */
+    public Map<Integer, Double> getTopCategoryOptimized(int userId, long startDate, long endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Map<Integer, Double> categoryTotals = new HashMap<>();
+
+        try {
+            // GROUP BY category and SUM amounts, ORDER BY total DESC
+            String query = "SELECT " + KEY_EXPENSE_CATEGORY_ID + ", "
+                    + "SUM(" + KEY_EXPENSE_AMOUNT + ") as total "
+                    + "FROM " + TABLE_EXPENSES
+                    + " WHERE " + KEY_EXPENSE_USER_ID + "=?"
+                    + " AND " + KEY_EXPENSE_TYPE + "=" + Expense.TYPE_EXPENSE
+                    + " AND " + KEY_EXPENSE_DATE + " BETWEEN ? AND ?"
+                    + " GROUP BY " + KEY_EXPENSE_CATEGORY_ID
+                    + " ORDER BY total DESC"
+                    + " LIMIT 1";
+
+            Cursor cursor = db.rawQuery(query, new String[]{
+                    String.valueOf(userId),
+                    String.valueOf(startDate),
+                    String.valueOf(endDate)
+            });
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int categoryId = cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_CATEGORY_ID));
+                double total = cursor.getDouble(cursor.getColumnIndexOrThrow("total"));
+                categoryTotals.put(categoryId, total);
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting top category: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return categoryTotals;
+    }
+
+    /**
+     * ✅ OPTIMIZED: Get all dashboard data in ONE query (best performance)
+     * Returns a DashboardData object with all needed info
+     *
+     * @param userId User ID
+     * @param startDate Month start timestamp
+     * @param endDate Month end timestamp
+     * @return DashboardData object containing all stats
+     */
+    public DashboardData getDashboardDataOptimized(int userId, long startDate, long endDate) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        DashboardData data = new DashboardData();
+
+        try {
+            // Single query to get income, expense, and count
+            String query = "SELECT "
+                    + "SUM(CASE WHEN " + KEY_EXPENSE_TYPE + "=" + Expense.TYPE_INCOME
+                    + " THEN " + KEY_EXPENSE_AMOUNT + " ELSE 0 END) as total_income, "
+                    + "SUM(CASE WHEN " + KEY_EXPENSE_TYPE + "=" + Expense.TYPE_EXPENSE
+                    + " THEN " + KEY_EXPENSE_AMOUNT + " ELSE 0 END) as total_expense, "
+                    + "COUNT(*) as expense_count "
+                    + "FROM " + TABLE_EXPENSES
+                    + " WHERE " + KEY_EXPENSE_USER_ID + "=?"
+                    + " AND " + KEY_EXPENSE_DATE + " BETWEEN ? AND ?";
+
+            Cursor cursor = db.rawQuery(query, new String[]{
+                    String.valueOf(userId),
+                    String.valueOf(startDate),
+                    String.valueOf(endDate)
+            });
+
+            if (cursor != null && cursor.moveToFirst()) {
+                data.totalIncome = cursor.getDouble(cursor.getColumnIndexOrThrow("total_income"));
+                data.totalExpense = cursor.getDouble(cursor.getColumnIndexOrThrow("total_expense"));
+                data.expenseCount = cursor.getInt(cursor.getColumnIndexOrThrow("expense_count"));
+                cursor.close();
+            }
+
+            // Get top category (separate query due to GROUP BY)
+            data.topCategoryMap = getTopCategoryOptimized(userId, startDate, endDate);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting dashboard data: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return data;
+    }
+
+    /**
+     * Helper class to hold dashboard statistics
+     */
+    public static class DashboardData {
+        public double totalIncome = 0;
+        public double totalExpense = 0;
+        public int expenseCount = 0;
+        public Map<Integer, Double> topCategoryMap = new HashMap<>();
+
+        public double getBalance() {
+            return totalIncome - totalExpense;
+        }
     }
 }

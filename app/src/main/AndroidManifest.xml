@@ -88,6 +88,11 @@
                 android:resource="@xml/file_provider_paths" />
         </provider>
 
+        <activity
+            android:name=".activities.ExpenseOverviewActivity"
+            android:exported="false"
+            android:label="Expense Overview" />
+
         <!-- ✅ WorkManager auto-initializes by default (Sprint 5) -->
         <!-- No manual configuration needed -->
 

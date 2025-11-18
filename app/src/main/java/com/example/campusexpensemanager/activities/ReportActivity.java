@@ -1,8 +1,10 @@
 package com.example.campusexpensemanager.activities;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,7 +14,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.models.Category;
@@ -33,9 +38,16 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * ReportActivity handles expense reporting and CSV export
+ * ReportActivity - FIXED Runtime Permission handling
+ * Now properly requests WRITE_EXTERNAL_STORAGE for Android 6-9
  */
 public class ReportActivity extends AppCompatActivity {
+
+    private static final String CHANNEL_ID = "budget_alerts";
+    private static final int NOTIFICATION_ID = 1001;
+
+    // ✅ NEW: Permission request code
+    private static final int STORAGE_PERMISSION_CODE = 100;
 
     private TextView tvDateRange, tvTotalExpense, tvExpenseCount, tvCategorySummary;
     private Button btnSelectStartDate, btnSelectEndDate, btnExportCSV, btnShareEmail;
@@ -211,7 +223,7 @@ public class ReportActivity extends AppCompatActivity {
     }
 
     /**
-     * Export report to CSV file
+     * ✅ FIXED: Export CSV with proper permission handling
      */
     private void exportToCSV() {
         try {
@@ -223,44 +235,123 @@ public class ReportActivity extends AppCompatActivity {
                 return;
             }
 
-            // Generate CSV content
-            StringBuilder csv = new StringBuilder();
-            csv.append("Category,Amount,Date,Description\n");
-
-            for (Expense expense : expenses) {
-                Category category = dbHelper.getCategoryById(expense.getCategoryId());
-                String categoryName = category != null ? category.getName() : "Unknown";
-                String amount = String.valueOf(expense.getAmount());
-                String date = dateFormat.format(new Date(expense.getDate()));
-                String description = expense.getDescription() != null ?
-                        expense.getDescription().replace(",", ";") : "";
-
-                csv.append(categoryName).append(",")
-                        .append(amount).append(",")
-                        .append(date).append(",")
-                        .append(description).append("\n");
-            }
-
-            // Save to Downloads folder
-            String fileName = "expense_report_" +
-                    new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-                            .format(new Date()) + ".csv";
-
+            // ✅ Check Android version and permissions
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Android 10+ (Scoped Storage)
-                saveToDownloadsQ(fileName, csv.toString());
+                // Android 10+ (Scoped Storage) - No permission needed
+                performCSVExport(expenses);
             } else {
-                // Android 9 and below
-                saveToDownloadsLegacy(fileName, csv.toString());
+                // Android 6-9 - Need WRITE_EXTERNAL_STORAGE
+                if (checkStoragePermission()) {
+                    performCSVExport(expenses);
+                } else {
+                    requestStoragePermission();
+                }
             }
-
-            Toast.makeText(this, "Report saved to Downloads", Toast.LENGTH_LONG).show();
 
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to export: " + e.getMessage(),
                     Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * ✅ NEW: Check if WRITE_EXTERNAL_STORAGE permission is granted
+     */
+    private boolean checkStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ doesn't need this permission
+            return true;
+        }
+
+        return ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * ✅ NEW: Request WRITE_EXTERNAL_STORAGE permission
+     */
+    private void requestStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Not needed for Android 10+
+            return;
+        }
+
+        // Show rationale if needed
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(this,
+                    "Storage permission is needed to export CSV files to Downloads folder",
+                    Toast.LENGTH_LONG).show();
+        }
+
+        // Request permission
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                STORAGE_PERMISSION_CODE);
+    }
+
+    /**
+     * ✅ NEW: Handle permission result
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted - retry export
+                Toast.makeText(this, "Permission granted. Exporting...",
+                        Toast.LENGTH_SHORT).show();
+                exportToCSV();
+            } else {
+                // Permission denied
+                Toast.makeText(this,
+                        "Permission denied. Cannot export to Downloads folder.",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    /**
+     * ✅ NEW: Perform actual CSV export (separated from permission logic)
+     */
+    private void performCSVExport(List<Expense> expenses) throws Exception {
+        // Generate CSV content
+        StringBuilder csv = new StringBuilder();
+        csv.append("Category,Amount,Date,Description\n");
+
+        for (Expense expense : expenses) {
+            Category category = dbHelper.getCategoryById(expense.getCategoryId());
+            String categoryName = category != null ? category.getName() : "Unknown";
+            String amount = String.valueOf(expense.getAmount());
+            String date = dateFormat.format(new Date(expense.getDate()));
+            String description = expense.getDescription() != null ?
+                    expense.getDescription().replace(",", ";") : "";
+
+            csv.append(categoryName).append(",")
+                    .append(amount).append(",")
+                    .append(date).append(",")
+                    .append(description).append("\n");
+        }
+
+        // Save to Downloads folder
+        String fileName = "expense_report_" +
+                new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+                        .format(new Date()) + ".csv";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ (Scoped Storage)
+            saveToDownloadsQ(fileName, csv.toString());
+        } else {
+            // Android 9 and below
+            saveToDownloadsLegacy(fileName, csv.toString());
+        }
+
+        Toast.makeText(this, "Report saved to Downloads", Toast.LENGTH_LONG).show();
     }
 
     /**
@@ -284,11 +375,18 @@ public class ReportActivity extends AppCompatActivity {
     }
 
     /**
-     * Save CSV to Downloads (Android 9 and below)
+     * ✅ FIXED: Save CSV to Downloads (Android 6-9)
+     * This method is now only called AFTER permission check
      */
     private void saveToDownloadsLegacy(String fileName, String content) throws Exception {
         File downloadsDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOWNLOADS);
+
+        // Ensure directory exists
+        if (!downloadsDir.exists()) {
+            downloadsDir.mkdirs();
+        }
+
         File file = new File(downloadsDir, fileName);
 
         FileWriter writer = new FileWriter(file);

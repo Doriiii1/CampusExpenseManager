@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -47,12 +48,17 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * AddExpenseActivity - Enhanced for Sprint 5
- * NEW: Income/Expense toggle, Currency selector, Recurring, Quick templates
+ * AddExpenseActivity - FIXED for Camera Data Loss (Priority 1.2)
+ * Now properly saves/restores receiptPhotoPath in onSaveInstanceState
  */
 public class AddExpenseActivity extends AppCompatActivity implements TemplateAdapter.OnTemplateClickListener {
 
     private static final int CAMERA_PERMISSION_CODE = 100;
+
+    // ✅ NEW: Instance state keys
+    private static final String KEY_RECEIPT_PATH = "receipt_photo_path";
+    private static final String KEY_SELECTED_DATE = "selected_date_time";
+    private static final String KEY_CURRENT_TYPE = "current_type";
 
     // Type toggle
     private ChipGroup chipGroupType;
@@ -105,6 +111,15 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
         // Initialize date/time
         selectedDateTime = Calendar.getInstance();
 
+        // ✅ FIXED: Restore instance state if available
+        if (savedInstanceState != null) {
+            receiptPhotoPath = savedInstanceState.getString(KEY_RECEIPT_PATH);
+            long savedTime = savedInstanceState.getLong(KEY_SELECTED_DATE,
+                    System.currentTimeMillis());
+            selectedDateTime.setTimeInMillis(savedTime);
+            currentType = savedInstanceState.getInt(KEY_CURRENT_TYPE, Expense.TYPE_EXPENSE);
+        }
+
         // Initialize views
         initializeViews();
 
@@ -122,6 +137,78 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
         // Set initial state
         updateUIForType();
         updateDateTimeButtons();
+
+        // ✅ FIXED: Restore receipt preview if path exists
+        if (receiptPhotoPath != null && !receiptPhotoPath.isEmpty()) {
+            restoreReceiptPreview();
+        }
+    }
+
+    /**
+     * ✅ NEW: Save instance state to preserve data across config changes
+     */
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save receipt photo path (CRITICAL for camera restoration)
+        outState.putString(KEY_RECEIPT_PATH, receiptPhotoPath);
+
+        // Save selected date/time
+        outState.putLong(KEY_SELECTED_DATE, selectedDateTime.getTimeInMillis());
+
+        // Save current type (Income/Expense)
+        outState.putInt(KEY_CURRENT_TYPE, currentType);
+    }
+
+    /**
+     * ✅ NEW: Restore instance state (called automatically by Android)
+     */
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore receipt path
+        receiptPhotoPath = savedInstanceState.getString(KEY_RECEIPT_PATH);
+
+        // Restore date/time
+        long savedTime = savedInstanceState.getLong(KEY_SELECTED_DATE,
+                System.currentTimeMillis());
+        selectedDateTime.setTimeInMillis(savedTime);
+
+        // Restore type
+        currentType = savedInstanceState.getInt(KEY_CURRENT_TYPE, Expense.TYPE_EXPENSE);
+
+        // Update UI with restored data
+        updateUIForType();
+        updateDateTimeButtons();
+        restoreReceiptPreview();
+    }
+
+    /**
+     * ✅ NEW: Restore receipt preview from saved path
+     */
+    private void restoreReceiptPreview() {
+        if (receiptPhotoPath == null || receiptPhotoPath.isEmpty()) {
+            ivReceiptPreview.setVisibility(View.GONE);
+            return;
+        }
+
+        try {
+            File photoFile = new File(receiptPhotoPath);
+            if (photoFile.exists()) {
+                ivReceiptPreview.setVisibility(View.VISIBLE);
+                ivReceiptPreview.setImageURI(Uri.fromFile(photoFile));
+            } else {
+                // File was deleted, clear the path
+                receiptPhotoPath = null;
+                ivReceiptPreview.setVisibility(View.GONE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            receiptPhotoPath = null;
+            ivReceiptPreview.setVisibility(View.GONE);
+        }
     }
 
     private void initializeViews() {
@@ -200,8 +287,8 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        ivReceiptPreview.setVisibility(View.VISIBLE);
-                        ivReceiptPreview.setImageURI(Uri.fromFile(new File(receiptPhotoPath)));
+                        // ✅ receiptPhotoPath already saved in onSaveInstanceState
+                        restoreReceiptPreview();
                         Toast.makeText(this, "Receipt captured", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -252,11 +339,13 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
             tilAmount.setBoxStrokeColor(getResources().getColor(R.color.success));
             chipIncome.setChipBackgroundColorResource(R.color.success);
             chipExpense.setChipBackgroundColorResource(R.color.light_surface_variant);
+            chipIncome.setChecked(true);
         } else {
             // Red theme for Expense
             tilAmount.setBoxStrokeColor(getResources().getColor(R.color.error));
             chipExpense.setChipBackgroundColorResource(R.color.error);
             chipIncome.setChipBackgroundColorResource(R.color.light_surface_variant);
+            chipExpense.setChecked(true);
         }
     }
 
@@ -353,7 +442,8 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == CAMERA_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
