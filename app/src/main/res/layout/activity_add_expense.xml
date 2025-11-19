@@ -40,7 +40,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💸 Chi tiêu"
+                    android:text="@string/add_expense_type_expense_emoji"
                     android:textAlignment="center"
                     app:chipBackgroundColor="@color/error" />
 
@@ -50,7 +50,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💰 Thu nhập"
+                    android:text="@string/add_expense_type_income_emoji"
                     android:textAlignment="center"
                     app:chipBackgroundColor="@color/success" />
             </com.google.android.material.chip.ChipGroup>
@@ -60,7 +60,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_medium"
-                android:text="Quick Add"
+                android:text="@string/add_expense_quick_add"
                 android:textAppearance="?attr/textAppearanceBody1"
                 android:textStyle="bold" />
 
@@ -170,7 +170,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_medium"
-                        android:text="🔁 Lặp lại tự động"
+                        android:text="@string/add_expense_recurring_auto"
                         android:textAppearance="?attr/textAppearanceBody1" />
 
                     <Spinner
@@ -217,7 +217,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:layout_marginTop="@dimen/spacing_small"
-                        android:contentDescription="Receipt preview"
+                        android:contentDescription="@string/content_description_receipt"
                         android:scaleType="centerCrop"
                         android:visibility="gone" />
 

@@ -35,7 +35,7 @@
                     android:id="@+id/tv_greeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hello, User!"
+                    android:text="@string/main_greeting_default"
                     android:textAppearance="?attr/textAppearanceHeadline2"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
@@ -208,7 +208,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_small"
-                            android:text="Top Category: None"
+                            android:text="@string/main_top_category_none"
                             android:textAppearance="?attr/textAppearanceBody2"
                             android:textColor="?attr/colorOnSurface" />
                     </LinearLayout>
@@ -219,7 +219,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_large"
-                    android:text="Quick Actions"
+                    android:text="@string/main_quick_actions"
                     android:textAppearance="?attr/textAppearanceBody1"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
@@ -237,7 +237,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="Add Transaction" />
+                        android:text="@string/main_btn_add_transaction" />
 
                     <Button
                         android:id="@+id/btn_view_budget"
@@ -246,7 +246,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="View Budget" />
+                        android:text="@string/main_btn_view_budget" />
                 </LinearLayout>
 
                 <!-- Second row with Overview and Report -->
@@ -264,7 +264,7 @@
                         android:layout_marginEnd="@dimen/spacing_small"
                         android:layout_weight="1"
                         android:drawableStart="@android:drawable/ic_menu_view"
-                        android:text="📊 Overview"
+                        android:text="@string/main_btn_overview"
                         android:textAllCaps="false" />
 
                     <Button
@@ -274,7 +274,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="Generate Report" />
+                        android:text="@string/main_btn_generate_report" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

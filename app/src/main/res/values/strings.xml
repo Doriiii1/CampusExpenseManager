@@ -66,6 +66,7 @@
     <string name="profile_updated">Profile updated successfully</string>
     <string name="profile_password_changed">Password changed successfully</string>
 
+    <!-- Profile Activity - Hardcoded Strings -->
     <string name="profile_info_title">Profile Information</string>
     <string name="dialog_avatar_title">Change Avatar</string>
     <string name="dialog_option_camera">Take Photo</string>
@@ -74,6 +75,50 @@
     <string name="msg_avatar_updated">Avatar updated</string>
     <string name="msg_avatar_removed">Avatar removed</string>
     <string name="msg_permission_denied">Camera permission denied</string>
+    <string name="msg_error_loading_profile">Error loading profile: %s</string>
+    <string name="msg_failed_update_avatar">Failed to update avatar</string>
+    <string name="msg_failed_update_profile">Failed to update profile</string>
+    <string name="msg_incorrect_password">Incorrect password</string>
+    <string name="msg_failed_change_password">Failed to change password</string>
+    <string name="msg_error_dark_mode">Error toggling dark mode: %s</string>
+    <string name="msg_logged_out">Logged out successfully</string>
+
+    <!-- MainActivity - Hardcoded Strings -->
+    <string name="main_this_month">This Month</string>
+    <string name="main_quick_actions">Quick Actions</string>
+    <string name="main_btn_add_transaction">Add Transaction</string>
+    <string name="main_btn_view_budget">View Budget</string>
+    <string name="main_btn_overview">📊 Overview</string>
+    <string name="main_btn_generate_report">Generate Report</string>
+    <string name="main_greeting_default">Hello, User!</string>
+    <string name="main_top_category_none">Top Category: None</string>
+
+    <!-- AddExpenseActivity - Hardcoded Strings -->
+    <string name="add_expense_type_expense_emoji">💸 Expense</string>
+    <string name="add_expense_type_income_emoji">💰 Income</string>
+    <string name="add_expense_quick_add">Quick Add</string>
+    <string name="add_expense_recurring_auto">🔁 Auto Recurring</string>
+    <string name="msg_no_categories">No categories available</string>
+    <string name="msg_receipt_captured">Receipt captured</string>
+    <string name="msg_no_camera_app">No camera app found</string>
+    <string name="msg_camera_error">Camera error</string>
+    <string name="msg_select_category">Please select a category</string>
+    <string name="msg_template_applied">Template applied: %s</string>
+    <string name="err_invalid_amount">Invalid amount</string>
+    <string name="err_amount_zero">Amount must be greater than 0</string>
+    <string name="msg_transaction_added">%s added: %s</string>
+    <string name="msg_transaction_failed">Failed to add %s</string>
+    <string name="label_income">Income</string>
+    <string name="label_expense">Expense</string>
+
+    <!-- Recurring Period Options -->
+    <string name="recurring_option_daily">Daily</string>
+    <string name="recurring_option_weekly">Weekly</string>
+    <string name="recurring_option_monthly">Monthly</string>
+
+    <!-- Common Messages -->
+    <string name="msg_receipt_preview">Receipt preview</string>
+    <string name="content_description_receipt">Receipt preview</string>
 
     <!-- Expense (Sprint 5 Enhanced) -->
     <string name="expense_add">Add Transaction</string>

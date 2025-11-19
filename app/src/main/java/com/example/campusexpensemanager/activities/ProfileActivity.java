@@ -37,8 +37,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 /**
- * ProfileActivity - Sprint 6 Complete
- * NEW: Avatar upload, Language selection (EN/VI/ZH)
+ * ProfileActivity - Fully Localized
+ * Updated to use resources (getString) instead of hardcoded text.
  */
 public class ProfileActivity extends BaseActivity {
 
@@ -91,7 +91,8 @@ public class ProfileActivity extends BaseActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Error loading profile: " + e.getMessage(),
+            // FIX: Use resource string with parameter
+            Toast.makeText(this, getString(R.string.msg_error_loading_profile, e.getMessage()),
                     Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -157,11 +158,13 @@ public class ProfileActivity extends BaseActivity {
                                 currentUser.setAvatarPath(avatarPath);
                                 dbHelper.updateUser(currentUser);
                                 ivAvatar.setImageBitmap(scaledBitmap);
-                                Toast.makeText(this, "Avatar updated", Toast.LENGTH_SHORT).show();
+                                // FIX: Localized Toast
+                                Toast.makeText(this, getString(R.string.msg_avatar_updated), Toast.LENGTH_SHORT).show();
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Toast.makeText(this, "Failed to update avatar", Toast.LENGTH_SHORT).show();
+                            // FIX: Localized Toast
+                            Toast.makeText(this, getString(R.string.msg_failed_update_avatar), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -183,11 +186,13 @@ public class ProfileActivity extends BaseActivity {
                                 currentUser.setAvatarPath(avatarPath);
                                 dbHelper.updateUser(currentUser);
                                 ivAvatar.setImageBitmap(scaledBitmap);
-                                Toast.makeText(this, "Avatar updated", Toast.LENGTH_SHORT).show();
+                                // FIX: Localized Toast
+                                Toast.makeText(this, getString(R.string.msg_avatar_updated), Toast.LENGTH_SHORT).show();
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Toast.makeText(this, "Failed to update avatar", Toast.LENGTH_SHORT).show();
+                            // FIX: Localized Toast
+                            Toast.makeText(this, getString(R.string.msg_failed_update_avatar), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -208,15 +213,14 @@ public class ProfileActivity extends BaseActivity {
             currentUser = dbHelper.getUserById(userId);
 
             if (currentUser == null) {
-                Toast.makeText(this, "Error loading profile", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.msg_error_loading_profile, "User null"), Toast.LENGTH_SHORT).show();
                 navigateToLogin();
             } else {
-                // Load avatar if exists
                 loadAvatar();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_error_loading_profile, e.getMessage()), Toast.LENGTH_SHORT).show();
             navigateToLogin();
         }
     }
@@ -271,6 +275,7 @@ public class ProfileActivity extends BaseActivity {
         etAddress.setEnabled(false);
         etPhone.setEnabled(false);
 
+        // FIX: Use resource string for button text
         btnEditMode.setText(getString(R.string.profile_edit));
         btnSaveProfile.setVisibility(View.GONE);
     }
@@ -296,7 +301,6 @@ public class ProfileActivity extends BaseActivity {
         adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerLanguage.setAdapter(adapter);
 
-        // Set current language
         String currentLang = LocaleHelper.getLanguage(this);
         int position = 0;
         switch (currentLang) {
@@ -311,7 +315,6 @@ public class ProfileActivity extends BaseActivity {
         }
         spinnerLanguage.setSelection(position);
 
-        // Listen for language changes
         spinnerLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -331,10 +334,8 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void setupClickListeners() {
-        // Avatar change
         fabChangeAvatar.setOnClickListener(v -> showAvatarOptions());
 
-        // Edit mode toggle
         btnEditMode.setOnClickListener(v -> {
             if (isEditMode) {
                 cancelEdit();
@@ -362,8 +363,8 @@ public class ProfileActivity extends BaseActivity {
         startActivity(intent);
     }
 
+    // FIX: Totally refactored dialog using getString()
     private void showAvatarOptions() {
-        // SỬA: Dùng getString() để lấy chữ theo ngôn ngữ đang chọn
         String[] options = {
                 getString(R.string.dialog_option_camera),
                 getString(R.string.dialog_option_gallery),
@@ -371,7 +372,7 @@ public class ProfileActivity extends BaseActivity {
         };
 
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.dialog_avatar_title)) // SỬA: Title động
+                .setTitle(getString(R.string.dialog_avatar_title))
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
                         case 0:
@@ -412,7 +413,8 @@ public class ProfileActivity extends BaseActivity {
         ivAvatar.setImageResource(android.R.drawable.ic_menu_myplaces);
         currentUser.setAvatarPath(null);
         dbHelper.updateUser(currentUser);
-        Toast.makeText(this, "Avatar removed", Toast.LENGTH_SHORT).show();
+        // FIX: Localized Toast
+        Toast.makeText(this, getString(R.string.msg_avatar_removed), Toast.LENGTH_SHORT).show();
     }
 
     private void enterEditMode() {
@@ -420,7 +422,8 @@ public class ProfileActivity extends BaseActivity {
         etName.setEnabled(true);
         etAddress.setEnabled(true);
         etPhone.setEnabled(true);
-        btnEditMode.setText("Cancel");
+        // FIX: Use resource string
+        btnEditMode.setText(getString(R.string.action_cancel));
         btnSaveProfile.setVisibility(View.VISIBLE);
     }
 
@@ -434,6 +437,7 @@ public class ProfileActivity extends BaseActivity {
         etName.setEnabled(false);
         etAddress.setEnabled(false);
         etPhone.setEnabled(false);
+        // FIX: Use resource string
         btnEditMode.setText(getString(R.string.profile_edit));
         btnSaveProfile.setVisibility(View.GONE);
     }
@@ -443,6 +447,7 @@ public class ProfileActivity extends BaseActivity {
         String address = etAddress.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
 
+        // FIX: Use resource strings for errors
         if (name.isEmpty()) {
             tilName.setError(getString(R.string.error_empty_field));
             return;
@@ -475,10 +480,11 @@ public class ProfileActivity extends BaseActivity {
 
         if (rowsAffected > 0) {
             sessionManager.updateUserName(name);
+            // FIX: Localized Toast
             Toast.makeText(this, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show();
             cancelEdit();
         } else {
-            Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_failed_update_profile), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -494,7 +500,8 @@ public class ProfileActivity extends BaseActivity {
 
         String oldPasswordHash = SessionManager.hashPassword(oldPassword);
         if (!oldPasswordHash.equals(currentUser.getPasswordHash())) {
-            tilOldPassword.setError("Incorrect password");
+            // FIX: Localized Error
+            tilOldPassword.setError(getString(R.string.msg_incorrect_password));
             return;
         }
 
@@ -523,12 +530,13 @@ public class ProfileActivity extends BaseActivity {
         int rowsAffected = dbHelper.updateUser(currentUser);
 
         if (rowsAffected > 0) {
+            // FIX: Localized Toast
             Toast.makeText(this, getString(R.string.profile_password_changed), Toast.LENGTH_SHORT).show();
             etOldPassword.setText("");
             etNewPassword.setText("");
             etConfirmNewPassword.setText("");
         } else {
-            Toast.makeText(this, "Failed to change password", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_failed_change_password), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -550,7 +558,7 @@ public class ProfileActivity extends BaseActivity {
             recreate();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Error toggling dark mode: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_error_dark_mode, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -565,7 +573,8 @@ public class ProfileActivity extends BaseActivity {
 
     private void logout() {
         sessionManager.logout();
-        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+        // FIX: Localized Toast
+        Toast.makeText(this, getString(R.string.msg_logged_out), Toast.LENGTH_SHORT).show();
         navigateToLogin();
     }
 
@@ -583,7 +592,8 @@ public class ProfileActivity extends BaseActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 captureAvatar();
             } else {
-                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+                // FIX: Localized Toast
+                Toast.makeText(this, getString(R.string.msg_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
     }

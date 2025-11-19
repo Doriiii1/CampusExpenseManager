@@ -66,14 +66,59 @@
     <string name="profile_updated">个人资料更新成功</string>
     <string name="profile_password_changed">密码更改成功</string>
 
-    <string name="profile_info_title">个人资料信息</string>
+    <!-- Profile Activity -->
+    <string name="profile_info_title">个人信息</string>
     <string name="dialog_avatar_title">更改头像</string>
     <string name="dialog_option_camera">拍照</string>
     <string name="dialog_option_gallery">从相册选择</string>
-    <string name="dialog_option_remove">移除头像</string>
+    <string name="dialog_option_remove">删除头像</string>
     <string name="msg_avatar_updated">头像已更新</string>
-    <string name="msg_avatar_removed">头像已移除</string>
+    <string name="msg_avatar_removed">头像已删除</string>
     <string name="msg_permission_denied">相机权限被拒绝</string>
+    <string name="msg_error_loading_profile">加载个人资料错误：%s</string>
+    <string name="msg_failed_update_avatar">更新头像失败</string>
+    <string name="msg_failed_update_profile">更新个人资料失败</string>
+    <string name="msg_incorrect_password">密码错误</string>
+    <string name="msg_failed_change_password">更改密码失败</string>
+    <string name="msg_error_dark_mode">切换深色模式错误：%s</string>
+    <string name="msg_logged_out">退出登录成功</string>
+
+    <!-- MainActivity -->
+    <string name="main_this_month">本月</string>
+    <string name="main_quick_actions">快速操作</string>
+    <string name="main_btn_add_transaction">添加交易</string>
+    <string name="main_btn_view_budget">查看预算</string>
+    <string name="main_btn_overview">📊 概览</string>
+    <string name="main_btn_generate_report">生成报告</string>
+    <string name="main_greeting_default">你好，用户！</string>
+    <string name="main_top_category_none">顶级类别：无</string>
+
+    <!-- AddExpenseActivity -->
+    <string name="add_expense_type_expense_emoji">💸 支出</string>
+    <string name="add_expense_type_income_emoji">💰 收入</string>
+    <string name="add_expense_quick_add">快速添加</string>
+    <string name="add_expense_recurring_auto">🔁 自动重复</string>
+    <string name="msg_no_categories">没有可用类别</string>
+    <string name="msg_receipt_captured">已拍摄收据</string>
+    <string name="msg_no_camera_app">未找到相机应用</string>
+    <string name="msg_camera_error">相机错误</string>
+    <string name="msg_select_category">请选择类别</string>
+    <string name="msg_template_applied">已应用模板：%s</string>
+    <string name="err_invalid_amount">金额无效</string>
+    <string name="err_amount_zero">金额必须大于0</string>
+    <string name="msg_transaction_added">已添加%s：%s</string>
+    <string name="msg_transaction_failed">添加%s失败</string>
+    <string name="label_income">收入</string>
+    <string name="label_expense">支出</string>
+
+    <!-- Recurring Options -->
+    <string name="recurring_option_daily">每天</string>
+    <string name="recurring_option_weekly">每周</string>
+    <string name="recurring_option_monthly">每月</string>
+
+    <!-- Common -->
+    <string name="msg_receipt_preview">收据预览</string>
+    <string name="content_description_receipt">收据预览</string>
 
     <!-- Expense/Income -->
     <string name="expense_add">添加交易</string>

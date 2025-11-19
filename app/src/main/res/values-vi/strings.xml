@@ -66,14 +66,59 @@
     <string name="profile_updated">Cập nhật hồ sơ thành công</string>
     <string name="profile_password_changed">Đổi mật khẩu thành công</string>
 
-    <string name="profile_info_title">Thông tin hồ sơ</string>
-    <string name="dialog_avatar_title">Đổi ảnh đại diện</string>
-    <string name="dialog_option_camera">Chụp ảnh mới</string>
-    <string name="dialog_option_gallery">Chọn từ thư viện</string>
-    <string name="dialog_option_remove">Xóa ảnh hiện tại</string>
+    <!-- Profile Activity - Chuỗi được trích xuất -->
+    <string name="profile_info_title">Thông Tin Cá Nhân</string>
+    <string name="dialog_avatar_title">Thay Đổi Ảnh Đại Diện</string>
+    <string name="dialog_option_camera">Chụp Ảnh</string>
+    <string name="dialog_option_gallery">Chọn từ Thư Viện</string>
+    <string name="dialog_option_remove">Xóa Ảnh Đại Diện</string>
     <string name="msg_avatar_updated">Đã cập nhật ảnh đại diện</string>
     <string name="msg_avatar_removed">Đã xóa ảnh đại diện</string>
-    <string name="msg_permission_denied">Bạn đã từ chối quyền truy cập Camera</string>
+    <string name="msg_permission_denied">Quyền máy ảnh bị từ chối</string>
+    <string name="msg_error_loading_profile">Lỗi tải hồ sơ: %s</string>
+    <string name="msg_failed_update_avatar">Không thể cập nhật ảnh đại diện</string>
+    <string name="msg_failed_update_profile">Không thể cập nhật hồ sơ</string>
+    <string name="msg_incorrect_password">Mật khẩu không đúng</string>
+    <string name="msg_failed_change_password">Không thể thay đổi mật khẩu</string>
+    <string name="msg_error_dark_mode">Lỗi chuyển chế độ tối: %s</string>
+    <string name="msg_logged_out">Đã đăng xuất thành công</string>
+
+    <!-- MainActivity - Chuỗi được trích xuất -->
+    <string name="main_this_month">Tháng Này</string>
+    <string name="main_quick_actions">Thao Tác Nhanh</string>
+    <string name="main_btn_add_transaction">Thêm Giao Dịch</string>
+    <string name="main_btn_view_budget">Xem Ngân Sách</string>
+    <string name="main_btn_overview">📊 Tổng Quan</string>
+    <string name="main_btn_generate_report">Tạo Báo Cáo</string>
+    <string name="main_greeting_default">Xin chào, Người dùng!</string>
+    <string name="main_top_category_none">Danh Mục Hàng Đầu: Không có</string>
+
+    <!-- AddExpenseActivity - Chuỗi được trích xuất -->
+    <string name="add_expense_type_expense_emoji">💸 Chi tiêu</string>
+    <string name="add_expense_type_income_emoji">💰 Thu nhập</string>
+    <string name="add_expense_quick_add">Thêm Nhanh</string>
+    <string name="add_expense_recurring_auto">🔁 Lặp lại tự động</string>
+    <string name="msg_no_categories">Không có danh mục nào</string>
+    <string name="msg_receipt_captured">Đã chụp hóa đơn</string>
+    <string name="msg_no_camera_app">Không tìm thấy ứng dụng máy ảnh</string>
+    <string name="msg_camera_error">Lỗi máy ảnh</string>
+    <string name="msg_select_category">Vui lòng chọn danh mục</string>
+    <string name="msg_template_applied">Đã áp dụng mẫu: %s</string>
+    <string name="err_invalid_amount">Số tiền không hợp lệ</string>
+    <string name="err_amount_zero">Số tiền phải lớn hơn 0</string>
+    <string name="msg_transaction_added">Đã thêm %s: %s</string>
+    <string name="msg_transaction_failed">Không thể thêm %s</string>
+    <string name="label_income">Thu nhập</string>
+    <string name="label_expense">Chi tiêu</string>
+
+    <!-- Tùy chọn Lặp lại -->
+    <string name="recurring_option_daily">Hàng ngày</string>
+    <string name="recurring_option_weekly">Hàng tuần</string>
+    <string name="recurring_option_monthly">Hàng tháng</string>
+
+    <!-- Thông báo chung -->
+    <string name="msg_receipt_preview">Xem trước hóa đơn</string>
+    <string name="content_description_receipt">Xem trước hóa đơn</string>
 
     <!-- Expense/Income -->
     <string name="expense_add">Thêm giao dịch</string>

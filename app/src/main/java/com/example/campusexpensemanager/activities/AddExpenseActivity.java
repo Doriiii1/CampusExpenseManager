@@ -41,21 +41,20 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.File;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * AddExpenseActivity - FIXED for Camera Data Loss (Priority 1.2)
- * Now properly saves/restores receiptPhotoPath in onSaveInstanceState
+ * AddExpenseActivity - Fully Localized
+ * Updated to use resources (getString) instead of hardcoded text.
  */
-public class AddExpenseActivity extends AppCompatActivity implements TemplateAdapter.OnTemplateClickListener {
+public class AddExpenseActivity extends BaseActivity implements TemplateAdapter.OnTemplateClickListener {
 
     private static final int CAMERA_PERMISSION_CODE = 100;
 
-    // ✅ NEW: Instance state keys
+    // Instance state keys
     private static final String KEY_RECEIPT_PATH = "receipt_photo_path";
     private static final String KEY_SELECTED_DATE = "selected_date_time";
     private static final String KEY_CURRENT_TYPE = "current_type";
@@ -111,7 +110,7 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
         // Initialize date/time
         selectedDateTime = Calendar.getInstance();
 
-        // ✅ FIXED: Restore instance state if available
+        // Restore instance state if available
         if (savedInstanceState != null) {
             receiptPhotoPath = savedInstanceState.getString(KEY_RECEIPT_PATH);
             long savedTime = savedInstanceState.getLong(KEY_SELECTED_DATE,
@@ -138,56 +137,39 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
         updateUIForType();
         updateDateTimeButtons();
 
-        // ✅ FIXED: Restore receipt preview if path exists
+        // Restore receipt preview if path exists
         if (receiptPhotoPath != null && !receiptPhotoPath.isEmpty()) {
             restoreReceiptPreview();
         }
     }
 
     /**
-     * ✅ NEW: Save instance state to preserve data across config changes
+     * Save instance state to preserve data across config changes
      */
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-
-        // Save receipt photo path (CRITICAL for camera restoration)
         outState.putString(KEY_RECEIPT_PATH, receiptPhotoPath);
-
-        // Save selected date/time
         outState.putLong(KEY_SELECTED_DATE, selectedDateTime.getTimeInMillis());
-
-        // Save current type (Income/Expense)
         outState.putInt(KEY_CURRENT_TYPE, currentType);
     }
 
     /**
-     * ✅ NEW: Restore instance state (called automatically by Android)
+     * Restore instance state (called automatically by Android)
      */
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-
-        // Restore receipt path
         receiptPhotoPath = savedInstanceState.getString(KEY_RECEIPT_PATH);
-
-        // Restore date/time
-        long savedTime = savedInstanceState.getLong(KEY_SELECTED_DATE,
-                System.currentTimeMillis());
+        long savedTime = savedInstanceState.getLong(KEY_SELECTED_DATE, System.currentTimeMillis());
         selectedDateTime.setTimeInMillis(savedTime);
-
-        // Restore type
         currentType = savedInstanceState.getInt(KEY_CURRENT_TYPE, Expense.TYPE_EXPENSE);
 
-        // Update UI with restored data
         updateUIForType();
         updateDateTimeButtons();
         restoreReceiptPreview();
     }
 
-    /**
-     * ✅ NEW: Restore receipt preview from saved path
-     */
     private void restoreReceiptPreview() {
         if (receiptPhotoPath == null || receiptPhotoPath.isEmpty()) {
             ivReceiptPreview.setVisibility(View.GONE);
@@ -200,7 +182,6 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
                 ivReceiptPreview.setVisibility(View.VISIBLE);
                 ivReceiptPreview.setImageURI(Uri.fromFile(photoFile));
             } else {
-                // File was deleted, clear the path
                 receiptPhotoPath = null;
                 ivReceiptPreview.setVisibility(View.GONE);
             }
@@ -212,12 +193,10 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
     }
 
     private void initializeViews() {
-        // Type toggle
         chipGroupType = findViewById(R.id.chip_group_type);
         chipExpense = findViewById(R.id.chip_expense);
         chipIncome = findViewById(R.id.chip_income);
 
-        // Form fields
         tilAmount = findViewById(R.id.til_amount);
         tilDescription = findViewById(R.id.til_description);
         etAmount = findViewById(R.id.et_amount);
@@ -229,18 +208,14 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
         btnCaptureReceipt = findViewById(R.id.btn_capture_receipt);
         ivReceiptPreview = findViewById(R.id.iv_receipt_preview);
 
-        // Recurring
         cbRecurring = findViewById(R.id.cb_recurring);
         spinnerRecurrencePeriod = findViewById(R.id.spinner_recurrence_period);
 
-        // Templates
         recyclerTemplates = findViewById(R.id.recycler_templates);
         recyclerTemplates.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
         fabSave = findViewById(R.id.fab_save);
-
-        // Default: Hide recurring period spinner
         spinnerRecurrencePeriod.setVisibility(View.GONE);
     }
 
@@ -248,7 +223,8 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
         categories = dbHelper.getAllCategories();
 
         if (categories.isEmpty()) {
-            Toast.makeText(this, "No categories available", Toast.LENGTH_SHORT).show();
+            // FIX: Localized string
+            Toast.makeText(this, getString(R.string.msg_no_categories), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -259,7 +235,6 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
     }
 
     private void loadCurrencies() {
-        // Mock currencies (should query from DB in real app)
         currencies = new java.util.ArrayList<>();
         currencies.add(new Currency(1, "VND", 1.0, System.currentTimeMillis()));
         currencies.add(new Currency(2, "USD", 24000.0, System.currentTimeMillis()));
@@ -287,16 +262,15 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        // ✅ receiptPhotoPath already saved in onSaveInstanceState
                         restoreReceiptPreview();
-                        Toast.makeText(this, "Receipt captured", Toast.LENGTH_SHORT).show();
+                        // FIX: Localized string
+                        Toast.makeText(this, getString(R.string.msg_receipt_captured), Toast.LENGTH_SHORT).show();
                     }
                 }
         );
     }
 
     private void setupClickListeners() {
-        // Type toggle
         chipGroupType.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.chip_expense) {
                 currentType = Expense.TYPE_EXPENSE;
@@ -306,42 +280,36 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
             updateUIForType();
         });
 
-        // Date/Time pickers
         btnSelectDate.setOnClickListener(v -> showDatePicker());
         btnSelectTime.setOnClickListener(v -> showTimePicker());
-
-        // Receipt capture
         btnCaptureReceipt.setOnClickListener(v -> captureReceipt());
 
-        // Recurring checkbox
         cbRecurring.setOnCheckedChangeListener((buttonView, isChecked) -> {
             spinnerRecurrencePeriod.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
 
-        // Setup recurrence period spinner
-        String[] periods = {"Daily", "Weekly", "Monthly"};
+        // FIX: Localized strings for recurring periods
+        String[] periods = {
+                getString(R.string.recurring_option_daily),
+                getString(R.string.recurring_option_weekly),
+                getString(R.string.recurring_option_monthly)
+        };
         ArrayAdapter<String> periodAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, periods);
         periodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerRecurrencePeriod.setAdapter(periodAdapter);
         spinnerRecurrencePeriod.setSelection(2); // Default: Monthly
 
-        // Save button
         fabSave.setOnClickListener(v -> saveExpense());
     }
 
-    /**
-     * Update UI colors based on Expense/Income type
-     */
     private void updateUIForType() {
         if (currentType == Expense.TYPE_INCOME) {
-            // Green theme for Income
             tilAmount.setBoxStrokeColor(getResources().getColor(R.color.success));
             chipIncome.setChipBackgroundColorResource(R.color.success);
             chipExpense.setChipBackgroundColorResource(R.color.light_surface_variant);
             chipIncome.setChecked(true);
         } else {
-            // Red theme for Expense
             tilAmount.setBoxStrokeColor(getResources().getColor(R.color.error));
             chipExpense.setChipBackgroundColorResource(R.color.error);
             chipIncome.setChipBackgroundColorResource(R.color.light_surface_variant);
@@ -406,7 +374,8 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
             if (takePictureIntent.resolveActivity(getPackageManager()) == null) {
-                Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show();
+                // FIX: Localized string
+                Toast.makeText(this, getString(R.string.msg_no_camera_app), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -420,7 +389,8 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Camera error", Toast.LENGTH_SHORT).show();
+            // FIX: Localized string
+            Toast.makeText(this, getString(R.string.msg_camera_error), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -449,17 +419,14 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 launchCamera();
             } else {
-                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+                // FIX: Localized string
+                Toast.makeText(this, getString(R.string.msg_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    /**
-     * Template click handler - Pre-fill form
-     */
     @Override
     public void onTemplateClick(ExpenseTemplate template) {
-        // Pre-fill category
         for (int i = 0; i < categories.size(); i++) {
             if (categories.get(i).getId() == template.getCategoryId()) {
                 spinnerCategory.setSelection(i);
@@ -467,22 +434,17 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
             }
         }
 
-        // Pre-fill description
         etDescription.setText(template.getName());
-
-        // Pre-fill amount (optional)
         if (template.getDefaultAmount() > 0) {
             etAmount.setText(String.valueOf(template.getDefaultAmount()));
         }
-
-        // Focus on amount field
         etAmount.requestFocus();
 
-        Toast.makeText(this, "Template applied: " + template.getName(), Toast.LENGTH_SHORT).show();
+        // FIX: Localized string
+        Toast.makeText(this, getString(R.string.msg_template_applied, template.getName()), Toast.LENGTH_SHORT).show();
     }
 
     private void saveExpense() {
-        // Validate amount
         String amountStr = etAmount.getText().toString().trim();
         if (amountStr.isEmpty()) {
             tilAmount.setError(getString(R.string.error_empty_field));
@@ -493,45 +455,51 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
         try {
             amount = Double.parseDouble(amountStr);
         } catch (NumberFormatException e) {
-            tilAmount.setError("Invalid amount");
+            // FIX: Localized error
+            tilAmount.setError(getString(R.string.err_invalid_amount));
             return;
         }
 
         if (amount <= 0) {
-            tilAmount.setError("Amount must be greater than 0");
+            // FIX: Localized error
+            tilAmount.setError(getString(R.string.err_amount_zero));
             return;
         }
         tilAmount.setError(null);
 
-        // Validate category
         if (spinnerCategory.getSelectedItem() == null) {
-            Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show();
+            // FIX: Localized warning
+            Toast.makeText(this, getString(R.string.msg_select_category), Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Get form data
         int userId = sessionManager.getUserId();
         Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
         Currency selectedCurrency = (Currency) spinnerCurrency.getSelectedItem();
         long dateTime = selectedDateTime.getTimeInMillis();
         String description = etDescription.getText().toString().trim();
 
-        // Create expense object
         Expense expense = new Expense(userId, selectedCategory.getId(),
                 amount, dateTime, description, currentType);
         expense.setCurrencyId(selectedCurrency.getId());
         expense.setReceiptPath(receiptPhotoPath);
 
-        // Handle recurring
         if (cbRecurring.isChecked()) {
             expense.setIsRecurring(true);
 
-            String periodText = spinnerRecurrencePeriod.getSelectedItem().toString().toLowerCase();
-            expense.setRecurrencePeriod(periodText);
+            // Map localized period back to DB value (english) for consistency or save logic
+            // Ideally, save constants like "daily", "weekly", "monthly" regardless of display language
+            // Here we assume the spinner index 0=daily, 1=weekly, 2=monthly
+            String periodValue = "monthly";
+            switch (spinnerRecurrencePeriod.getSelectedItemPosition()) {
+                case 0: periodValue = "daily"; break;
+                case 1: periodValue = "weekly"; break;
+                case 2: periodValue = "monthly"; break;
+            }
+            expense.setRecurrencePeriod(periodValue);
 
-            // Calculate next occurrence
             Calendar nextOcc = (Calendar) selectedDateTime.clone();
-            switch (periodText) {
+            switch (periodValue) {
                 case "daily":
                     nextOcc.add(Calendar.DAY_OF_MONTH, 1);
                     break;
@@ -545,22 +513,23 @@ public class AddExpenseActivity extends AppCompatActivity implements TemplateAda
             expense.setNextOccurrenceDate(nextOcc.getTimeInMillis());
         }
 
-        // Insert into database
         long expenseId = dbHelper.insertExpense(expense);
 
         if (expenseId != -1) {
-            String typeText = currentType == Expense.TYPE_INCOME ? "Income" : "Expense";
+            // FIX: Localized type text
+            String typeText = currentType == Expense.TYPE_INCOME ?
+                    getString(R.string.label_income) : getString(R.string.label_expense);
             String formattedAmount = selectedCurrency.formatAmount(amount);
 
-            Toast.makeText(this, typeText + " added: " + formattedAmount,
+            Toast.makeText(this, getString(R.string.msg_transaction_added, typeText, formattedAmount),
                     Toast.LENGTH_SHORT).show();
 
-            // Set result OK to notify ExpenseListActivity to refresh
             setResult(RESULT_OK);
             finish();
         } else {
-            Toast.makeText(this, "Failed to add " +
-                            (currentType == Expense.TYPE_INCOME ? "income" : "expense"),
+            String typeText = currentType == Expense.TYPE_INCOME ?
+                    getString(R.string.label_income) : getString(R.string.label_expense);
+            Toast.makeText(this, getString(R.string.msg_transaction_failed, typeText),
                     Toast.LENGTH_SHORT).show();
         }
     }
