@@ -39,7 +39,7 @@ import java.util.Map;
  * ExpenseOverviewActivity - Priority 2: Visual Charts
  * Displays Pie Chart (category breakdown) and Line Chart (6-month trend)
  */
-public class ExpenseOverviewActivity extends AppCompatActivity {
+public class ExpenseOverviewActivity extends BaseActivity {
 
     private PieChart pieChart;
     private LineChart lineChart;

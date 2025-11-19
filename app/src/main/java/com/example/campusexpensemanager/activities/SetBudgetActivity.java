@@ -31,7 +31,7 @@ import java.util.Locale;
 /**
  * SetBudgetActivity handles creating and viewing budgets
  */
-public class SetBudgetActivity extends AppCompatActivity implements BudgetAdapter.OnBudgetClickListener {
+public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnBudgetClickListener {
 
     private TextInputLayout tilAmount;
     private TextInputEditText etAmount;

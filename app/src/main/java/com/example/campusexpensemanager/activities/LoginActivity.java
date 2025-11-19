@@ -24,7 +24,7 @@ import com.google.android.material.textfield.TextInputLayout;
  * LoginActivity handles user authentication
  * Features: Password visibility toggle, Remember Me, Account lockout after 3 failed attempts
  */
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
 
     private TextInputLayout tilEmail, tilPassword;
     private TextInputEditText etEmail, etPassword;

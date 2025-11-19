@@ -41,7 +41,7 @@ import java.util.Map;
  * ReportActivity - FIXED Runtime Permission handling
  * Now properly requests WRITE_EXTERNAL_STORAGE for Android 6-9
  */
-public class ReportActivity extends AppCompatActivity {
+public class ReportActivity extends BaseActivity {
 
     private static final String CHANNEL_ID = "budget_alerts";
     private static final int NOTIFICATION_ID = 1001;

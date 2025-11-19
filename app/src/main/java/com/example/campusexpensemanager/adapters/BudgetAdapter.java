@@ -77,13 +77,13 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         double percentageSpent = budget.calculatePercentageSpent(spent);
 
         // Format amounts
-        String budgetAmount = currencyFormat.format(budget.getAmount()) + "đ";
-        String spentAmount = currencyFormat.format(spent) + "đ";
-        String remainingAmount = currencyFormat.format(remaining) + "đ";
+        String formattedBudget = currencyFormat.format(budget.getAmount()) + "đ";
+        String formattedSpent = currencyFormat.format(spent) + "đ";
+        String formattedRemaining = currencyFormat.format(remaining) + "đ";
 
-        holder.tvBudgetAmount.setText("Budget: " + budgetAmount);
-        holder.tvSpentAmount.setText("Spent: " + spentAmount);
-        holder.tvRemainingAmount.setText("Remaining: " + remainingAmount);
+        holder.tvBudgetAmount.setText(context.getString(R.string.label_budget_prefix) + formattedBudget);
+        holder.tvSpentAmount.setText(context.getString(R.string.label_spent_prefix) + formattedSpent);
+        holder.tvRemainingAmount.setText(context.getString(R.string.label_remaining_prefix) + formattedRemaining);
 
         // Set progress bar
         holder.progressBar.setProgress((int) percentageSpent);

@@ -29,7 +29,7 @@ import java.util.Locale;
 /**
  * EditBudgetActivity handles editing and deleting budgets
  */
-public class EditBudgetActivity extends AppCompatActivity {
+public class EditBudgetActivity extends BaseActivity {
 
     private TextInputLayout tilAmount;
     private TextInputEditText etAmount;

@@ -33,7 +33,7 @@ import java.util.Locale;
 /**
  * BudgetDashboardActivity shows budget progress with predictions and alerts
  */
-public class BudgetDashboardActivity extends AppCompatActivity {
+public class BudgetDashboardActivity extends BaseActivity {
 
     private static final String CHANNEL_ID = "budget_alerts";
     private static final int NOTIFICATION_ID = 1001;

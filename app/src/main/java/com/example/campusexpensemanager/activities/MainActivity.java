@@ -25,11 +25,13 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.example.campusexpensemanager.utils.LocaleHelper;
+
 /**
  * MainActivity - OPTIMIZED Dashboard (Priority 1.3)
  * Now uses SQL queries instead of Java loops for 10x faster performance
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = "MainActivity";
 
@@ -43,11 +45,12 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
     private CurrencyConverter currencyConverter;
+    private String currentLanguageCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        currentLanguageCode = LocaleHelper.getLanguage(this);
         sessionManager = new SessionManager(this);
 
         if (!sessionManager.isLoggedIn()) {
@@ -261,6 +264,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        String storedLanguage = LocaleHelper.getLanguage(this);
+        if (!currentLanguageCode.equals(storedLanguage)) {
+            recreate(); // Tải lại màn hình để áp dụng ngôn ngữ mới
+            return;
+        }
+
         if (layoutDashboard != null && layoutDashboard.getVisibility() == View.VISIBLE) {
             loadDashboardData();
         }

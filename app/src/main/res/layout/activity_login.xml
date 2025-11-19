@@ -34,12 +34,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/iv_logo" />
 
+    <!-- ✅ REFACTORED: Subtitle -->
     <TextView
         android:id="@+id/tv_login_subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/spacing_small"
-        android:text="Sign in to continue"
+        android:text="@string/login_subtitle"
         android:textAppearance="?attr/textAppearanceBody1"
         android:textColor="?attr/colorOnSurfaceVariant"
         app:layout_constraintEnd_toEndOf="parent"
@@ -100,7 +101,7 @@
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Custom Password Eye Toggle Button -->
+            <!-- ✅ REFACTORED: Custom Password Eye Toggle Button -->
             <ImageButton
                 android:id="@+id/btn_toggle_password"
                 android:layout_width="@dimen/icon_size_normal"
@@ -109,7 +110,7 @@
                 android:layout_marginTop="@dimen/spacing_xlarge"
                 android:layout_marginEnd="@dimen/spacing_small"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Toggle password visibility"
+                android:contentDescription="@string/login_toggle_password"
                 android:src="@drawable/ic_eye"
                 app:tint="?attr/colorOnSurfaceVariant" />
 

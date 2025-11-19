@@ -40,7 +40,7 @@ import java.util.Locale;
  * EditExpenseActivity - ENHANCED Priority 3
  * Now with proper Recurring Dialog handling for Edit/Delete actions
  */
-public class EditExpenseActivity extends AppCompatActivity {
+public class EditExpenseActivity extends BaseActivity {
 
     // Type toggle
     private ChipGroup chipGroupType;

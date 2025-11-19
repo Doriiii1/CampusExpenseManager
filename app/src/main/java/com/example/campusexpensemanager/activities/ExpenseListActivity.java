@@ -33,7 +33,7 @@ import java.util.Locale;
  * ExpenseListActivity - Enhanced Sprint 6
  * NEW: Type filter (All/Income/Expense), Auto-refresh on add
  */
-public class ExpenseListActivity extends AppCompatActivity implements ExpenseAdapter.OnExpenseClickListener {
+public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.OnExpenseClickListener {
 
     private RecyclerView recyclerView;
     private ExpenseAdapter adapter;

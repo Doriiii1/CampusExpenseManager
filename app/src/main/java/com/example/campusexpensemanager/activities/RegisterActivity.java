@@ -23,7 +23,7 @@ import com.google.android.material.textfield.TextInputLayout;
  * RegisterActivity handles new user registration with validation
  * Requires: Email, Password, Confirm Password, Name, Address, Phone
  */
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends BaseActivity {
 
     private TextInputLayout tilEmail, tilPassword, tilConfirmPassword;
     private TextInputLayout tilName, tilAddress, tilPhone;
