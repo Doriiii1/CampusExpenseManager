@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.models.Budget;
 import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
@@ -273,6 +274,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 e.printStackTrace();
             }
         }
+
+        if (oldVersion < 4) {
+            // Migrate category names to localization keys
+            migrateCategoryNamesToKeys(db);
+            Log.d(TAG, "Database upgraded to v4 - Categories localized");
+        }
     }
 
     @Override
@@ -281,30 +288,139 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("PRAGMA foreign_keys=ON");
     }
 
-    // =============== PRE-POPULATE DATA ===============
+    // =============== PRE-POPULATE DATA (LOCALIZED) ===============
 
+    /**
+     * ✅ REFACTORED: Store category KEYS instead of display names
+     * Keys will be mapped to localized strings at runtime
+     */
     private void prepopulateCategories(SQLiteDatabase db) {
+        // Format: Key, Icon Resource Name
         String[] categories = {
-                "Food & Dining", "ic_food",
-                "Transportation", "ic_transport",
-                "Study & Books", "ic_study",
-                "Entertainment", "ic_entertainment",
-                "Shopping", "ic_shopping",
-                "Healthcare", "ic_health",
-                "Utilities", "ic_utilities",
-                "Housing", "ic_housing",
-                "Personal Care", "ic_personal",
-                "Salary", "ic_salary", // NEW for income
-                "Others", "ic_others"
+                "cat_food", "ic_food",
+                "cat_transport", "ic_transport",
+                "cat_study", "ic_study",
+                "cat_entertainment", "ic_entertainment",
+                "cat_shopping", "ic_shopping",
+                "cat_health", "ic_health",
+                "cat_utilities", "ic_utilities",
+                "cat_housing", "ic_housing",
+                "cat_personal", "ic_personal",
+                "cat_salary", "ic_salary",
+                "cat_others", "ic_others"
         };
 
         for (int i = 0; i < categories.length; i += 2) {
             ContentValues values = new ContentValues();
-            values.put(KEY_CATEGORY_NAME, categories[i]);
+            values.put(KEY_CATEGORY_NAME, categories[i]); // Store KEY, not display name
             values.put(KEY_CATEGORY_ICON, categories[i + 1]);
             db.insert(TABLE_CATEGORIES, null, values);
         }
-        Log.d(TAG, "Pre-populated categories");
+        Log.d(TAG, "Pre-populated categories with localization keys");
+    }
+
+    /**
+     * ✅ NEW: Get localized category name from key
+     * @param context Context for string resources
+     * @param categoryKey Key like "cat_food"
+     * @return Localized name like "Food & Dining" (EN) or "Ăn uống" (VI)
+     */
+    public static String getLocalizedCategoryName(Context context, String categoryKey) {
+        if (categoryKey == null || categoryKey.isEmpty()) {
+            return context.getString(R.string.cat_others);
+        }
+
+        try {
+            // Try to get string resource by key
+            int resId = context.getResources().getIdentifier(
+                    categoryKey,
+                    "string",
+                    context.getPackageName()
+            );
+
+            if (resId != 0) {
+                return context.getString(resId);
+            }
+
+            // ✅ LEGACY SUPPORT: Handle old data format
+            // If DB still has "Food & Dining", map to new key
+            return mapLegacyCategoryName(context, categoryKey);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting localized category: " + e.getMessage());
+            return categoryKey; // Fallback to key itself
+        }
+    }
+
+    /**
+     * ✅ LEGACY SUPPORT: Map old category names to new keys
+     * Handles existing data that has "Food & Dining" instead of "cat_food"
+     */
+    private static String mapLegacyCategoryName(Context context, String oldName) {
+        Map<String, String> legacyMap = new HashMap<>();
+        legacyMap.put("Food & Dining", "cat_food");
+        legacyMap.put("Transportation", "cat_transport");
+        legacyMap.put("Study & Books", "cat_study");
+        legacyMap.put("Entertainment", "cat_entertainment");
+        legacyMap.put("Shopping", "cat_shopping");
+        legacyMap.put("Healthcare", "cat_health");
+        legacyMap.put("Utilities", "cat_utilities");
+        legacyMap.put("Housing", "cat_housing");
+        legacyMap.put("Personal Care", "cat_personal");
+        legacyMap.put("Salary", "cat_salary");
+        legacyMap.put("Others", "cat_others");
+
+        String newKey = legacyMap.get(oldName);
+        if (newKey != null) {
+            return context.getString(
+                    context.getResources().getIdentifier(newKey, "string", context.getPackageName())
+            );
+        }
+
+        return oldName; // No mapping found, return original
+    }
+
+    private void migrateCategoryNamesToKeys(SQLiteDatabase db) {
+        try {
+            Log.d(TAG, "Migrating category names to localization keys...");
+
+            // Mapping of old names to new keys
+            Map<String, String> migrations = new HashMap<>();
+            migrations.put("Food & Dining", "cat_food");
+            migrations.put("Transportation", "cat_transport");
+            migrations.put("Study & Books", "cat_study");
+            migrations.put("Entertainment", "cat_entertainment");
+            migrations.put("Shopping", "cat_shopping");
+            migrations.put("Healthcare", "cat_health");
+            migrations.put("Utilities", "cat_utilities");
+            migrations.put("Housing", "cat_housing");
+            migrations.put("Personal Care", "cat_personal");
+            migrations.put("Salary", "cat_salary");
+            migrations.put("Others", "cat_others");
+
+            // Update each category
+            for (Map.Entry<String, String> entry : migrations.entrySet()) {
+                ContentValues values = new ContentValues();
+                values.put(KEY_CATEGORY_NAME, entry.getValue());
+
+                int updated = db.update(
+                        TABLE_CATEGORIES,
+                        values,
+                        KEY_CATEGORY_NAME + "=?",
+                        new String[]{entry.getKey()}
+                );
+
+                if (updated > 0) {
+                    Log.d(TAG, "Migrated: " + entry.getKey() + " -> " + entry.getValue());
+                }
+            }
+
+            Log.d(TAG, "Category migration completed successfully");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error during category migration: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void prepopulateCurrencies(SQLiteDatabase db) {

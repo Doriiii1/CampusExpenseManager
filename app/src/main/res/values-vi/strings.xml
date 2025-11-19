@@ -102,18 +102,31 @@
     <string name="currency_vnd">Việt Nam Đồng (₫)</string>
     <string name="currency_usd">Đô la Mỹ ($)</string>
 
-    <!-- Categories -->
-    <string name="category_food">Ăn uống</string>
-    <string name="category_transport">Di chuyển</string>
-    <string name="category_study">Học tập</string>
-    <string name="category_entertainment">Giải trí</string>
-    <string name="category_shopping">Mua sắm</string>
-    <string name="category_health">Y tế</string>
-    <string name="category_utilities">Tiện ích</string>
-    <string name="category_housing">Nhà ở</string>
-    <string name="category_personal">Cá nhân</string>
-    <string name="category_salary">Lương</string>
-    <string name="category_others">Khác</string>
+    <!-- Categories (Localization Keys) -->
+    <string name="cat_food">Ăn uống</string>
+    <string name="cat_transport">Di chuyển</string>
+    <string name="cat_study">Học tập</string>
+    <string name="cat_entertainment">Giải trí</string>
+    <string name="cat_shopping">Mua sắm</string>
+    <string name="cat_health">Y tế</string>
+    <string name="cat_utilities">Tiện ích</string>
+    <string name="cat_housing">Nhà ở</string>
+    <string name="cat_personal">Cá nhân</string>
+    <string name="cat_salary">Lương</string>
+    <string name="cat_others">Khác</string>
+
+    <!-- Legacy Support -->
+    <string name="category_food">@string/cat_food</string>
+    <string name="category_transport">@string/cat_transport</string>
+    <string name="category_study">@string/cat_study</string>
+    <string name="category_entertainment">@string/cat_entertainment</string>
+    <string name="category_shopping">@string/cat_shopping</string>
+    <string name="category_health">@string/cat_health</string>
+    <string name="category_utilities">@string/cat_utilities</string>
+    <string name="category_housing">@string/cat_housing</string>
+    <string name="category_personal">@string/cat_personal</string>
+    <string name="category_salary">@string/cat_salary</string>
+    <string name="category_others">@string/cat_others</string>
 
     <!-- Budget -->
     <string name="budget_set">Đặt ngân sách</string>

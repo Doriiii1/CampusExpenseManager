@@ -8,6 +8,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -167,19 +168,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * ✅ OPTIMIZED: Load dashboard data using SQL queries instead of Java loops
-     * Performance improvement: ~10x faster for 1000+ transactions
+     * ✅ LOCALIZED: Load dashboard data with proper string resources
      */
     private void loadDashboardData() {
         try {
             int userId = sessionManager.getUserId();
 
-            // Display greeting
+            // Display greeting with localized string
             String userName = sessionManager.getUserName();
             if (userName == null || userName.isEmpty()) {
-                userName = "User";
+                userName = getString(R.string.auth_name); // Fallback to "User"
             }
-            tvGreeting.setText("Hello, " + userName + "! 👋");
+            tvGreeting.setText(getString(R.string.dashboard_greeting, userName));
 
             // Calculate month boundaries
             Calendar calendar = Calendar.getInstance();
@@ -192,22 +192,7 @@ public class MainActivity extends AppCompatActivity {
             calendar.add(Calendar.MONTH, 1);
             long monthEnd = calendar.getTimeInMillis();
 
-            // ✅ BEFORE (OLD CODE - SLOW):
-            // List<Expense> expenses = dbHelper.getExpensesByUser(userId);
-            // double totalIncomeVnd = 0;
-            // double totalExpenseVnd = 0;
-            // for (Expense expense : expenses) {
-            //     if (expense.getDate() >= monthStart && expense.getDate() < monthEnd) {
-            //         double amountInVnd = currencyConverter.convert(...);
-            //         if (expense.isIncome()) {
-            //             totalIncomeVnd += amountInVnd;
-            //         } else {
-            //             totalExpenseVnd += amountInVnd;
-            //         }
-            //     }
-            // }
-
-            // ✅ AFTER (NEW CODE - FAST): Use single optimized query
+            // Get optimized dashboard data
             DatabaseHelper.DashboardData dashboardData =
                     dbHelper.getDashboardDataOptimized(userId, monthStart, monthEnd);
 
@@ -215,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
             double totalExpenseVnd = dashboardData.totalExpense;
             double balance = dashboardData.getBalance();
 
-            // Format and display amounts (all in VND)
+            // ✅ LOCALIZED: Format amounts with + / - signs
             String formattedIncome = currencyConverter.format(totalIncomeVnd, 1);
             String formattedExpense = currencyConverter.format(totalExpenseVnd, 1);
             String formattedBalance = currencyConverter.format(Math.abs(balance), 1);
@@ -226,39 +211,50 @@ public class MainActivity extends AppCompatActivity {
 
             // Color coding for balance
             if (balance >= 0) {
-                tvBalanceAmount.setTextColor(getResources().getColor(R.color.success));
+                tvBalanceAmount.setTextColor(
+                        ContextCompat.getColor(this, R.color.success)
+                );
             } else {
-                tvBalanceAmount.setTextColor(getResources().getColor(R.color.error));
+                tvBalanceAmount.setTextColor(
+                        ContextCompat.getColor(this, R.color.error)
+                );
             }
 
-            // ✅ OPTIMIZED: Top category from SQL query (no loop needed)
+            // ✅ LOCALIZED: Get top category with localized name
             Map<Integer, Double> topCategoryMap = dashboardData.topCategoryMap;
 
-            String topCategory = "None";
+            String topCategoryName = getString(R.string.cat_others); // Default
             double topAmount = 0;
 
             if (!topCategoryMap.isEmpty()) {
-                // Get the first (and only) entry from the map
                 Map.Entry<Integer, Double> entry = topCategoryMap.entrySet().iterator().next();
                 topAmount = entry.getValue();
 
                 Category cat = dbHelper.getCategoryById(entry.getKey());
                 if (cat != null) {
-                    topCategory = cat.getName();
+                    // ✅ Get localized category name
+                    topCategoryName = DatabaseHelper.getLocalizedCategoryName(
+                            this,
+                            cat.getName()
+                    );
                 }
             }
 
             String formattedTopAmount = currencyConverter.format(topAmount, 1);
-            tvTopCategory.setText("Top Category: " + topCategory + " (" + formattedTopAmount + ")");
+
+            // ✅ LOCALIZED: Use string resource for "Top Category:"
+            String topCategoryLabel = getString(R.string.dashboard_top_category);
+            tvTopCategory.setText(topCategoryLabel + ": " + topCategoryName + " (" + formattedTopAmount + ")");
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Fallback to safe defaults
-            tvGreeting.setText("Hello, User! 👋");
-            tvIncomeAmount.setText("+0đ");
-            tvExpenseAmount.setText("-0đ");
-            tvBalanceAmount.setText("0đ");
-            tvTopCategory.setText("Top Category: None");
+            // ✅ LOCALIZED: Fallback values using string resources
+            tvGreeting.setText(getString(R.string.dashboard_greeting, "User"));
+            tvIncomeAmount.setText("+0₫");
+            tvExpenseAmount.setText("-0₫");
+            tvBalanceAmount.setText("0₫");
+            tvTopCategory.setText(getString(R.string.dashboard_top_category) + ": " +
+                    getString(R.string.cat_others));
         }
     }
 

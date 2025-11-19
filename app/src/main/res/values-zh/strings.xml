@@ -102,18 +102,31 @@
     <string name="currency_vnd">越南盾 (₫)</string>
     <string name="currency_usd">美元 ($)</string>
 
-    <!-- Categories -->
-    <string name="category_food">餐饮</string>
-    <string name="category_transport">交通</string>
-    <string name="category_study">学习</string>
-    <string name="category_entertainment">娱乐</string>
-    <string name="category_shopping">购物</string>
-    <string name="category_health">医疗</string>
-    <string name="category_utilities">公用事业</string>
-    <string name="category_housing">住房</string>
-    <string name="category_personal">个人护理</string>
-    <string name="category_salary">工资</string>
-    <string name="category_others">其他</string>
+    <!-- Categories (Localization Keys) -->
+    <string name="cat_food">餐饮</string>
+    <string name="cat_transport">交通</string>
+    <string name="cat_study">学习</string>
+    <string name="cat_entertainment">娱乐</string>
+    <string name="cat_shopping">购物</string>
+    <string name="cat_health">医疗</string>
+    <string name="cat_utilities">公用事业</string>
+    <string name="cat_housing">住房</string>
+    <string name="cat_personal">个人护理</string>
+    <string name="cat_salary">工资</string>
+    <string name="cat_others">其他</string>
+
+    <!-- Legacy Support -->
+    <string name="category_food">@string/cat_food</string>
+    <string name="category_transport">@string/cat_transport</string>
+    <string name="category_study">@string/cat_study</string>
+    <string name="category_entertainment">@string/cat_entertainment</string>
+    <string name="category_shopping">@string/cat_shopping</string>
+    <string name="category_health">@string/cat_health</string>
+    <string name="category_utilities">@string/cat_utilities</string>
+    <string name="category_housing">@string/cat_housing</string>
+    <string name="category_personal">@string/cat_personal</string>
+    <string name="category_salary">@string/cat_salary</string>
+    <string name="category_others">@string/cat_others</string>
 
     <!-- Budget -->
     <string name="budget_set">设置预算</string>

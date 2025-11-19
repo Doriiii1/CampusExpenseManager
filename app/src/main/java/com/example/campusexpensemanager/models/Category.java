@@ -1,12 +1,16 @@
 package com.example.campusexpensemanager.models;
 
+import android.content.Context;
+
+import com.example.campusexpensemanager.utils.DatabaseHelper;
+
 /**
  * Category model class for expense categorization
- * Pre-populated categories like Food, Transport, Study, etc.
+ * ✅ ENHANCED: Supports localization via category keys
  */
 public class Category {
     private int id;
-    private String name;
+    private String name; // NOW STORES KEY like "cat_food"
     private String iconResource; // Resource name for icon (e.g., "ic_food")
 
     // Default constructor
@@ -36,7 +40,7 @@ public class Category {
     }
 
     public String getName() {
-        return name;
+        return name; // Returns KEY like "cat_food"
     }
 
     public void setName(String name) {
@@ -51,8 +55,18 @@ public class Category {
         this.iconResource = iconResource;
     }
 
+    /**
+     * ✅ NEW: Get localized display name
+     * @param context Context for string resources
+     * @return Localized name based on current locale
+     */
+    public String getLocalizedName(Context context) {
+        return DatabaseHelper.getLocalizedCategoryName(context, this.name);
+    }
+
     @Override
     public String toString() {
-        return name; // For Spinner display
+        // Used by Spinner - returns KEY (will be localized in Adapter)
+        return name;
     }
 }

@@ -105,17 +105,29 @@
     <string name="currency_usd">US Dollar ($)</string>
 
     <!-- Categories -->
-    <string name="category_food">Food &amp; Dining</string>
-    <string name="category_transport">Transportation</string>
-    <string name="category_study">Study &amp; Books</string>
-    <string name="category_entertainment">Entertainment</string>
-    <string name="category_shopping">Shopping</string>
-    <string name="category_health">Healthcare</string>
-    <string name="category_utilities">Utilities</string>
-    <string name="category_housing">Housing</string>
-    <string name="category_personal">Personal Care</string>
-    <string name="category_salary">Salary</string>
-    <string name="category_others">Others</string>
+    <string name="cat_food">Food &amp; Dining</string>
+    <string name="cat_transport">Transportation</string>
+    <string name="cat_study">Study &amp; Books</string>
+    <string name="cat_entertainment">Entertainment</string>
+    <string name="cat_shopping">Shopping</string>
+    <string name="cat_health">Healthcare</string>
+    <string name="cat_utilities">Utilities</string>
+    <string name="cat_housing">Housing</string>
+    <string name="cat_personal">Personal Care</string>
+    <string name="cat_salary">Salary</string>
+    <string name="cat_others">Others</string>
+
+    <string name="category_food">@string/cat_food</string>
+    <string name="category_transport">@string/cat_transport</string>
+    <string name="category_study">@string/cat_study</string>
+    <string name="category_entertainment">@string/cat_entertainment</string>
+    <string name="category_shopping">@string/cat_shopping</string>
+    <string name="category_health">@string/cat_health</string>
+    <string name="category_utilities">@string/cat_utilities</string>
+    <string name="category_housing">@string/cat_housing</string>
+    <string name="category_personal">@string/cat_personal</string>
+    <string name="category_salary">@string/cat_salary</string>
+    <string name="category_others">@string/cat_others</string>
 
     <!-- Budget -->
     <string name="budget_set">Set Budget</string>

@@ -81,7 +81,12 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         Category category = dbHelper.getCategoryById(expense.getCategoryId());
 
         if (category != null) {
-            holder.tvCategoryName.setText(category.getName());
+            // ✅ LOCALIZATION: Get localized category name
+            String localizedName = DatabaseHelper.getLocalizedCategoryName(
+                    context,
+                    category.getName()
+            );
+            holder.tvCategoryName.setText(localizedName);
 
             // ✅ FIX 2A: Load dynamic category icon
             loadCategoryIcon(holder.ivCategoryIcon, category.getIconResource());
