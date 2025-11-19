@@ -26,12 +26,13 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- ✅ REFACTORED: Subtitle -->
         <TextView
             android:id="@+id/tv_register_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_small"
-            android:text="Create your account"
+            android:text="@string/register_subtitle"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"

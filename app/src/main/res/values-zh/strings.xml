@@ -92,6 +92,7 @@
     <string name="main_btn_generate_report">生成报告</string>
     <string name="main_greeting_default">你好，用户！</string>
     <string name="main_top_category_none">顶级类别：无</string>
+    <string name="main_this_month_label">本月</string>
 
     <!-- AddExpenseActivity -->
     <string name="add_expense_type_expense_emoji">💸 支出</string>
@@ -110,6 +111,24 @@
     <string name="msg_transaction_failed">添加%s失败</string>
     <string name="label_income">收入</string>
     <string name="label_expense">支出</string>
+
+    <!-- Login Activity -->
+    <string name="login_subtitle">登录继续</string>
+    <string name="login_toggle_password">切换密码可见性</string>
+    <!-- Register Activity -->
+    <string name="register_subtitle">创建您的账户</string>
+    <!-- Budget Dashboard -->
+    <string name="budget_dashboard_title">预算仪表板</string>
+    <string name="budget_add_description">添加预算</string>
+    <!-- Report Activity -->
+    <string name="report_start_date">开始日期</string>
+    <string name="report_end_date">结束日期</string>
+    <string name="report_period_label">报告期间：...</string>
+    <string name="report_total_expense_label">总支出：0đ</string>
+    <string name="report_expense_count_label">支出数量：0</string>
+    <string name="report_category_summary_default">按类别支出：\n\n加载中...</string>
+    <string name="report_export_options">导出选项</string>
+    <string name="report_share_email">通过电子邮件分享</string>
 
     <!-- Recurring Options -->
     <string name="recurring_option_daily">每天</string>

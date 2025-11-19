@@ -86,12 +86,13 @@
     <!-- MainActivity - Hardcoded Strings -->
     <string name="main_this_month">This Month</string>
     <string name="main_quick_actions">Quick Actions</string>
-    <string name="main_btn_add_transaction">Add Transaction</string>
-    <string name="main_btn_view_budget">View Budget</string>
+    <string name="main_btn_add_transaction">🖊️ Add Transaction</string>
+    <string name="main_btn_view_budget">🎯 View Budget</string>
     <string name="main_btn_overview">📊 Overview</string>
-    <string name="main_btn_generate_report">Generate Report</string>
+    <string name="main_btn_generate_report">📋 Generate Report</string>
     <string name="main_greeting_default">Hello, User!</string>
     <string name="main_top_category_none">Top Category: None</string>
+    <string name="main_this_month_label">This Month</string>
 
     <!-- AddExpenseActivity - Hardcoded Strings -->
     <string name="add_expense_type_expense_emoji">💸 Expense</string>
@@ -110,6 +111,27 @@
     <string name="msg_transaction_failed">Failed to add %s</string>
     <string name="label_income">Income</string>
     <string name="label_expense">Expense</string>
+
+    <!-- Login Activity -->
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="login_toggle_password">Toggle password visibility</string>
+
+    <!-- Register Activity -->
+    <string name="register_subtitle">Create your account</string>
+
+    <!-- Budget Dashboard -->
+    <string name="budget_dashboard_title">Budget Dashboard</string>
+    <string name="budget_add_description">Add budget</string>
+
+    <!-- Report Activity -->
+    <string name="report_start_date">Start Date</string>
+    <string name="report_end_date">End Date</string>
+    <string name="report_period_label">Report Period: ...</string>
+    <string name="report_total_expense_label">Total Expense: 0đ</string>
+    <string name="report_expense_count_label">Number of Expenses: 0</string>
+    <string name="report_category_summary_default">Expenses by Category:\n\nLoading...</string>
+    <string name="report_export_options">Export Options</string>
+    <string name="report_share_email">Share via Email</string>
 
     <!-- Recurring Period Options -->
     <string name="recurring_option_daily">Daily</string>

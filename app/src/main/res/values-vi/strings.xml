@@ -92,6 +92,7 @@
     <string name="main_btn_generate_report">Tạo Báo Cáo</string>
     <string name="main_greeting_default">Xin chào, Người dùng!</string>
     <string name="main_top_category_none">Danh Mục Hàng Đầu: Không có</string>
+    <string name="main_this_month_label">Tháng Này</string>
 
     <!-- AddExpenseActivity - Chuỗi được trích xuất -->
     <string name="add_expense_type_expense_emoji">💸 Chi tiêu</string>
@@ -110,6 +111,27 @@
     <string name="msg_transaction_failed">Không thể thêm %s</string>
     <string name="label_income">Thu nhập</string>
     <string name="label_expense">Chi tiêu</string>
+
+    <!-- Login Activity -->
+    <string name="login_subtitle">Đăng nhập để tiếp tục</string>
+    <string name="login_toggle_password">Chuyển đổi hiển thị mật khẩu</string>
+
+    <!-- Register Activity -->
+    <string name="register_subtitle">Tạo tài khoản của bạn</string>
+
+    <!-- Budget Dashboard -->
+    <string name="budget_dashboard_title">Bảng Điều Khiển Ngân Sách</string>
+    <string name="budget_add_description">Thêm ngân sách</string>
+
+    <!-- Report Activity -->
+    <string name="report_start_date">Ngày Bắt Đầu</string>
+    <string name="report_end_date">Ngày Kết Thúc</string>
+    <string name="report_period_label">Khoảng Thời Gian Báo Cáo: ...</string>
+    <string name="report_total_expense_label">Tổng Chi Tiêu: 0đ</string>
+    <string name="report_expense_count_label">Số Lượng Chi Tiêu: 0</string>
+    <string name="report_category_summary_default">Chi Tiêu Theo Danh Mục:\n\nĐang tải...</string>
+    <string name="report_export_options">Tùy Chọn Xuất</string>
+    <string name="report_share_email">Chia Sẻ qua Email</string>
 
     <!-- Tùy chọn Lặp lại -->
     <string name="recurring_option_daily">Hàng ngày</string>

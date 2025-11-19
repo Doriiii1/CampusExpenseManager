@@ -198,7 +198,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="This Month"
+                            android:text="@string/main_this_month_label"
                             android:textAppearance="?attr/textAppearanceBody1"
                             android:textColor="?attr/colorPrimary"
                             android:textStyle="bold" />

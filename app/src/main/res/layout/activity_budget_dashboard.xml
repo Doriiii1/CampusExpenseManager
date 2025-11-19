@@ -16,11 +16,11 @@
             android:orientation="vertical"
             android:padding="@dimen/spacing_medium">
 
-            <!-- Title -->
+            <!-- ✅ REFACTORED: Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Budget Dashboard"
+                android:text="@string/budget_dashboard_title"
                 android:textAppearance="?attr/textAppearanceHeadline2"
                 android:textColor="?attr/colorPrimary"
                 android:textStyle="bold" />
@@ -48,14 +48,14 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Floating Action Button -->
+    <!-- ✅ REFACTORED: Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_budget"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:contentDescription="Add budget"
+        android:contentDescription="@string/budget_add_description"
         app:srcCompat="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
