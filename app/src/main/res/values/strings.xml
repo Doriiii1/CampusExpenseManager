@@ -66,6 +66,15 @@
     <string name="profile_updated">Profile updated successfully</string>
     <string name="profile_password_changed">Password changed successfully</string>
 
+    <string name="profile_info_title">Profile Information</string>
+    <string name="dialog_avatar_title">Change Avatar</string>
+    <string name="dialog_option_camera">Take Photo</string>
+    <string name="dialog_option_gallery">Choose from Gallery</string>
+    <string name="dialog_option_remove">Remove Avatar</string>
+    <string name="msg_avatar_updated">Avatar updated</string>
+    <string name="msg_avatar_removed">Avatar removed</string>
+    <string name="msg_permission_denied">Camera permission denied</string>
+
     <!-- Expense (Sprint 5 Enhanced) -->
     <string name="expense_add">Add Transaction</string>
     <string name="expense_edit">Edit Transaction</string>

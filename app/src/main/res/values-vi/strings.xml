@@ -66,6 +66,15 @@
     <string name="profile_updated">Cập nhật hồ sơ thành công</string>
     <string name="profile_password_changed">Đổi mật khẩu thành công</string>
 
+    <string name="profile_info_title">Thông tin hồ sơ</string>
+    <string name="dialog_avatar_title">Đổi ảnh đại diện</string>
+    <string name="dialog_option_camera">Chụp ảnh mới</string>
+    <string name="dialog_option_gallery">Chọn từ thư viện</string>
+    <string name="dialog_option_remove">Xóa ảnh hiện tại</string>
+    <string name="msg_avatar_updated">Đã cập nhật ảnh đại diện</string>
+    <string name="msg_avatar_removed">Đã xóa ảnh đại diện</string>
+    <string name="msg_permission_denied">Bạn đã từ chối quyền truy cập Camera</string>
+
     <!-- Expense/Income -->
     <string name="expense_add">Thêm giao dịch</string>
     <string name="expense_edit">Sửa giao dịch</string>
@@ -243,4 +252,6 @@
     <string name="feedback_error_no_rating">Vui lòng chọn đánh giá</string>
     <string name="feedback_error_submit">Không thể gửi phản hồi. Vui lòng thử lại.</string>
     <string name="feedback_icon">Biểu Tượng Phản Hồi</string>
+
+
 </resources>

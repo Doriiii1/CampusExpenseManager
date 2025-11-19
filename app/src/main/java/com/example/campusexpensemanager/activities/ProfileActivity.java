@@ -363,10 +363,15 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void showAvatarOptions() {
-        String[] options = {"Take Photo", "Choose from Gallery", "Remove Avatar"};
+        // SỬA: Dùng getString() để lấy chữ theo ngôn ngữ đang chọn
+        String[] options = {
+                getString(R.string.dialog_option_camera),
+                getString(R.string.dialog_option_gallery),
+                getString(R.string.dialog_option_remove)
+        };
 
         new AlertDialog.Builder(this)
-                .setTitle("Change Avatar")
+                .setTitle(getString(R.string.dialog_avatar_title)) // SỬA: Title động
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
                         case 0:

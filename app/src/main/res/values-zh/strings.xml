@@ -66,6 +66,15 @@
     <string name="profile_updated">个人资料更新成功</string>
     <string name="profile_password_changed">密码更改成功</string>
 
+    <string name="profile_info_title">个人资料信息</string>
+    <string name="dialog_avatar_title">更改头像</string>
+    <string name="dialog_option_camera">拍照</string>
+    <string name="dialog_option_gallery">从相册选择</string>
+    <string name="dialog_option_remove">移除头像</string>
+    <string name="msg_avatar_updated">头像已更新</string>
+    <string name="msg_avatar_removed">头像已移除</string>
+    <string name="msg_permission_denied">相机权限被拒绝</string>
+
     <!-- Expense/Income -->
     <string name="expense_add">添加交易</string>
     <string name="expense_edit">编辑交易</string>
