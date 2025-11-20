@@ -126,10 +126,10 @@
     <!-- Report Activity -->
     <string name="report_start_date">Start Date</string>
     <string name="report_end_date">End Date</string>
-    <string name="report_period_label">Report Period: ...</string>
-    <string name="report_total_expense_label">Total Expense: 0đ</string>
-    <string name="report_expense_count_label">Number of Expenses: 0</string>
-    <string name="report_category_summary_default">Expenses by Category:\n\nLoading...</string>
+    <string name="report_period_label">Report Period: </string>
+    <string name="report_total_expense_label">Total Expense: </string>
+    <string name="report_expense_count_label">Number of Expenses: </string>
+    <string name="report_category_summary_default">Expenses by Category: \n </string>
     <string name="report_export_options">Export Options</string>
     <string name="report_share_email">Share via Email</string>
 
@@ -230,11 +230,17 @@
     <string name="report_total_income">Total Income</string>
     <string name="report_total_expense">Total Expense</string>
     <string name="report_by_category">By Category</string>
-    <string name="report_date_range">Date Range</string>
+    <string name="report_date_range">Date Range: </string>
     <string name="report_from">From</string>
     <string name="report_to">To</string>
     <string name="report_exported">Report exported to Downloads</string>
     <string name="report_email_subject">Expense Report - %s</string>
+    <string name="report_export_pdf">Export as PDF</string>
+    <string name="report_export_format_title">Select Export Format</string>
+    <string name="report_export_csv_option">📄 Export as CSV</string>
+    <string name="report_export_pdf_option">📑 Export as PDF</string>
+    <string name="report_pdf_saved">PDF report saved to Downloads</string>
+    <string name="report_pdf_failed">Failed to create PDF</string>
 
     <!-- Dashboard -->
     <string name="dashboard_greeting">Hello, %s!</string>
@@ -334,4 +340,19 @@
     <string name="label_period_prefix">Period: </string>
     <string name="label_prediction_prefix">Prediction: </string>
     <string name="template_example_name">Rental</string>
+
+    <!-- NEW: Biometric Authentication -->
+    <string name="biometric_login">Biometric Login</string>
+    <string name="biometric_subtitle">Use fingerprint or face ID</string>
+    <string name="biometric_enable">Enable Biometric Login</string>
+    <string name="biometric_enabled">Biometric login enabled</string>
+    <string name="biometric_disabled">Biometric login disabled</string>
+    <string name="biometric_not_available">Biometric not available on this device</string>
+    <string name="biometric_no_hardware">No biometric hardware detected</string>
+    <string name="biometric_not_enrolled">Please enroll fingerprint in device settings</string>
+    <string name="biometric_prompt_title">Biometric Login</string>
+    <string name="biometric_prompt_subtitle">Use your fingerprint or face to login</string>
+    <string name="biometric_prompt_description">Login to CampusExpense Manager</string>
+    <string name="biometric_prompt_negative">Use Password</string>
+    <string name="biometric_verify_password">Enter password to enable biometric</string>
 </resources>

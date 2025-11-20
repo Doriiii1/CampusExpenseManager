@@ -21,6 +21,9 @@ public class SessionManager {
     private static final String KEY_DARK_MODE = "dark_mode_enabled";
     private static final String KEY_LOGIN_ATTEMPTS = "login_attempts";
     private static final String KEY_LOCK_TIMESTAMP = "lock_timestamp";
+    // ✅ NEW: Biometric authentication keys
+    private static final String KEY_BIOMETRIC_ENABLED = "biometric_enabled";
+    private static final String KEY_BIOMETRIC_EMAIL = "biometric_email"; // Email của user đã enable biometric
 
     private static final int MAX_LOGIN_ATTEMPTS = 3;
     private static final long LOCK_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -242,5 +245,63 @@ public class SessionManager {
     public static boolean verifyPassword(String password, String hashedPassword) {
         String hashedInput = hashPassword(password);
         return hashedInput.equals(hashedPassword);
+    }
+
+    // ============ Biometric Authentication Management ============
+
+    /**
+     * Check if biometric authentication is enabled for current user
+     * @return true if enabled
+     */
+    public boolean isBiometricEnabled() {
+        return prefs.getBoolean(KEY_BIOMETRIC_ENABLED, false);
+    }
+
+    /**
+     * Enable biometric authentication for current user
+     * @param email User email to associate with biometric
+     */
+    public void enableBiometric(String email) {
+        editor.putBoolean(KEY_BIOMETRIC_ENABLED, true);
+        editor.putString(KEY_BIOMETRIC_EMAIL, email);
+        editor.apply();
+    }
+
+    /**
+     * Disable biometric authentication
+     */
+    public void disableBiometric() {
+        editor.putBoolean(KEY_BIOMETRIC_ENABLED, false);
+        editor.putString(KEY_BIOMETRIC_EMAIL, null);
+        editor.apply();
+    }
+
+    /**
+     * Get email associated with biometric login
+     * @return Email or null
+     */
+    public String getBiometricEmail() {
+        return prefs.getString(KEY_BIOMETRIC_EMAIL, null);
+    }
+
+    /**
+     * Check if biometric is available for this user
+     * Requires: Biometric enabled + Email matches current session
+     * @return true if available
+     */
+    public boolean isBiometricAvailable() {
+        if (!isBiometricEnabled()) {
+            return false;
+        }
+
+        String biometricEmail = getBiometricEmail();
+        String currentEmail = getUserEmail();
+
+        // If not logged in, check if saved email matches remembered email
+        if (currentEmail == null && isRememberMeEnabled()) {
+            currentEmail = getUserEmail();
+        }
+
+        return biometricEmail != null && biometricEmail.equals(currentEmail);
     }
 }

@@ -37,11 +37,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.io.font.constants.StandardFonts;
+
+import androidx.appcompat.app.AlertDialog;
+
 /**
  * ReportActivity - FIXED Runtime Permission handling
  * Now properly requests WRITE_EXTERNAL_STORAGE for Android 6-9
  */
-public class ReportActivity extends BaseActivity {
+public class    ReportActivity extends BaseActivity {
 
     private static final String CHANNEL_ID = "budget_alerts";
     private static final int NOTIFICATION_ID = 1001;
@@ -50,7 +66,7 @@ public class ReportActivity extends BaseActivity {
     private static final int STORAGE_PERMISSION_CODE = 100;
 
     private TextView tvDateRange, tvTotalExpense, tvExpenseCount, tvCategorySummary;
-    private Button btnSelectStartDate, btnSelectEndDate, btnExportCSV, btnShareEmail;
+    private Button btnSelectStartDate, btnSelectEndDate, btnExportCSV, btnShareEmail, btnExportPDF;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -100,6 +116,7 @@ public class ReportActivity extends BaseActivity {
         btnSelectEndDate = findViewById(R.id.btn_select_end_date);
         btnExportCSV = findViewById(R.id.btn_export_csv);
         btnShareEmail = findViewById(R.id.btn_share_email);
+        btnExportPDF = findViewById(R.id.btn_export_pdf);
     }
 
     /**
@@ -127,7 +144,9 @@ public class ReportActivity extends BaseActivity {
         btnSelectEndDate.setOnClickListener(v -> showDatePicker(false));
 
         // Export CSV
-        btnExportCSV.setOnClickListener(v -> exportToCSV());
+        btnExportCSV.setOnClickListener(v -> showExportFormatDialog());
+
+        btnExportPDF.setOnClickListener(v -> exportToPDF());
 
         // Share via email
         btnShareEmail.setOnClickListener(v -> shareViaEmail());
@@ -194,17 +213,17 @@ public class ReportActivity extends BaseActivity {
         // Update date range display
         String dateRangeText = dateFormat.format(startDate.getTime()) + " - " +
                 dateFormat.format(endDate.getTime());
-        tvDateRange.setText("Report Period: " + dateRangeText);
+        tvDateRange.setText(getString(R.string.report_date_range) + " " + dateRangeText);
 
         // Update total expense
         String totalText = currencyFormat.format(totalExpense) + "đ";
-        tvTotalExpense.setText("Total Expense: " + totalText);
+        tvTotalExpense.setText(getString(R.string.report_total_expense_label) + " " + totalText);
 
         // Update expense count
-        tvExpenseCount.setText("Number of Expenses: " + expenseCount);
+        tvExpenseCount.setText(getString(R.string.report_expense_count_label) + " " + expenseCount);
 
         // Generate category summary
-        StringBuilder categorySummary = new StringBuilder("Expenses by Category:\n\n");
+        StringBuilder categorySummary = new StringBuilder(getString(R.string.report_category_summary_default));
 
         if (categoryTotals.isEmpty()) {
             categorySummary.append("No expenses in this period");
@@ -220,6 +239,25 @@ public class ReportActivity extends BaseActivity {
         }
 
         tvCategorySummary.setText(categorySummary.toString());
+    }
+
+    /**
+     * ✅ NEW: Show dialog to select export format (CSV or PDF)
+     */
+    private void showExportFormatDialog() {
+        String[] options = {getString(R.string.report_export_csv_option), getString(R.string.report_export_pdf_option)};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.report_export_format_title))
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        exportToCSV();
+                    } else {
+                        exportToPDF();
+                    }
+                })
+                .setNegativeButton(getString(R.string.action_cancel), null)
+                .show();
     }
 
     /**
@@ -351,7 +389,327 @@ public class ReportActivity extends BaseActivity {
             saveToDownloadsLegacy(fileName, csv.toString());
         }
 
-        Toast.makeText(this, "Report saved to Downloads", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.report_exported), Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * ✅ NEW: Export report to PDF
+     */
+    private void exportToPDF() {
+        try {
+            // Get filtered expenses
+            List<Expense> expenses = getFilteredExpenses();
+
+            if (expenses.isEmpty()) {
+                Toast.makeText(this, "No expenses to export", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Check Android version and permissions
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Android 10+ (Scoped Storage) - No permission needed
+                performPDFExport(expenses);
+            } else {
+                // Android 6-9 - Need WRITE_EXTERNAL_STORAGE
+                if (checkStoragePermission()) {
+                    performPDFExport(expenses);
+                } else {
+                    requestStoragePermission();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to export PDF: " + e.getMessage(),
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * ✅ NEW: Perform actual PDF export
+     */
+    private void performPDFExport(List<Expense> expenses) {
+        try {
+            // Generate filename
+            String fileName = "expense_report_" +
+                    new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+                            .format(new Date()) + ".pdf";
+
+            // Get output stream based on Android version
+            OutputStream outputStream;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Android 10+ (Scoped Storage)
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+                values.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
+                values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                if (uri == null) {
+                    throw new Exception("Failed to create file URI");
+                }
+                outputStream = getContentResolver().openOutputStream(uri);
+            } else {
+                // Android 9 and below
+                File downloadsDir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadsDir.exists()) {
+                    downloadsDir.mkdirs();
+                }
+                File file = new File(downloadsDir, fileName);
+                outputStream = new java.io.FileOutputStream(file);
+            }
+
+            if (outputStream == null) {
+                throw new Exception("Failed to create output stream");
+            }
+
+            // Create PDF document
+            PdfWriter writer = new PdfWriter(outputStream);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+
+            // Set margins
+            document.setMargins(40, 40, 40, 40);
+
+            // Create fonts
+            PdfFont boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+            PdfFont regularFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+
+            // ===== HEADER SECTION =====
+            Paragraph title = new Paragraph("EXPENSE REPORT")
+                    .setFont(boldFont)
+                    .setFontSize(20)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20)
+                    .setFontColor(new DeviceRgb(15, 136, 241)); // Primary blue
+
+            document.add(title);
+
+            // Date range
+            String dateRangeText = dateFormat.format(startDate.getTime()) + " to " +
+                    dateFormat.format(endDate.getTime());
+            Paragraph dateRange = new Paragraph("Period: " + dateRangeText)
+                    .setFont(regularFont)
+                    .setFontSize(12)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(10);
+            document.add(dateRange);
+
+            // Generated date
+            Paragraph generatedDate = new Paragraph("Generated on: " +
+                    new SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault()).format(new Date()))
+                    .setFont(regularFont)
+                    .setFontSize(10)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20)
+                    .setFontColor(ColorConstants.GRAY);
+            document.add(generatedDate);
+
+            // ===== SUMMARY SECTION =====
+            // Calculate totals
+            double totalExpense = 0;
+            double totalIncome = 0;
+            Map<Integer, Double> categoryTotals = new HashMap<>();
+
+            for (Expense expense : expenses) {
+                if (expense.getType() == Expense.TYPE_EXPENSE) {
+                    totalExpense += expense.getAmount();
+                } else {
+                    totalIncome += expense.getAmount();
+                }
+
+                int categoryId = expense.getCategoryId();
+                categoryTotals.put(categoryId,
+                        categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+            }
+
+            double balance = totalIncome - totalExpense;
+
+            // Summary table (3 columns)
+            float[] summaryColumnWidths = {1, 1, 1};
+            Table summaryTable = new Table(UnitValue.createPercentArray(summaryColumnWidths));
+            summaryTable.setWidth(UnitValue.createPercentValue(100));
+            summaryTable.setMarginBottom(20);
+
+            // Headers
+            DeviceRgb headerColor = new DeviceRgb(79, 195, 247); // Light blue
+
+            summaryTable.addCell(new Cell().add(new Paragraph(getString(R.string.report_total_income))
+                            .setFont(boldFont).setFontSize(10))
+                    .setBackgroundColor(headerColor)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8));
+
+            summaryTable.addCell(new Cell().add(new Paragraph(getString(R.string.report_total_expense))
+                            .setFont(boldFont).setFontSize(10))
+                    .setBackgroundColor(headerColor)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8));
+
+            summaryTable.addCell(new Cell().add(new Paragraph(getString(R.string.balance))
+                            .setFont(boldFont).setFontSize(10))
+                    .setBackgroundColor(headerColor)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8));
+
+            // Values
+            summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(totalIncome) + "đ")
+                            .setFont(regularFont).setFontSize(11).setFontColor(new DeviceRgb(76, 175, 80))) // Green
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8));
+
+            summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(totalExpense) + "đ")
+                            .setFont(regularFont).setFontSize(11).setFontColor(new DeviceRgb(244, 67, 54))) // Red
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8));
+
+            DeviceRgb balanceColor = balance >= 0 ?
+                    new DeviceRgb(76, 175, 80) : new DeviceRgb(244, 67, 54);
+            summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(balance) + "đ")
+                            .setFont(boldFont).setFontSize(11).setFontColor(balanceColor))
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setPadding(8));
+
+            document.add(summaryTable);
+
+            // ===== CATEGORY BREAKDOWN =====
+            if (!categoryTotals.isEmpty()) {
+                Paragraph categoryTitle = new Paragraph(getString(R.string.report_category_summary_default))
+                        .setFont(boldFont)
+                        .setFontSize(14)
+                        .setMarginTop(10)
+                        .setMarginBottom(10);
+                document.add(categoryTitle);
+
+                float[] categoryColumnWidths = {3, 2};
+                Table categoryTable = new Table(UnitValue.createPercentArray(categoryColumnWidths));
+                categoryTable.setWidth(UnitValue.createPercentValue(100));
+                categoryTable.setMarginBottom(20);
+
+                // Header
+                categoryTable.addHeaderCell(new Cell().add(new Paragraph(getString(R.string.expense_category))
+                                .setFont(boldFont).setFontSize(10))
+                        .setBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .setPadding(8));
+
+                categoryTable.addHeaderCell(new Cell().add(new Paragraph(getString(R.string.expense_amount))
+                                .setFont(boldFont).setFontSize(10))
+                        .setBackgroundColor(new DeviceRgb(245, 245, 245))
+                        .setTextAlignment(TextAlignment.RIGHT)
+                        .setPadding(8));
+
+                // Rows
+                for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
+                    Category category = dbHelper.getCategoryById(entry.getKey());
+                    String categoryName = category != null ?
+                            DatabaseHelper.getLocalizedCategoryName(this, category.getName()) : "Unknown";
+                    String amount = currencyFormat.format(entry.getValue()) + "đ";
+
+                    categoryTable.addCell(new Cell().add(new Paragraph(categoryName)
+                                    .setFont(regularFont).setFontSize(10))
+                            .setPadding(6));
+
+                    categoryTable.addCell(new Cell().add(new Paragraph(amount)
+                                    .setFont(regularFont).setFontSize(10))
+                            .setTextAlignment(TextAlignment.RIGHT)
+                            .setPadding(6));
+                }
+
+                document.add(categoryTable);
+            }
+
+            // ===== TRANSACTION DETAILS =====
+            Paragraph detailsTitle = new Paragraph("Transaction Details (" + expenses.size() + " items)")
+                    .setFont(boldFont)
+                    .setFontSize(14)
+                    .setMarginTop(10)
+                    .setMarginBottom(10);
+            document.add(detailsTitle);
+
+            float[] detailsColumnWidths = {2, 3, 2, 3};
+            Table detailsTable = new Table(UnitValue.createPercentArray(detailsColumnWidths));
+            detailsTable.setWidth(UnitValue.createPercentValue(100));
+
+            // Header
+            DeviceRgb detailsHeaderColor = new DeviceRgb(245, 245, 245);
+
+            detailsTable.addHeaderCell(new Cell().add(new Paragraph(getString(R.string.expense_date))
+                            .setFont(boldFont).setFontSize(9))
+                    .setBackgroundColor(detailsHeaderColor)
+                    .setPadding(6));
+
+            detailsTable.addHeaderCell(new Cell().add(new Paragraph(getString(R.string.expense_category))
+                            .setFont(boldFont).setFontSize(9))
+                    .setBackgroundColor(detailsHeaderColor)
+                    .setPadding(6));
+
+            detailsTable.addHeaderCell(new Cell().add(new Paragraph(getString(R.string.expense_amount))
+                            .setFont(boldFont).setFontSize(9))
+                    .setBackgroundColor(detailsHeaderColor)
+                    .setTextAlignment(TextAlignment.RIGHT)
+                    .setPadding(6));
+
+            detailsTable.addHeaderCell(new Cell().add(new Paragraph(getString(R.string.expense_description))
+                            .setFont(boldFont).setFontSize(9))
+                    .setBackgroundColor(detailsHeaderColor)
+                    .setPadding(6));
+
+            // Rows
+            for (Expense expense : expenses) {
+                Category category = dbHelper.getCategoryById(expense.getCategoryId());
+                String categoryName = category != null ?
+                        DatabaseHelper.getLocalizedCategoryName(this, category.getName()) : "Unknown";
+                String date = new SimpleDateFormat("dd MMM", Locale.getDefault())
+                        .format(new Date(expense.getDate()));
+                String amount = currencyFormat.format(expense.getAmount()) + "đ";
+                String description = expense.getDescription() != null && !expense.getDescription().isEmpty() ?
+                        expense.getDescription() : "-";
+
+                DeviceRgb amountColor = expense.getType() == Expense.TYPE_INCOME ?
+                        new DeviceRgb(76, 175, 80) : new DeviceRgb(244, 67, 54);
+
+                detailsTable.addCell(new Cell().add(new Paragraph(date)
+                                .setFont(regularFont).setFontSize(8))
+                        .setPadding(5));
+
+                detailsTable.addCell(new Cell().add(new Paragraph(categoryName)
+                                .setFont(regularFont).setFontSize(8))
+                        .setPadding(5));
+
+                detailsTable.addCell(new Cell().add(new Paragraph(amount)
+                                .setFont(regularFont).setFontSize(8).setFontColor(amountColor))
+                        .setTextAlignment(TextAlignment.RIGHT)
+                        .setPadding(5));
+
+                detailsTable.addCell(new Cell().add(new Paragraph(description)
+                                .setFont(regularFont).setFontSize(8))
+                        .setPadding(5));
+            }
+
+            document.add(detailsTable);
+
+            // ===== FOOTER =====
+            Paragraph footer = new Paragraph("\nGenerated by CampusExpense Manager")
+                    .setFont(regularFont)
+                    .setFontSize(8)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginTop(20)
+                    .setFontColor(ColorConstants.GRAY);
+            document.add(footer);
+
+            // Close document
+            document.close();
+            outputStream.close();
+
+            Toast.makeText(this, getString(R.string.report_pdf_saved), Toast.LENGTH_LONG).show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, getString(R.string.report_pdf_failed) + e.getMessage(),
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     /**

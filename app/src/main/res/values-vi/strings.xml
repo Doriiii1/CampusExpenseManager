@@ -126,10 +126,10 @@
     <!-- Report Activity -->
     <string name="report_start_date">Ngày Bắt Đầu</string>
     <string name="report_end_date">Ngày Kết Thúc</string>
-    <string name="report_period_label">Khoảng Thời Gian Báo Cáo: ...</string>
-    <string name="report_total_expense_label">Tổng Chi Tiêu: 0đ</string>
-    <string name="report_expense_count_label">Số Lượng Chi Tiêu: 0</string>
-    <string name="report_category_summary_default">Chi Tiêu Theo Danh Mục:\n\nĐang tải...</string>
+    <string name="report_period_label">Khoảng Thời Gian Báo Cáo: </string>
+    <string name="report_total_expense_label">Tổng Chi Tiêu: </string>
+    <string name="report_expense_count_label">Số Lượng Chi Tiêu: </string>
+    <string name="report_category_summary_default">Chi Tiêu Theo Danh Mục: \n</string>
     <string name="report_export_options">Tùy Chọn Xuất</string>
     <string name="report_share_email">Chia Sẻ qua Email</string>
 
@@ -234,6 +234,12 @@
     <string name="report_to">Đến</string>
     <string name="report_exported">Đã xuất báo cáo</string>
     <string name="report_email_subject">Báo cáo chi tiêu - %s</string>
+    <string name="report_export_pdf">Xuất dưới dạng PDF</string>
+    <string name="report_export_format_title">Chọn Định Dạng Xuất</string>
+    <string name="report_export_csv_option">📄 Xuất dưới dạng CSV</string>
+    <string name="report_export_pdf_option">📑 Xuất dưới dạng PDF</string>
+    <string name="report_pdf_saved">Báo cáo PDF đã lưu vào Tải Xuống</string>
+    <string name="report_pdf_failed">Không thể tạo PDF</string>
 
     <!-- Dashboard -->
     <string name="dashboard_greeting">Xin chào, %s!</string>
@@ -327,5 +333,19 @@
     <string name="label_period_prefix">Kỳ hạn: </string>
     <string name="label_prediction_prefix">Dự báo: </string>
     <string name="template_example_name">Tiền trọ</string>
+
+    <string name="biometric_login">Đăng Nhập Sinh Trắc Học</string>
+    <string name="biometric_subtitle">Sử dụng vân tay hoặc khuôn mặt</string>
+    <string name="biometric_enable">Bật Đăng Nhập Sinh Trắc Học</string>
+    <string name="biometric_enabled">Đăng nhập sinh trắc học đã bật</string>
+    <string name="biometric_disabled">Đăng nhập sinh trắc học đã tắt</string>
+    <string name="biometric_not_available">Sinh trắc học không khả dụng trên thiết bị này</string>
+    <string name="biometric_no_hardware">Không phát hiện phần cứng sinh trắc học</string>
+    <string name="biometric_not_enrolled">Vui lòng đăng ký vân tay trong cài đặt thiết bị</string>
+    <string name="biometric_prompt_title">Đăng Nhập Sinh Trắc Học</string>
+    <string name="biometric_prompt_subtitle">Sử dụng vân tay hoặc khuôn mặt để đăng nhập</string>
+    <string name="biometric_prompt_description">Đăng nhập vào CampusExpense Manager</string>
+    <string name="biometric_prompt_negative">Sử Dụng Mật Khẩu</string>
+    <string name="biometric_verify_password">Nhập mật khẩu để bật sinh trắc học</string>
 
 </resources>

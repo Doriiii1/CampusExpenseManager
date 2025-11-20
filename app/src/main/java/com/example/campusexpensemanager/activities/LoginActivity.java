@@ -20,6 +20,15 @@ import com.example.campusexpensemanager.utils.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+// ✅ NEW: Biometric imports
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
+import androidx.annotation.NonNull;
+import java.util.concurrent.Executor;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+
+
 /**
  * LoginActivity handles user authentication
  * Features: Password visibility toggle, Remember Me, Account lockout after 3 failed attempts
@@ -37,6 +46,12 @@ public class LoginActivity extends BaseActivity {
     private SessionManager sessionManager;
 
     private boolean isPasswordVisible = false;
+
+    // ✅ NEW: Biometric components
+    private ImageButton btnBiometric;
+    private SwitchMaterial switchBiometric;
+    private BiometricPrompt biometricPrompt;
+    private BiometricPrompt.PromptInfo promptInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +88,8 @@ public class LoginActivity extends BaseActivity {
 
         // Setup click listeners
         setupClickListeners();
+
+        setupBiometric();
     }
 
     private void initializeViews() {
@@ -84,6 +101,9 @@ public class LoginActivity extends BaseActivity {
         cbRememberMe = findViewById(R.id.cb_remember_me);
         btnLogin = findViewById(R.id.btn_login);
         tvRegisterLink = findViewById(R.id.tv_register_link);
+        // ✅ NEW: Biometric views
+        btnBiometric = findViewById(R.id.btn_biometric);
+        switchBiometric = findViewById(R.id.switch_biometric);
     }
 
     private void setupClickListeners() {
@@ -98,6 +118,273 @@ public class LoginActivity extends BaseActivity {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
+    }
+
+    /**
+     * ✅ NEW: Setup biometric authentication
+     */
+    private void setupBiometric() {
+        // Check if device supports biometric
+        BiometricManager biometricManager = BiometricManager.from(this);
+
+        int canAuthenticate = biometricManager.canAuthenticate(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG |
+                        BiometricManager.Authenticators.BIOMETRIC_WEAK
+        );
+
+        switch (canAuthenticate) {
+            case BiometricManager.BIOMETRIC_SUCCESS:
+                // Device supports biometric
+                setupBiometricUI();
+                setupBiometricPrompt();
+
+                // Auto-trigger if enabled
+                if (sessionManager.isBiometricEnabled() &&
+                        sessionManager.getBiometricEmail() != null) {
+
+                    // Pre-fill email
+                    String savedEmail = sessionManager.getBiometricEmail();
+                    etEmail.setText(savedEmail);
+
+                    // Show biometric icon as active
+                    btnBiometric.setVisibility(View.VISIBLE);
+                    btnBiometric.setAlpha(1.0f);
+                    switchBiometric.setVisibility(View.VISIBLE);
+                    switchBiometric.setChecked(true);
+
+                    // Auto-prompt if coming from fresh launch
+                    if (getIntent().getBooleanExtra("auto_biometric", true)) {
+                        // Delay to let UI settle
+                        btnBiometric.postDelayed(this::showBiometricPrompt, 500);
+                    }
+                } else {
+                    // Show biometric option but disabled
+                    btnBiometric.setVisibility(View.VISIBLE);
+                    btnBiometric.setAlpha(0.5f);
+                    switchBiometric.setVisibility(View.VISIBLE);
+                    switchBiometric.setChecked(false);
+                }
+                break;
+
+            case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
+                // Device doesn't have biometric hardware
+                btnBiometric.setVisibility(View.GONE);
+                switchBiometric.setVisibility(View.GONE);
+                break;
+
+            case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
+                // Biometric hardware unavailable
+                Toast.makeText(this, "Biometric hardware unavailable",
+                        Toast.LENGTH_SHORT).show();
+                btnBiometric.setVisibility(View.GONE);
+                switchBiometric.setVisibility(View.GONE);
+                break;
+
+            case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
+                // User hasn't enrolled biometric
+                btnBiometric.setVisibility(View.VISIBLE);
+                btnBiometric.setAlpha(0.5f);
+                switchBiometric.setVisibility(View.VISIBLE);
+                switchBiometric.setChecked(false);
+                switchBiometric.setEnabled(false);
+
+                Toast.makeText(this,
+                        "Please enroll fingerprint/face in device settings first",
+                        Toast.LENGTH_LONG).show();
+                break;
+        }
+    }
+
+    /**
+     * ✅ NEW: Setup biometric UI listeners
+     */
+    private void setupBiometricUI() {
+        // Biometric icon click
+        btnBiometric.setOnClickListener(v -> {
+            if (sessionManager.isBiometricEnabled()) {
+                showBiometricPrompt();
+            } else {
+                Toast.makeText(this,
+                        "Enable biometric login first using the switch below",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Biometric switch
+        switchBiometric.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) {
+                // Programmatic change, ignore
+                return;
+            }
+
+            if (isChecked) {
+                // User wants to enable biometric
+                String email = etEmail.getText().toString().trim();
+
+                if (email.isEmpty()) {
+                    Toast.makeText(this,
+                            "Please enter your email first",
+                            Toast.LENGTH_SHORT).show();
+                    switchBiometric.setChecked(false);
+                    return;
+                }
+
+                // Verify email exists and authenticate first
+                showEnableBiometricDialog(email);
+
+            } else {
+                // Disable biometric
+                sessionManager.disableBiometric();
+                btnBiometric.setAlpha(0.5f);
+                Toast.makeText(this, "Biometric login disabled",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * ✅ NEW: Setup biometric prompt
+     */
+    private void setupBiometricPrompt() {
+        Executor executor = ContextCompat.getMainExecutor(this);
+
+        biometricPrompt = new BiometricPrompt(this, executor,
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                        super.onAuthenticationError(errorCode, errString);
+
+                        if (errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+                                errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                            // User canceled, do nothing
+                            return;
+                        }
+
+                        Toast.makeText(LoginActivity.this,
+                                "Authentication error: " + errString,
+                                Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                        super.onAuthenticationSucceeded(result);
+
+                        // Biometric success - login with saved email
+                        String email = sessionManager.getBiometricEmail();
+
+                        if (email != null) {
+                            User user = dbHelper.getUserByEmail(email);
+
+                            if (user != null) {
+                                handleLoginSuccess(user);
+                            } else {
+                                Toast.makeText(LoginActivity.this,
+                                        "User not found. Please login with password.",
+                                        Toast.LENGTH_LONG).show();
+                                sessionManager.disableBiometric();
+                                switchBiometric.setChecked(false);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        super.onAuthenticationFailed();
+                        Toast.makeText(LoginActivity.this,
+                                "Authentication failed. Try again.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Setup prompt info
+        promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Biometric Login")
+                .setSubtitle("Use your fingerprint or face to login")
+                .setDescription("Login to CampusExpense Manager")
+                .setNegativeButtonText("Use Password")
+                .setAllowedAuthenticators(
+                        BiometricManager.Authenticators.BIOMETRIC_STRONG |
+                                BiometricManager.Authenticators.BIOMETRIC_WEAK
+                )
+                .build();
+    }
+
+    /**
+     * ✅ NEW: Show biometric prompt
+     */
+    private void showBiometricPrompt() {
+        if (biometricPrompt != null && promptInfo != null) {
+            biometricPrompt.authenticate(promptInfo);
+        }
+    }
+
+    /**
+     * ✅ NEW: Show dialog to enable biometric with password verification
+     */
+    private void showEnableBiometricDialog(String email) {
+        // Create dialog to verify password
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Enable Biometric Login");
+        builder.setMessage("Please enter your password to enable biometric authentication for: " + email);
+
+        // Create input field
+        final TextInputEditText input = new TextInputEditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        input.setHint("Password");
+
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.leftMargin = 50;
+        params.rightMargin = 50;
+        input.setLayoutParams(params);
+        container.addView(input);
+
+        builder.setView(container);
+
+        builder.setPositiveButton("Verify", (dialog, which) -> {
+            String password = input.getText().toString();
+
+            if (password.isEmpty()) {
+                Toast.makeText(this, "Password required", Toast.LENGTH_SHORT).show();
+                switchBiometric.setChecked(false);
+                return;
+            }
+
+            // Verify credentials
+            User user = dbHelper.getUserByEmail(email);
+
+            if (user == null) {
+                Toast.makeText(this, "Email not found", Toast.LENGTH_SHORT).show();
+                switchBiometric.setChecked(false);
+                return;
+            }
+
+            String passwordHash = SessionManager.hashPassword(password);
+
+            if (!passwordHash.equals(user.getPasswordHash())) {
+                Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                switchBiometric.setChecked(false);
+                return;
+            }
+
+            // Password correct - enable biometric
+            sessionManager.enableBiometric(email);
+            btnBiometric.setAlpha(1.0f);
+            Toast.makeText(this,
+                    "✓ Biometric login enabled! You can now use fingerprint to login.",
+                    Toast.LENGTH_LONG).show();
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+            switchBiometric.setChecked(false);
+            dialog.cancel();
+        });
+
+        builder.show();
     }
 
     /**

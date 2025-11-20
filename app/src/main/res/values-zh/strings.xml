@@ -231,6 +231,12 @@
     <string name="report_to">到</string>
     <string name="report_exported">报告已导出</string>
     <string name="report_email_subject">支出报告 - %s</string>
+    <string name="report_export_pdf">导出为 PDF</string>
+    <string name="report_export_format_title">选择导出格式</string>
+    <string name="report_export_csv_option">📄 导出为 CSV</string>
+    <string name="report_export_pdf_option">📑 导出为 PDF</string>
+    <string name="report_pdf_saved">PDF 报告已保存到下载</string>
+    <string name="report_pdf_failed">创建 PDF 失败</string>
 
     <!-- Dashboard -->
     <string name="dashboard_greeting">你好，%s！</string>
@@ -324,4 +330,18 @@
     <string name="label_period_prefix">期间： </string>
     <string name="label_prediction_prefix">预测： </string>
     <string name="template_example_name">租金</string>
+
+    <string name="biometric_login">生物识别登录</string>
+    <string name="biometric_subtitle">使用指纹或面部 ID</string>
+    <string name="biometric_enable">启用生物识别登录</string>
+    <string name="biometric_enabled">生物识别登录已启用</string>
+    <string name="biometric_disabled">生物识别登录已禁用</string>
+    <string name="biometric_not_available">此设备上生物识别不可用</string>
+    <string name="biometric_no_hardware">未检测到生物识别硬件</string>
+    <string name="biometric_not_enrolled">请在设备设置中注册指纹</string>
+    <string name="biometric_prompt_title">生物识别登录</string>
+    <string name="biometric_prompt_subtitle">使用您的指纹或面部登录</string>
+    <string name="biometric_prompt_description">登录 CampusExpense Manager</string>
+    <string name="biometric_prompt_negative">使用密码</string>
+    <string name="biometric_verify_password">输入密码以启用生物识别</string>
 </resources>

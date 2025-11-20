@@ -50,7 +50,7 @@ public class ProfileActivity extends BaseActivity {
     private TextInputLayout tilOldPassword, tilNewPassword, tilConfirmNewPassword;
     private TextInputEditText etName, etEmail, etAddress, etPhone;
     private TextInputEditText etOldPassword, etNewPassword, etConfirmNewPassword;
-    private SwitchMaterial switchDarkMode;
+    private SwitchMaterial switchDarkMode, switchBiometric;
     private Spinner spinnerLanguage;
     private Button btnEditMode, btnSaveProfile, btnChangePassword, btnLogout;
 
@@ -140,6 +140,8 @@ public class ProfileActivity extends BaseActivity {
         btnLogout = findViewById(R.id.btn_logout);
 
         btnSendFeedback = findViewById(R.id.btn_send_feedback);
+
+        switchBiometric = findViewById(R.id.switch_profile_biometric);
     }
 
     private void setupAvatarLauncher() {
@@ -350,6 +352,21 @@ public class ProfileActivity extends BaseActivity {
         switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isPressed()) {
                 toggleDarkMode(isChecked);
+            }
+        });
+
+        switchBiometric.setChecked(sessionManager.isBiometricEnabled());
+
+        switchBiometric.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) return; // Chỉ xử lý khi người dùng bấm thật
+
+            if (isChecked) {
+                // Nếu bật -> Cần xác nhận mật khẩu
+                showEnableBiometricDialog();
+            } else {
+                // Nếu tắt -> Tắt luôn không cần hỏi
+                sessionManager.disableBiometric();
+                Toast.makeText(this, "Biometric login disabled", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -596,5 +613,54 @@ public class ProfileActivity extends BaseActivity {
                 Toast.makeText(this, getString(R.string.msg_permission_denied), Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void showEnableBiometricDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Enable Biometric Login");
+        builder.setMessage("Enter your password to confirm");
+
+        // Tạo ô nhập mật khẩu
+        final TextInputEditText input = new TextInputEditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        // Tạo khung chứa để căn lề cho đẹp
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.leftMargin = 50;
+        params.rightMargin = 50;
+        input.setLayoutParams(params);
+        container.addView(input);
+        builder.setView(container);
+
+        // Xử lý nút Verify
+        builder.setPositiveButton("Verify", (dialog, which) -> {
+            String password = input.getText().toString();
+
+            User user = dbHelper.getUserById(sessionManager.getUserId());
+
+            // Kiểm tra password nhập vào có đúng không
+            if (user != null && SessionManager.verifyPassword(password, user.getPasswordHash())) {
+                // Nếu đúng -> Bật tính năng vân tay
+                sessionManager.enableBiometric(user.getEmail());
+                Toast.makeText(this, "Biometric login enabled!", Toast.LENGTH_SHORT).show();
+            } else {
+                // Nếu sai -> Báo lỗi và gạt cần Switch về tắt
+                Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                switchBiometric.setChecked(false);
+            }
+        });
+
+        // Xử lý nút Cancel
+        builder.setNegativeButton("Cancel", (dialog, which) -> {
+            switchBiometric.setChecked(false); // Trả về trạng thái tắt
+            dialog.cancel();
+        });
+
+        builder.show();
     }
 }

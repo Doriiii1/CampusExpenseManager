@@ -166,15 +166,26 @@
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
 
-                <!-- Export CSV Button -->
+                <!-- ✅ UPDATED: Export CSV/PDF Button (shows dialog) -->
                 <Button
                     android:id="@+id/btn_export_csv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:drawableStart="@android:drawable/ic_menu_save"
-                    android:text="@string/report_export"
+                    android:text="📄 Export Report (CSV/PDF)"
                     app:cornerRadius="@dimen/corner_radius_medium" />
+
+                <!-- ✅ NEW: Direct PDF Export Button -->
+                <Button
+                    android:id="@+id/btn_export_pdf"
+                    style="@style/Widget.App.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:drawableStart="@android:drawable/ic_menu_save"
+                    android:text="📑 Export as PDF"
+                    android:textColor="?attr/colorPrimary" />
 
                 <!-- Share Email Button -->
                 <Button
