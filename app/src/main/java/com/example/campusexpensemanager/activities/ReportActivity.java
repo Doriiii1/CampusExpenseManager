@@ -184,7 +184,7 @@ public class    ReportActivity extends BaseActivity {
     }
 
     /**
-     * Generate report summary
+     * ✅ FIX: Generate report summary with localized strings
      */
     private void generateReport() {
         int userId = sessionManager.getUserId();
@@ -200,39 +200,53 @@ public class    ReportActivity extends BaseActivity {
 
         for (Expense expense : allExpenses) {
             if (expense.getDate() >= startTime && expense.getDate() <= endTime) {
-                totalExpense += expense.getAmount();
-                expenseCount++;
+                // Chỉ cộng tổng chi tiêu (Expense), không cộng thu nhập vào "Total Expense"
+                if (expense.getType() == Expense.TYPE_EXPENSE) {
+                    totalExpense += expense.getAmount();
 
-                // Aggregate by category
-                int categoryId = expense.getCategoryId();
-                categoryTotals.put(categoryId,
-                        categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+                    // Aggregate by category
+                    int categoryId = expense.getCategoryId();
+                    categoryTotals.put(categoryId,
+                            categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+                }
+                expenseCount++; // Đếm tổng số giao dịch (cả thu lẫn chi)
             }
         }
 
         // Update date range display
         String dateRangeText = dateFormat.format(startDate.getTime()) + " - " +
                 dateFormat.format(endDate.getTime());
-        tvDateRange.setText(getString(R.string.report_date_range) + " " + dateRangeText);
+        // "Date Range: 01 Jan - 31 Jan"
+        tvDateRange.setText(getString(R.string.report_date_range) + dateRangeText);
 
         // Update total expense
         String totalText = currencyFormat.format(totalExpense) + "đ";
-        tvTotalExpense.setText(getString(R.string.report_total_expense_label) + " " + totalText);
+        // "Total Expense: 500.000đ"
+        tvTotalExpense.setText(getString(R.string.report_total_expense_label) + totalText);
 
         // Update expense count
-        tvExpenseCount.setText(getString(R.string.report_expense_count_label) + " " + expenseCount);
+        // "Number of Expenses: 15"
+        tvExpenseCount.setText(getString(R.string.report_expense_count_label) + expenseCount);
 
         // Generate category summary
-        StringBuilder categorySummary = new StringBuilder(getString(R.string.report_category_summary_default));
+        StringBuilder categorySummary = new StringBuilder();
 
         if (categoryTotals.isEmpty()) {
-            categorySummary.append("No expenses in this period");
+            categorySummary.append(getString(R.string.msg_no_data_period));
         } else {
+            // "Expenses by Category:\n"
+            categorySummary.append(getString(R.string.report_category_summary_default));
+
             for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
                 Category category = dbHelper.getCategoryById(entry.getKey());
-                String categoryName = category != null ? category.getName() : "Unknown";
-                String amount = currencyFormat.format(entry.getValue()) + "đ";
+                String categoryName;
+                if (category != null) {
+                    categoryName = DatabaseHelper.getLocalizedCategoryName(this, category.getName());
+                } else {
+                    categoryName = getString(R.string.cat_unknown);
+                }
 
+                String amount = currencyFormat.format(entry.getValue()) + "đ";
                 categorySummary.append("• ").append(categoryName)
                         .append(": ").append(amount).append("\n");
             }
@@ -245,7 +259,10 @@ public class    ReportActivity extends BaseActivity {
      * ✅ NEW: Show dialog to select export format (CSV or PDF)
      */
     private void showExportFormatDialog() {
-        String[] options = {getString(R.string.report_export_csv_option), getString(R.string.report_export_pdf_option)};
+        String[] options = {
+                getString(R.string.report_export_csv_option), // "Export as CSV"
+                getString(R.string.report_export_pdf_option)  // "Export as PDF"
+        };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.report_export_format_title))
@@ -355,20 +372,28 @@ public class    ReportActivity extends BaseActivity {
     }
 
     /**
-     * ✅ NEW: Perform actual CSV export (separated from permission logic)
+     * ✅ FIX: Export CSV with localized headers
      */
     private void performCSVExport(List<Expense> expenses) throws Exception {
-        // Generate CSV content
+        // Generate CSV content with localized headers
         StringBuilder csv = new StringBuilder();
-        csv.append("Category,Amount,Date,Description\n");
+        csv.append(getString(R.string.header_category)).append(",")
+                .append(getString(R.string.header_amount)).append(",")
+                .append(getString(R.string.header_date)).append(",")
+                .append(getString(R.string.header_description)).append("\n");
 
         for (Expense expense : expenses) {
             Category category = dbHelper.getCategoryById(expense.getCategoryId());
-            String categoryName = category != null ? category.getName() : "Unknown";
+            String categoryName = (category != null) ?
+                    DatabaseHelper.getLocalizedCategoryName(this, category.getName()) : getString(R.string.cat_unknown);
+
+            // Clean category name (remove commas to avoid breaking CSV)
+            categoryName = categoryName.replace(",", " ");
+
             String amount = String.valueOf(expense.getAmount());
             String date = dateFormat.format(new Date(expense.getDate()));
             String description = expense.getDescription() != null ?
-                    expense.getDescription().replace(",", ";") : "";
+                    expense.getDescription().replace(",", ";").replace("\n", " ") : "";
 
             csv.append(categoryName).append(",")
                     .append(amount).append(",")
@@ -376,16 +401,14 @@ public class    ReportActivity extends BaseActivity {
                     .append(description).append("\n");
         }
 
-        // Save to Downloads folder
+        // ... (Phần lưu file giữ nguyên) ...
+        // Đoạn cuối gọi hàm lưu:
         String fileName = "expense_report_" +
-                new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-                        .format(new Date()) + ".csv";
+                new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()) + ".csv";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10+ (Scoped Storage)
             saveToDownloadsQ(fileName, csv.toString());
         } else {
-            // Android 9 and below
             saveToDownloadsLegacy(fileName, csv.toString());
         }
 
@@ -478,7 +501,7 @@ public class    ReportActivity extends BaseActivity {
             PdfFont regularFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
 
             // ===== HEADER SECTION =====
-            Paragraph title = new Paragraph("EXPENSE REPORT")
+            Paragraph title = new Paragraph(getString(R.string.pdf_title))
                     .setFont(boldFont)
                     .setFontSize(20)
                     .setTextAlignment(TextAlignment.CENTER)
@@ -487,24 +510,17 @@ public class    ReportActivity extends BaseActivity {
 
             document.add(title);
 
-            // Date range
-            String dateRangeText = dateFormat.format(startDate.getTime()) + " to " +
-                    dateFormat.format(endDate.getTime());
-            Paragraph dateRange = new Paragraph("Period: " + dateRangeText)
-                    .setFont(regularFont)
-                    .setFontSize(12)
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(10);
+            // Date range: "Period: 01 Jan - 31 Jan"
+            String dateRangeText = dateFormat.format(startDate.getTime()) + " - " + dateFormat.format(endDate.getTime());
+            Paragraph dateRange = new Paragraph(getString(R.string.pdf_period, dateRangeText))
+                    .setFont(regularFont).setFontSize(12).setTextAlignment(TextAlignment.CENTER).setMarginBottom(10);
             document.add(dateRange);
 
             // Generated date
-            Paragraph generatedDate = new Paragraph("Generated on: " +
-                    new SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault()).format(new Date()))
-                    .setFont(regularFont)
-                    .setFontSize(10)
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(20)
-                    .setFontColor(ColorConstants.GRAY);
+            String genDate = new SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault()).format(new Date());
+            Paragraph generatedDate = new Paragraph(getString(R.string.pdf_generated_on, genDate))
+                    .setFont(regularFont).setFontSize(10).setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20).setFontColor(ColorConstants.GRAY);
             document.add(generatedDate);
 
             // ===== SUMMARY SECTION =====
@@ -621,7 +637,7 @@ public class    ReportActivity extends BaseActivity {
             }
 
             // ===== TRANSACTION DETAILS =====
-            Paragraph detailsTitle = new Paragraph("Transaction Details (" + expenses.size() + " items)")
+            Paragraph detailsTitle = new Paragraph(getString(R.string.pdf_transaction_details, expenses.size()))
                     .setFont(boldFont)
                     .setFontSize(14)
                     .setMarginTop(10)
@@ -691,7 +707,7 @@ public class    ReportActivity extends BaseActivity {
             document.add(detailsTable);
 
             // ===== FOOTER =====
-            Paragraph footer = new Paragraph("\nGenerated by CampusExpense Manager")
+            Paragraph footer = new Paragraph("\n" + getString(R.string.pdf_footer))
                     .setFont(regularFont)
                     .setFontSize(8)
                     .setTextAlignment(TextAlignment.CENTER)
@@ -755,22 +771,23 @@ public class    ReportActivity extends BaseActivity {
     /**
      * Share report via email
      */
+    /**
+     * ✅ FIX: Share email with localized subject and body
+     */
     private void shareViaEmail() {
         try {
-            // Generate CSV content
             List<Expense> expenses = getFilteredExpenses();
 
             if (expenses.isEmpty()) {
-                Toast.makeText(this, "No expenses to share", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.msg_no_data_share), Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Create email intent
-            String subject = String.format(getString(R.string.report_email_subject),
-                    dateFormat.format(startDate.getTime()));
+            // Subject: "Expense Report - 12 Nov 2025"
+            String subject = getString(R.string.report_email_subject, dateFormat.format(startDate.getTime()));
 
             StringBuilder body = new StringBuilder();
-            body.append("Expense Report\n\n");
+            body.append(getString(R.string.email_header)).append("\n\n"); // "Expense Report"
             body.append(tvDateRange.getText()).append("\n");
             body.append(tvTotalExpense.getText()).append("\n");
             body.append(tvExpenseCount.getText()).append("\n\n");
@@ -782,12 +799,11 @@ public class    ReportActivity extends BaseActivity {
             emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
             emailIntent.putExtra(Intent.EXTRA_TEXT, body.toString());
 
-            startActivity(Intent.createChooser(emailIntent, "Send report via..."));
+            startActivity(Intent.createChooser(emailIntent, getString(R.string.chooser_email_title)));
 
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Failed to share: " + e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.error_generic), Toast.LENGTH_SHORT).show();
         }
     }
 

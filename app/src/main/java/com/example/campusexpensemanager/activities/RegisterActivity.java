@@ -276,13 +276,15 @@ public class RegisterActivity extends BaseActivity {
 
         if (!isEmailValid || !isPasswordValid || !isConfirmPasswordValid ||
                 !isNameValid || !isAddressValid || !isPhoneValid) {
-            Toast.makeText(this, "Please fix all errors", Toast.LENGTH_SHORT).show();
+            // ✅ FIX: Localized error toast
+            Toast.makeText(this, getString(R.string.msg_fix_errors), Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Disable button to prevent double submission
         btnRegister.setEnabled(false);
-        btnRegister.setText("Creating Account...");
+        // ✅ FIX: Localized button text ("Creating Account...")
+        btnRegister.setText(getString(R.string.msg_creating_account));
 
         // Get form data
         String email = etEmail.getText().toString().trim();
@@ -301,7 +303,8 @@ public class RegisterActivity extends BaseActivity {
         long userId = dbHelper.insertUser(newUser);
 
         if (userId != -1) {
-            Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show();
+            // ✅ FIX: Localized success message
+            Toast.makeText(this, getString(R.string.msg_registration_success), Toast.LENGTH_SHORT).show();
 
             // Navigate to login
             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
@@ -309,9 +312,10 @@ public class RegisterActivity extends BaseActivity {
             startActivity(intent);
             finish();
         } else {
-            Toast.makeText(this, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show();
+            // ✅ FIX: Localized failure message
+            Toast.makeText(this, getString(R.string.msg_registration_failed), Toast.LENGTH_SHORT).show();
             btnRegister.setEnabled(true);
-            btnRegister.setText(getString(R.string.auth_register));
+            btnRegister.setText(getString(R.string.auth_register)); // "Register"
         }
     }
 }

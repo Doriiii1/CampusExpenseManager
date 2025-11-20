@@ -430,4 +430,44 @@
     <string name="summary_monthly_total">Tổng tháng này%1$s: %2$s</string>
     <string name="summary_expense_count">%1$d giao dịch tháng này | %2$d tổng cộng</string>
     <string name="msg_no_expenses">Không tìm thấy giao dịch nào</string>
+
+    <string name="msg_signing_in">Đang đăng nhập…</string>
+    <string name="msg_welcome_user">Xin chào, %s!</string>
+    <string name="msg_account_locked_timer">Tài khoản bị khóa. Thử lại sau %1$d:%2$02d</string>
+    <string name="msg_login_failed_attempts">%1$s. Còn lại %2$d lần thử.</string>
+    <string name="msg_biometric_enable_first">Vui lòng nhập email trước</string>
+    <string name="msg_biometric_toggle_instruction">Hãy bật chức năng đăng nhập vân tay ở nút gạt bên dưới trước</string>
+    <string name="msg_biometric_auth_error">Lỗi xác thực: %s</string>
+    <string name="msg_biometric_auth_failed">Xác thực thất bại. Vui lòng thử lại.</string>
+    <string name="msg_biometric_user_not_found">Không tìm thấy người dùng. Vui lòng đăng nhập bằng mật khẩu.</string>
+    <string name="dialog_biometric_enable_message">Vui lòng nhập mật khẩu để kích hoạt đăng nhập vân tay cho: %s</string>
+    <string name="err_password_required">Yêu cầu nhập mật khẩu</string>
+    <string name="err_email_not_found">Không tìm thấy email</string>
+    <string name="msg_biometric_success_enabled">✓ Đã bật đăng nhập vân tay! Bạn có thể sử dụng ngay bây giờ.</string>
+
+    <string name="msg_fix_errors">Vui lòng sửa các lỗi nhập liệu</string>
+    <string name="msg_creating_account">Đang tạo tài khoản…</string>
+    <string name="msg_registration_success">Đăng ký thành công!</string>
+    <string name="msg_registration_failed">Đăng ký thất bại. Vui lòng thử lại.</string>
+
+    <string name="msg_no_data_period">Không có chi tiêu nào trong giai đoạn này</string>
+    <string name="msg_no_data_export">Không có dữ liệu để xuất</string>
+    <string name="msg_no_data_share">Không có dữ liệu để chia sẻ</string>
+    <string name="msg_storage_permission_rationale">Cần quyền truy cập bộ nhớ để xuất file</string>
+    <string name="msg_permission_granted">Đã cấp quyền. Vui lòng thử lại.</string>
+    <string name="msg_permission_denied_storage">Từ chối cấp quyền. Không thể xuất file.</string>
+
+    <string name="header_category">Danh mục</string>
+    <string name="header_amount">Số tiền</string>
+    <string name="header_date">Ngày</string>
+    <string name="header_description">Mô tả</string>
+
+    <string name="pdf_title">BÁO CÁO CHI TIÊU</string>
+    <string name="pdf_period">Giai đoạn: %s</string>
+    <string name="pdf_generated_on">Ngày tạo: %s</string>
+    <string name="pdf_transaction_details">Chi tiết giao dịch (%d mục)</string>
+    <string name="pdf_footer">Tạo bởi CampusExpense Manager</string>
+
+    <string name="email_header">Báo cáo Chi tiêu</string>
+    <string name="chooser_email_title">Gửi báo cáo qua...</string>
 </resources>

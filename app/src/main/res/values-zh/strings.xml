@@ -425,4 +425,44 @@
     <string name="summary_monthly_total">本月总额%1$s：%2$s</string>
     <string name="summary_expense_count">本月 %1$d 笔交易 | 总计 %2$d 笔</string>
     <string name="msg_no_expenses">未找到任何交易</string>
+
+    <string name="msg_signing_in">正在登录…</string>
+    <string name="msg_welcome_user">您好，%s！</string>
+    <string name="msg_account_locked_timer">账户已锁定。请在 %1$d:%2$02d 后重试</string>
+    <string name="msg_login_failed_attempts">%1$s。剩余 %2$d 次尝试</string>
+    <string name="msg_biometric_enable_first">请先输入邮箱</string>
+    <string name="msg_biometric_toggle_instruction">请先在下方开关开启指纹登录功能</string>
+    <string name="msg_biometric_auth_error">认证错误：%s</string>
+    <string name="msg_biometric_auth_failed">认证失败，请重试</string>
+    <string name="msg_biometric_user_not_found">未找到用户，请使用密码登录</string>
+    <string name="dialog_biometric_enable_message">请输入密码以启用指纹登录（%s）</string>
+    <string name="err_password_required">必须输入密码</string>
+    <string name="err_email_not_found">未找到该邮箱</string>
+    <string name="msg_biometric_success_enabled">✓ 指纹登录已开启！现在即可使用</string>
+
+    <string name="msg_fix_errors">请修复输入错误</string>
+    <string name="msg_creating_account">正在创建账户…</string>
+    <string name="msg_registration_success">注册成功！</string>
+    <string name="msg_registration_failed">注册失败，请重试。</string>
+
+    <string name="msg_no_data_period">此期间无支出记录</string>
+    <string name="msg_no_data_export">没有可导出的支出记录</string>
+    <string name="msg_no_data_share">没有可分享的支出记录</string>
+    <string name="msg_storage_permission_rationale">需要存储权限才能导出文件</string>
+    <string name="msg_permission_granted">权限已授予，请重试</string>
+    <string name="msg_permission_denied_storage">权限被拒绝，无法导出文件</string>
+
+    <string name="header_category">类别</string>
+    <string name="header_amount">金额</string>
+    <string name="header_date">日期</string>
+    <string name="header_description">描述</string>
+
+    <string name="pdf_title">支出报告</string>
+    <string name="pdf_period">期间：%s</string>
+    <string name="pdf_generated_on">生成时间：%s</string>
+    <string name="pdf_transaction_details">交易明细（共 %d 项）</string>
+    <string name="pdf_footer">由 CampusExpense Manager 生成</string>
+
+    <string name="email_header">支出报告</string>
+    <string name="chooser_email_title">通过以下方式发送报告...</string>
 </resources>
