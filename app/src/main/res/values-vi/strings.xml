@@ -348,4 +348,13 @@
     <string name="biometric_prompt_negative">Sử Dụng Mật Khẩu</string>
     <string name="biometric_verify_password">Nhập mật khẩu để bật sinh trắc học</string>
 
+    <!-- Thông Báo Ngân Sách -->
+    <string name="budget_alert_channel_name">Cảnh Báo Ngân Sách</string>
+    <string name="budget_alert_channel_desc">Thông báo khi chi tiêu vượt ngân sách</string>
+    <string name="budget_exceeded_title">⚠️ Vượt Ngân Sách!</string>
+    <string name="budget_exceeded_message">Bạn đã vượt ngân sách %1$s! Chi: %2$s / Hạn mức: %3$s</string>
+    <string name="budget_warning_title">⚠️ Cảnh Báo Ngân Sách</string>
+    <string name="budget_warning_message">Ngân sách %1$s đã dùng %2$s. Chi: %3$s / Hạn mức: %4$s</string>
+    <string name="label_total_budget">Tổng Ngân Sách</string>
+
 </resources>

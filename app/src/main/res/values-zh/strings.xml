@@ -344,4 +344,12 @@
     <string name="biometric_prompt_description">登录 CampusExpense Manager</string>
     <string name="biometric_prompt_negative">使用密码</string>
     <string name="biometric_verify_password">输入密码以启用生物识别</string>
+
+    <string name="budget_alert_channel_name">预算警报</string>
+    <string name="budget_alert_channel_desc">当支出超出预算时发送通知</string>
+    <string name="budget_exceeded_title">⚠️ 预算超支！</string>
+    <string name="budget_exceeded_message">您已超出%1$s预算！已支出：%2$s / 限额：%3$s</string>
+    <string name="budget_warning_title">⚠️ 预算警告</string>
+    <string name="budget_warning_message">您的%1$s预算已使用%2$s。已支出：%3$s / 限额：%4$s</string>
+    <string name="label_total_budget">总预算</string>
 </resources>

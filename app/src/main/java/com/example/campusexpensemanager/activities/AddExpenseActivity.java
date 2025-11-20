@@ -2,10 +2,13 @@ package com.example.campusexpensemanager.activities;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
@@ -28,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.adapters.TemplateAdapter;
+import com.example.campusexpensemanager.models.Budget;
 import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Currency;
 import com.example.campusexpensemanager.models.Expense;
@@ -46,11 +50,17 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import android.app.PendingIntent;
+import android.content.Context;
+import android.util.Log;
+import androidx.core.app.NotificationCompat;
+import java.text.NumberFormat;
+
 /**
  * AddExpenseActivity - Fully Localized
  * Updated to use resources (getString) instead of hardcoded text.
  */
-public class AddExpenseActivity extends BaseActivity implements TemplateAdapter.OnTemplateClickListener {
+public class    AddExpenseActivity extends BaseActivity implements TemplateAdapter.OnTemplateClickListener {
 
     private static final int CAMERA_PERMISSION_CODE = 100;
 
@@ -58,6 +68,9 @@ public class AddExpenseActivity extends BaseActivity implements TemplateAdapter.
     private static final String KEY_RECEIPT_PATH = "receipt_photo_path";
     private static final String KEY_SELECTED_DATE = "selected_date_time";
     private static final String KEY_CURRENT_TYPE = "current_type";
+
+    private static final String BUDGET_CHANNEL_ID = "budget_alerts";
+    private static final int BUDGET_NOTIFICATION_ID = 2001;
 
     // Type toggle
     private ChipGroup chipGroupType;
@@ -140,6 +153,29 @@ public class AddExpenseActivity extends BaseActivity implements TemplateAdapter.
         // Restore receipt preview if path exists
         if (receiptPhotoPath != null && !receiptPhotoPath.isEmpty()) {
             restoreReceiptPreview();
+        }
+
+        createBudgetNotificationChannel();
+    }
+
+    /**
+     * ✅ Create notification channel for budget alerts (Android 8.0+)
+     */
+    private void createBudgetNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.budget_alert_channel_name); // "Budget Alerts"
+            String description = getString(R.string.budget_alert_channel_desc); // "Notifications when expenses exceed budget"
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+
+            NotificationChannel channel = new NotificationChannel(BUDGET_CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{0, 500, 200, 500});
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
         }
     }
 
@@ -531,6 +567,166 @@ public class AddExpenseActivity extends BaseActivity implements TemplateAdapter.
                     getString(R.string.label_income) : getString(R.string.label_expense);
             Toast.makeText(this, getString(R.string.msg_transaction_failed, typeText),
                     Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * ✅ Check if new expense exceeds budget and send notification
+     * @param categoryId Category ID of the expense
+     * @param newAmount Amount of new expense
+     */
+    private void checkBudgetAndNotify(int categoryId, double newAmount) {
+        try {
+            int userId = sessionManager.getUserId();
+            List<Budget> budgets = dbHelper.getBudgetsByUser(userId);
+
+            // Find budget for this category or total budget (categoryId = 0)
+            Budget relevantBudget = null;
+            for (Budget budget : budgets) {
+                // Check if budget is currently active
+                long currentTime = System.currentTimeMillis();
+                if (currentTime < budget.getPeriodStart() || currentTime > budget.getPeriodEnd()) {
+                    continue; // Skip expired budgets
+                }
+
+                // Match category-specific budget or total budget
+                if (budget.getCategoryId() == categoryId || budget.getCategoryId() == 0) {
+                    relevantBudget = budget;
+                    break;
+                }
+            }
+
+            if (relevantBudget == null) {
+                return; // No active budget found, no need to check
+            }
+
+            // Calculate current spending in this budget period
+            double currentSpending = calculateSpentInPeriod(
+                    userId,
+                    relevantBudget.getCategoryId(),
+                    relevantBudget.getPeriodStart(),
+                    relevantBudget.getPeriodEnd()
+            );
+
+            // Add new expense to calculate projected total
+            double projectedTotal = currentSpending + newAmount;
+            double budgetLimit = relevantBudget.getAmount();
+            double percentageUsed = (projectedTotal / budgetLimit) * 100;
+
+            // Check if threshold exceeded (80% or 100%)
+            if (percentageUsed >= 80) {
+                sendBudgetNotification(
+                        relevantBudget,
+                        projectedTotal,
+                        budgetLimit,
+                        percentageUsed
+                );
+            }
+
+        } catch (Exception e) {
+            Log.e("AddExpenseActivity", "Error checking budget: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * ✅ Calculate spent amount in budget period
+     */
+    private double calculateSpentInPeriod(int userId, int categoryId, long periodStart, long periodEnd) {
+        List<Expense> allExpenses = dbHelper.getExpensesByUser(userId);
+        double total = 0;
+
+        for (Expense expense : allExpenses) {
+            // Only count expenses (not income)
+            if (expense.getType() != Expense.TYPE_EXPENSE) {
+                continue;
+            }
+
+            // Check if expense is in period
+            if (expense.getDate() < periodStart || expense.getDate() > periodEnd) {
+                continue;
+            }
+
+            // Check category match (categoryId = 0 means total budget)
+            if (categoryId == 0 || expense.getCategoryId() == categoryId) {
+                total += expense.getAmount();
+            }
+        }
+
+        return total;
+    }
+
+    /**
+     * ✅ Send budget alert notification
+     */
+    private void sendBudgetNotification(Budget budget, double spent, double limit, double percentage) {
+        try {
+            // Get category name
+            String categoryName = getString(R.string.label_total_budget); // "Total Budget"
+            if (budget.getCategoryId() > 0) {
+                Category category = dbHelper.getCategoryById(budget.getCategoryId());
+                if (category != null) {
+                    categoryName = DatabaseHelper.getLocalizedCategoryName(this, category.getName());
+                }
+            }
+
+            // Format amounts
+            NumberFormat currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
+            String spentAmount = currencyFormat.format(spent) + "đ";
+            String limitAmount = currencyFormat.format(limit) + "đ";
+
+            // Build notification content
+            String title;
+            String message;
+
+            if (percentage >= 100) {
+                title = getString(R.string.budget_exceeded_title); // "⚠️ Budget Exceeded!"
+                message = getString(R.string.budget_exceeded_message, categoryName, spentAmount, limitAmount);
+                // "You've exceeded your {category} budget! Spent: {spent} / Limit: {limit}"
+            } else {
+                title = getString(R.string.budget_warning_title); // "⚠️ Budget Warning"
+                message = getString(R.string.budget_warning_message,
+                        categoryName,
+                        String.format("%.0f%%", percentage),
+                        spentAmount,
+                        limitAmount);
+                // "Your {category} budget is {percentage}% used. Spent: {spent} / Limit: {limit}"
+            }
+
+            // Create notification
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, BUDGET_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_warning) // ⚠️ Add ic_warning.xml to drawable
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setAutoCancel(true)
+                    .setVibrate(new long[]{0, 500, 200, 500})
+                    .setColor(ContextCompat.getColor(this, R.color.error));
+
+            // Add action to view budget details
+            Intent budgetIntent = new Intent(this, BudgetDashboardActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    this,
+                    0,
+                    budgetIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+            builder.setContentIntent(pendingIntent);
+
+            // Show notification
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+            if (notificationManager != null) {
+                notificationManager.notify(BUDGET_NOTIFICATION_ID, builder.build());
+                Log.d("AddExpenseActivity", "Budget notification sent: " + categoryName +
+                        " (" + String.format("%.1f%%", percentage) + ")");
+            }
+
+        } catch (Exception e) {
+            Log.e("AddExpenseActivity", "Error sending notification: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

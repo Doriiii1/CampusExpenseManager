@@ -355,4 +355,12 @@
     <string name="biometric_prompt_description">Login to CampusExpense Manager</string>
     <string name="biometric_prompt_negative">Use Password</string>
     <string name="biometric_verify_password">Enter password to enable biometric</string>
+
+    <string name="budget_alert_channel_name">Budget Alerts</string>
+    <string name="budget_alert_channel_desc">Notifications when expenses exceed budget</string>
+    <string name="budget_exceeded_title">⚠️ Budget Exceeded!</string>
+    <string name="budget_exceeded_message">You\'ve exceeded your %1$s budget! Spent: %2$s / Limit: %3$s</string>
+    <string name="budget_warning_title">⚠️ Budget Warning</string>
+    <string name="budget_warning_message">Your %1$s budget is %2$s used. Spent: %3$s / Limit: %4$s</string>
+    <string name="label_total_budget">Total Budget</string>
 </resources>
