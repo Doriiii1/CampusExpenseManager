@@ -259,13 +259,38 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
         categories = dbHelper.getAllCategories();
 
         if (categories.isEmpty()) {
-            // FIX: Localized string
             Toast.makeText(this, getString(R.string.msg_no_categories), Toast.LENGTH_SHORT).show();
             return;
         }
 
-        ArrayAdapter<Category> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, categories);
+        // ✅ FIX: Custom Adapter để hiển thị tên đa ngôn ngữ thay vì key "cat_..."
+        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(
+                this,
+                android.R.layout.simple_spinner_item,
+                categories
+        ) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getView(position, convertView, parent);
+                Category category = getItem(position);
+                if (category != null) {
+                    label.setText(category.getLocalizedName(getContext()));
+                }
+                return label;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, @NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getDropDownView(position, convertView, parent);
+                Category category = getItem(position);
+                if (category != null) {
+                    label.setText(category.getLocalizedName(getContext()));
+                }
+                return label;
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
     }
@@ -549,24 +574,12 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
             expense.setNextOccurrenceDate(nextOcc.getTimeInMillis());
         }
 
-        long expenseId = dbHelper.insertExpense(expense);
-
-        if (expenseId != -1) {
-            // FIX: Localized type text
-            String typeText = currentType == Expense.TYPE_INCOME ?
-                    getString(R.string.label_income) : getString(R.string.label_expense);
-            String formattedAmount = selectedCurrency.formatAmount(amount);
-
-            Toast.makeText(this, getString(R.string.msg_transaction_added, typeText, formattedAmount),
-                    Toast.LENGTH_SHORT).show();
-
-            setResult(RESULT_OK);
-            finish();
+        if (currentType == Expense.TYPE_EXPENSE) {
+            // Nếu là chi tiêu -> Kiểm tra ngân sách trước
+            checkBudgetAndConfirmSave(expense);
         } else {
-            String typeText = currentType == Expense.TYPE_INCOME ?
-                    getString(R.string.label_income) : getString(R.string.label_expense);
-            Toast.makeText(this, getString(R.string.msg_transaction_failed, typeText),
-                    Toast.LENGTH_SHORT).show();
+            // Nếu là thu nhập -> Lưu luôn không cần hỏi
+            proceedToSaveExpense(expense);
         }
     }
 
@@ -727,6 +740,79 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
         } catch (Exception e) {
             Log.e("AddExpenseActivity", "Error sending notification: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    /**
+     * ✅ NEW: Kiểm tra ngân sách và hiện Dialog cảnh báo (Đã tối ưu đa ngôn ngữ)
+     */
+    private void checkBudgetAndConfirmSave(Expense expense) {
+        int userId = sessionManager.getUserId();
+        List<Budget> budgets = dbHelper.getBudgetsByUser(userId);
+        Budget relevantBudget = null;
+
+        // Tìm ngân sách phù hợp
+        for (Budget budget : budgets) {
+            if (expense.getDate() >= budget.getPeriodStart() && expense.getDate() <= budget.getPeriodEnd()) {
+                if (budget.getCategoryId() == expense.getCategoryId() || budget.getCategoryId() == 0) {
+                    relevantBudget = budget;
+                    break; // Ưu tiên tìm thấy ngân sách category cụ thể
+                }
+            }
+        }
+
+        if (relevantBudget == null) {
+            proceedToSaveExpense(expense); // Không có ngân sách -> Lưu luôn
+            return;
+        }
+
+        // Tính toán chi tiêu hiện tại
+        double currentSpent = calculateSpentInPeriod(userId, relevantBudget.getCategoryId(),
+                relevantBudget.getPeriodStart(), relevantBudget.getPeriodEnd());
+        double newTotal = currentSpent + expense.getAmount();
+
+        // Nếu vượt quá 100% -> Hiện cảnh báo
+        if (newTotal > relevantBudget.getAmount()) {
+            // Format số tiền: 500,000đ
+            String formattedBudget = String.format("%,.0f", relevantBudget.getAmount()) + "đ";
+            String formattedProjected = String.format("%,.0f", newTotal) + "đ";
+
+            // Tạo nội dung thông báo từ resources
+            String message = getString(R.string.dialog_budget_exceeded_message, formattedBudget, formattedProjected);
+
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.budget_exceeded_title)) // Tiêu đề lấy từ strings.xml
+                    .setMessage(message) // Nội dung đã format
+                    .setPositiveButton(getString(R.string.action_save), (dialog, which) -> proceedToSaveExpense(expense))
+                    .setNegativeButton(getString(R.string.action_cancel), null)
+                    .setIcon(R.drawable.ic_warning) // Đảm bảo icon này tồn tại hoặc dùng android.R.drawable.ic_dialog_alert
+                    .show();
+        } else {
+            proceedToSaveExpense(expense); // Chưa vượt -> Lưu luôn
+        }
+    }
+
+    /**
+     * ✅ NEW: Hàm thực hiện lưu vào DB (Đã tối ưu đa ngôn ngữ)
+     */
+    private void proceedToSaveExpense(Expense expense) {
+        long expenseId = dbHelper.insertExpense(expense);
+
+        if (expenseId != -1) {
+            String typeText = currentType == Expense.TYPE_INCOME ?
+                    getString(R.string.label_income) : getString(R.string.label_expense);
+
+            // Format lại số tiền để hiển thị Toast đẹp hơn
+            java.text.NumberFormat format = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+            String formattedAmount = format.format(expense.getAmount()) + "đ";
+
+            Toast.makeText(this, getString(R.string.msg_transaction_added, typeText, formattedAmount),
+                    Toast.LENGTH_SHORT).show();
+
+            setResult(RESULT_OK);
+            finish();
+        } else {
+            // Sử dụng string resource cho thông báo lỗi
+            Toast.makeText(this, getString(R.string.msg_save_error), Toast.LENGTH_SHORT).show();
         }
     }
 }

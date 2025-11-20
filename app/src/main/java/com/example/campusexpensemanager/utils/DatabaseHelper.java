@@ -28,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
     private static final String DATABASE_NAME = "CampusExpense.db";
-    private static final int DATABASE_VERSION = 4; // ✅ UPGRADED from 3 to 4
+    private static final int DATABASE_VERSION = 5; // ✅ UPGRADED from 4 to 5
 
     // Table Names
     private static final String TABLE_USERS = "users";
@@ -291,6 +291,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 e.printStackTrace();
             }
         }
+
+        if (oldVersion < 5) {
+            // Xóa bảng cũ và tạo lại với dữ liệu mới (Key thay vì text cứng)
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEMPLATES);
+            String CREATE_TEMPLATES_TABLE = "CREATE TABLE " + TABLE_TEMPLATES + "("
+                    + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + KEY_TEMPLATE_NAME + " TEXT NOT NULL,"
+                    + KEY_TEMPLATE_CATEGORY_ID + " INTEGER NOT NULL,"
+                    + KEY_TEMPLATE_DEFAULT_AMOUNT + " REAL DEFAULT 0,"
+                    + KEY_TEMPLATE_ICON + " TEXT,"
+                    + "FOREIGN KEY(" + KEY_TEMPLATE_CATEGORY_ID + ") REFERENCES "
+                    + TABLE_CATEGORIES + "(" + KEY_ID + ")"
+                    + ")";
+            db.execSQL(CREATE_TEMPLATES_TABLE);
+            prepopulateTemplates(db);
+        }
     }
 
     @Override
@@ -490,20 +506,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private void prepopulateTemplates(SQLiteDatabase db) {
         // Quick templates (name, category_id, default_amount, icon)
         Object[][] templates = {
-                {"Tiền trọ", 8, 1500000.0, "🏠"}, // Housing
-                {"Ăn sáng", 1, 25000.0, "🍜"},     // Food
-                {"Ăn trưa", 1, 40000.0, "🍱"},     // Food
-                {"Ăn tối", 1, 35000.0, "🍲"},      // Food
-                {"Cà phê", 1, 30000.0, "☕"},      // Food
-                {"Xe bus", 2, 7000.0, "🚌"},       // Transport
-                {"Grab", 2, 50000.0, "🚗"},        // Transport
-                {"Xăng xe", 2, 100000.0, "⛽"},    // Transport
-                {"Điện nước", 7, 200000.0, "⚡"},  // Utilities
-                {"Internet", 7, 150000.0, "📡"},   // Utilities
-                {"Học phí", 3, 5000000.0, "📚"},   // Study
-                {"Sách vở", 3, 100000.0, "📖"},    // Study
-                {"Xem phim", 4, 80000.0, "🎬"},    // Entertainment
-                {"Đi chơi", 4, 200000.0, "🎮"},    // Entertainment
+                {"tmpl_rent", 8, 1500000.0, "🏠"},      // Housing
+                {"tmpl_breakfast", 1, 25000.0, "🍜"},   // Food
+                {"tmpl_lunch", 1, 40000.0, "🍱"},       // Food
+                {"tmpl_dinner", 1, 35000.0, "🍲"},      // Food
+                {"tmpl_coffee", 1, 30000.0, "☕"},      // Food
+                {"tmpl_bus", 2, 7000.0, "🚌"},          // Transport
+                {"tmpl_grab", 2, 50000.0, "🚗"},        // Transport
+                {"tmpl_fuel", 2, 100000.0, "⛽"},       // Transport
+                {"tmpl_utilities", 7, 200000.0, "⚡"},  // Utilities
+                {"tmpl_internet", 7, 150000.0, "📡"},   // Utilities
+                {"tmpl_tuition", 3, 5000000.0, "📚"},   // Study
+                {"tmpl_books", 3, 100000.0, "📖"},      // Study
+                {"tmpl_movie", 4, 80000.0, "🎬"},       // Entertainment
+                {"tmpl_hangout", 4, 200000.0, "🎮"},    // Entertainment
         };
 
         for (Object[] template : templates) {

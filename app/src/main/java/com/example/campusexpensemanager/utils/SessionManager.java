@@ -97,10 +97,22 @@ public class SessionManager {
     }
 
     /**
-     * Logout user and clear session
+     * ✅ FIX: Logout user but keep settings (Remember Me, Biometric, Dark Mode)
      */
     public void logout() {
-        editor.clear();
+        // Xóa các thông tin phiên đăng nhập
+        editor.remove(KEY_USER_ID);
+        editor.remove(KEY_USER_NAME);
+        editor.remove(KEY_IS_LOGGED_IN);
+        editor.remove(KEY_LOGIN_ATTEMPTS);
+        editor.remove(KEY_LOCK_TIMESTAMP);
+
+        // Nếu không bật Remember Me thì mới xóa Email
+        if (!isRememberMeEnabled()) {
+            editor.remove(KEY_USER_EMAIL);
+        }
+
+        // QUAN TRỌNG: KHÔNG xóa KEY_BIOMETRIC_ENABLED, KEY_BIOMETRIC_EMAIL, KEY_DARK_MODE
         editor.apply();
     }
 

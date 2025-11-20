@@ -46,7 +46,15 @@ public class TemplateAdapter extends RecyclerView.Adapter<TemplateAdapter.Templa
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
         ExpenseTemplate template = templates.get(position);
 
-        holder.tvTemplateName.setText(template.getDisplayText());
+        // ✅ FIX: Dịch tên template từ Key sang ngôn ngữ hiện tại
+        String displayName = template.getName();
+        int resId = context.getResources().getIdentifier(displayName, "string", context.getPackageName());
+        if (resId != 0) {
+            displayName = context.getString(resId);
+        }
+
+        // Hiển thị icon + tên đã dịch
+        holder.tvTemplateName.setText(template.getIconEmoji() + " " + displayName);
 
         holder.cardTemplate.setOnClickListener(v -> {
             if (listener != null) {

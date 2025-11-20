@@ -344,6 +344,7 @@
     <string name="biometric_prompt_description">登录 CampusExpense Manager</string>
     <string name="biometric_prompt_negative">使用密码</string>
     <string name="biometric_verify_password">输入密码以启用生物识别</string>
+    <string name="biometric_verify">验证</string>
 
     <string name="budget_alert_channel_name">预算警报</string>
     <string name="budget_alert_channel_desc">当支出超出预算时发送通知</string>
@@ -352,4 +353,76 @@
     <string name="budget_warning_title">⚠️ 预算警告</string>
     <string name="budget_warning_message">您的%1$s预算已使用%2$s。已支出：%3$s / 限额：%4$s</string>
     <string name="label_total_budget">总预算</string>
+
+    <string name="dialog_budget_exceeded_message">此交易将超出您的预算限额！\n\n预算：%1$s\n预计：%2$s\n\n您确定要继续吗？</string>
+    <string name="msg_save_error">保存交易时出错</string>
+
+    <string name="tmpl_rent">房租</string>
+    <string name="tmpl_breakfast">早餐</string>
+    <string name="tmpl_lunch">午餐</string>
+    <string name="tmpl_dinner">晚餐</string>
+    <string name="tmpl_coffee">咖啡</string>
+    <string name="tmpl_bus">公交车费</string>
+    <string name="tmpl_grab">打车/摩托车费</string>
+    <string name="tmpl_fuel">加油</string>
+    <string name="tmpl_utilities">水电费</string>
+    <string name="tmpl_internet">网费</string>
+    <string name="tmpl_tuition">学费</string>
+    <string name="tmpl_books">书本费</string>
+    <string name="tmpl_movie">看电影</string>
+    <string name="tmpl_hangout">出去玩</string>
+
+    <string name="all_categories">所有类别</string>
+    <string name="period_weekly">每周</string>
+    <string name="period_monthly">每月</string>
+    <string name="err_amount_positive">金额必须大于 0</string>
+    <string name="msg_save_budget_error">保存预算时出错</string>
+    <string name="msg_invalid_amount">金额无效</string>
+
+    <string name="label_period_range">阶段： </string>
+    <string name="label_total_spent_prefix">总支出： </string>
+    <string name="msg_no_expenses_month">本月没有支出</string>
+    <string name="chart_expense_by_category">按类别支出</string>
+    <string name="chart_center_text">支出\n按类型</string>
+    <string name="chart_monthly_spending">每月支出</string>
+    <string name="chart_6_month_trend">最近6个月趋势</string>
+    <string name="cat_unknown">未知</string>
+
+    <string name="prediction_ended">预算周期已结束</string>
+    <string name="prediction_warning">⚠️ 预测：如果继续当前支出，将超支 %s</string>
+    <string name="prediction_safe">✅ 支出正常，将在预算范围内</string>
+    <string name="budget_alert_title">预算警报：%s</string>
+    <string name="budget_alert_message">仅剩 %s！</string>
+
+    <string name="budget_delete_confirm_title">删除预算</string>
+    <string name="budget_delete_confirm_message">您确定要删除此预算吗？</string>
+    <string name="budget_deleted">预算已删除</string>
+    <string name="budget_delete_failed">删除预算失败</string>
+    <string name="budget_restored">预算已恢复</string>
+    <string name="budget_restore_failed">恢复预算失败</string>
+    <string name="budget_update_failed">更新预算失败</string>
+    <string name="err_date_range">结束日期必须晚于开始日期</string>
+    <string name="action_undo">撤销</string>
+
+    <string name="msg_expense_not_found">未找到交易</string>
+    <string name="msg_expense_updated">交易已更新</string>
+    <string name="msg_expense_update_failed">更新失败</string>
+    <string name="msg_expense_deleted">交易已删除</string>
+    <string name="msg_expense_delete_failed">删除失败</string>
+    <string name="msg_expense_restored">交易已恢复</string>
+    <string name="msg_expense_restore_failed">恢复失败</string>
+    <string name="expense_delete_confirm_title">删除交易</string>
+    <string name="expense_delete_confirm_message">您确定要删除此交易吗？</string>
+    <string name="recurring_info_daily">🔁 每天重复</string>
+    <string name="recurring_info_weekly">🔁 每周重复</string>
+    <string name="recurring_info_monthly">🔁 每月重复</string>
+    <string name="recurring_info_default">🔁 定期交易</string>
+    <string name="msg_update_all_future_suffix">（已更新所有未来周期）</string>
+    <string name="msg_delete_all_future_suffix">（已删除所有未来周期）</string>
+
+    <string name="filter_income_suffix">（收入）</string>
+    <string name="filter_expense_suffix">（支出）</string>
+    <string name="summary_monthly_total">本月总额%1$s：%2$s</string>
+    <string name="summary_expense_count">本月 %1$d 笔交易 | 总计 %2$d 笔</string>
+    <string name="msg_no_expenses">未找到任何交易</string>
 </resources>

@@ -347,6 +347,7 @@
     <string name="biometric_prompt_description">Đăng nhập vào CampusExpense Manager</string>
     <string name="biometric_prompt_negative">Sử Dụng Mật Khẩu</string>
     <string name="biometric_verify_password">Nhập mật khẩu để bật sinh trắc học</string>
+    <string name="biometric_verify">Xác minh</string>
 
     <!-- Thông Báo Ngân Sách -->
     <string name="budget_alert_channel_name">Cảnh Báo Ngân Sách</string>
@@ -357,4 +358,76 @@
     <string name="budget_warning_message">Ngân sách %1$s đã dùng %2$s. Chi: %3$s / Hạn mức: %4$s</string>
     <string name="label_total_budget">Tổng Ngân Sách</string>
 
+    <string name="dialog_budget_exceeded_message">Giao dịch này sẽ làm vượt hạn mức ngân sách!\n\nNgân sách: %1$s\nDự kiến: %2$s\n\nBạn có chắc chắn muốn tiếp tục?</string>
+    <string name="msg_save_error">Lỗi khi lưu giao dịch</string>
+
+    <string name="tmpl_rent">Tiền trọ</string>
+    <string name="tmpl_breakfast">Ăn sáng</string>
+    <string name="tmpl_lunch">Ăn trưa</string>
+    <string name="tmpl_dinner">Ăn tối</string>
+    <string name="tmpl_coffee">Cà phê</string>
+    <string name="tmpl_bus">Vé xe buýt</string>
+    <string name="tmpl_grab">Grab/Xe ôm</string>
+    <string name="tmpl_fuel">Đổ xăng</string>
+    <string name="tmpl_utilities">Điện nước</string>
+    <string name="tmpl_internet">Tiền Mạng</string>
+    <string name="tmpl_tuition">Học phí</string>
+    <string name="tmpl_books">Sách vở</string>
+    <string name="tmpl_movie">Xem phim</string>
+    <string name="tmpl_hangout">Đi chơi</string>
+
+    <string name="all_categories">Tất cả danh mục</string>
+    <string name="period_weekly">Hàng tuần</string>
+    <string name="period_monthly">Hàng tháng</string>
+    <string name="err_amount_positive">Số tiền phải lớn hơn 0</string>
+    <string name="msg_save_budget_error">Lỗi khi lưu ngân sách</string>
+    <string name="msg_invalid_amount">Số tiền không hợp lệ</string>
+
+    <string name="label_period_range">Giai đoạn: </string>
+    <string name="label_total_spent_prefix">Tổng chi: </string>
+    <string name="msg_no_expenses_month">Không có chi tiêu tháng này</string>
+    <string name="chart_expense_by_category">Chi tiêu theo danh mục</string>
+    <string name="chart_center_text">Chi tiêu\ntheo loại</string>
+    <string name="chart_monthly_spending">Chi tiêu hàng tháng</string>
+    <string name="chart_6_month_trend">Xu hướng 6 tháng gần nhất</string>
+    <string name="cat_unknown">Không xác định</string>
+
+    <string name="prediction_ended">Kỳ ngân sách đã kết thúc</string>
+    <string name="prediction_warning">⚠️ Dự đoán: Có thể vượt ngân sách %s nếu tiếp tục chi tiêu như hiện tại</string>
+    <string name="prediction_safe">✅ Đang đi đúng hướng, sẽ không vượt ngân sách</string>
+    <string name="budget_alert_title">Cảnh Báo Ngân Sách: %s</string>
+    <string name="budget_alert_message">Chỉ còn %s thôi!</string>
+
+    <string name="budget_delete_confirm_title">Xóa ngân sách</string>
+    <string name="budget_delete_confirm_message">Bạn có chắc chắn muốn xóa ngân sách này không?</string>
+    <string name="budget_deleted">Đã xóa ngân sách</string>
+    <string name="budget_delete_failed">Xóa ngân sách thất bại</string>
+    <string name="budget_restored">Đã khôi phục ngân sách</string>
+    <string name="budget_restore_failed">Khôi phục ngân sách thất bại</string>
+    <string name="budget_update_failed">Cập nhật ngân sách thất bại</string>
+    <string name="err_date_range">Ngày kết thúc phải sau ngày bắt đầu</string>
+    <string name="action_undo">HOÀN TÁC</string>
+
+    <string name="msg_expense_not_found">Không tìm thấy giao dịch</string>
+    <string name="msg_expense_updated">Đã cập nhật giao dịch</string>
+    <string name="msg_expense_update_failed">Cập nhật thất bại</string>
+    <string name="msg_expense_deleted">Đã xóa giao dịch</string>
+    <string name="msg_expense_delete_failed">Xóa thất bại</string>
+    <string name="msg_expense_restored">Đã khôi phục giao dịch</string>
+    <string name="msg_expense_restore_failed">Khôi phục thất bại</string>
+    <string name="expense_delete_confirm_title">Xóa giao dịch</string>
+    <string name="expense_delete_confirm_message">Bạn có chắc chắn muốn xóa giao dịch này không?</string>
+
+    <string name="recurring_info_daily">🔁 Lặp lại hàng ngày</string>
+    <string name="recurring_info_weekly">🔁 Lặp lại hàng tuần</string>
+    <string name="recurring_info_monthly">🔁 Lặp lại hàng tháng</string>
+    <string name="recurring_info_default">🔁 Giao dịch định kỳ</string>
+    <string name="msg_update_all_future_suffix"> (Đã cập nhật tất cả kỳ tương lai)</string>
+    <string name="msg_delete_all_future_suffix"> (Đã xóa tất cả kỳ tương lai)</string>
+
+    <string name="filter_income_suffix"> (Thu nhập)</string>
+    <string name="filter_expense_suffix"> (Chi tiêu)</string>
+    <string name="summary_monthly_total">Tổng tháng này%1$s: %2$s</string>
+    <string name="summary_expense_count">%1$d giao dịch tháng này | %2$d tổng cộng</string>
+    <string name="msg_no_expenses">Không tìm thấy giao dịch nào</string>
 </resources>

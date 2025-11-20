@@ -75,7 +75,7 @@ public class ExpenseOverviewActivity extends BaseActivity {
     }
 
     /**
-     * Load and display chart data
+     * Load and display chart data with localized strings
      */
     private void loadChartData() {
         int userId = sessionManager.getUserId();
@@ -92,10 +92,14 @@ public class ExpenseOverviewActivity extends BaseActivity {
         calendar.add(Calendar.MONTH, 1);
         long monthEnd = calendar.getTimeInMillis();
 
-        // Display period
+        // Display period with localized prefix
+        // Sử dụng Locale.getDefault() để định dạng ngày tháng theo ngôn ngữ máy
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
-        tvPeriodRange.setText("Period: " + dateFormat.format(monthStart) + " - " +
-                dateFormat.format(monthEnd));
+        String periodText = getString(R.string.label_period_range) +
+                dateFormat.format(monthStart) + " - " +
+                dateFormat.format(monthEnd);
+
+        tvPeriodRange.setText(periodText);
 
         // Setup Pie Chart (Category Breakdown)
         setupPieChart(allExpenses, monthStart, monthEnd);
@@ -105,7 +109,7 @@ public class ExpenseOverviewActivity extends BaseActivity {
     }
 
     /**
-     * ✅ Setup Pie Chart - Category breakdown for current month
+     * ✅ FIX: Setup Pie Chart with localized strings and category names
      */
     private void setupPieChart(List<Expense> expenses, long monthStart, long monthEnd) {
         Map<Integer, Double> categoryTotals = new HashMap<>();
@@ -124,11 +128,13 @@ public class ExpenseOverviewActivity extends BaseActivity {
             }
         }
 
-        // Display total
-        tvTotalSpent.setText("Total Spent: " + currencyFormat.format(totalSpent) + "đ");
+        // Display total with localized prefix
+        String totalText = getString(R.string.label_total_spent_prefix) + currencyFormat.format(totalSpent) + "đ";
+        tvTotalSpent.setText(totalText);
 
         if (categoryTotals.isEmpty()) {
-            pieChart.setNoDataText("No expenses this month");
+            // Localized "No data" message
+            pieChart.setNoDataText(getString(R.string.msg_no_expenses_month));
             pieChart.invalidate();
             return;
         }
@@ -139,13 +145,21 @@ public class ExpenseOverviewActivity extends BaseActivity {
 
         for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
             Category category = dbHelper.getCategoryById(entry.getKey());
-            String categoryName = category != null ? category.getName() : "Unknown";
+
+            // ✅ FIX: Get localized category name instead of raw name or "Unknown"
+            String categoryName;
+            if (category != null) {
+                categoryName = DatabaseHelper.getLocalizedCategoryName(this, category.getName());
+            } else {
+                categoryName = getString(R.string.cat_unknown);
+            }
+
             float value = entry.getValue().floatValue();
             pieEntries.add(new PieEntry(value, categoryName));
         }
 
         // Setup Pie Chart styling (Sera UI)
-        PieDataSet dataSet = new PieDataSet(pieEntries, "Expense by Category");
+        PieDataSet dataSet = new PieDataSet(pieEntries, getString(R.string.chart_expense_by_category));
         dataSet.setColors(colors);
         dataSet.setValueTextSize(12f);
         dataSet.setValueTextColor(Color.WHITE);
@@ -162,7 +176,8 @@ public class ExpenseOverviewActivity extends BaseActivity {
         pieChart.setHoleRadius(40f);
         pieChart.setTransparentCircleRadius(45f);
         pieChart.setDrawCenterText(true);
-        pieChart.setCenterText("Expenses\nby Category");
+        // Localized center text
+        pieChart.setCenterText(getString(R.string.chart_center_text));
         pieChart.setCenterTextSize(14f);
         pieChart.setRotationEnabled(true);
         pieChart.setHighlightPerTapEnabled(true);
@@ -186,7 +201,7 @@ public class ExpenseOverviewActivity extends BaseActivity {
     }
 
     /**
-     * ✅ Setup Line Chart - 6-month spending trend
+     * ✅ FIX: Setup Line Chart with localized strings
      */
     private void setupLineChart(List<Expense> expenses) {
         // Calculate last 6 months
@@ -221,15 +236,15 @@ public class ExpenseOverviewActivity extends BaseActivity {
             // Add to chart
             lineEntries.add(new Entry(i, (float) monthTotal));
 
-            // Format month label
+            // Format month label (Locale-aware)
             SimpleDateFormat monthFormat = new SimpleDateFormat("MMM", Locale.getDefault());
             calendar.add(Calendar.MONTH, -1); // Go back to display month name
             monthLabels.add(monthFormat.format(calendar.getTime()));
             calendar.add(Calendar.MONTH, 1); // Move to next month
         }
 
-        // Create Line Chart dataset
-        LineDataSet dataSet = new LineDataSet(lineEntries, "Monthly Spending");
+        // Create Line Chart dataset with localized label
+        LineDataSet dataSet = new LineDataSet(lineEntries, getString(R.string.chart_monthly_spending));
         dataSet.setColor(ContextCompat.getColor(this, R.color.primary_blue));
         dataSet.setCircleColor(ContextCompat.getColor(this, R.color.primary_blue));
         dataSet.setCircleRadius(5f);
@@ -258,10 +273,12 @@ public class ExpenseOverviewActivity extends BaseActivity {
         lineChart.getAxisLeft().setDrawGridLines(true);
         lineChart.getAxisRight().setEnabled(false);
 
-        // Chart appearance
+        // Chart appearance with localized description
         Description description = new Description();
-        description.setText("6-Month Spending Trend");
+        description.setText(getString(R.string.chart_6_month_trend));
         description.setTextSize(12f);
+        // Để description hiển thị đúng vị trí (thường góc dưới phải)
+        description.setPosition(lineChart.getWidth() - 20, lineChart.getHeight() - 20);
         lineChart.setDescription(description);
 
         // Legend

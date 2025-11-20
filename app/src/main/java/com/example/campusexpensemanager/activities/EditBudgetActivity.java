@@ -105,22 +105,52 @@ public class EditBudgetActivity extends BaseActivity {
         }
     }
 
+    /**
+     * ✅ FIX: Load categories with localization support
+     */
     private void loadCategories() {
         categories = new ArrayList<>();
 
-        // Add "All Categories" option
-        Category allCategories = new Category(0, "All Categories", "");
+        // Thêm tùy chọn "Tất cả danh mục" (ID = 0) với key
+        Category allCategories = new Category(0, "cat_all", "");
         categories.add(allCategories);
 
-        // Add existing categories
+        // Thêm danh mục từ DB
         List<Category> dbCategories = dbHelper.getAllCategories();
         categories.addAll(dbCategories);
 
-        ArrayAdapter<Category> adapter = new ArrayAdapter<>(
+        // Custom Adapter để hiển thị tên đã dịch
+        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(
                 this,
                 android.R.layout.simple_spinner_item,
                 categories
-        );
+        ) {
+            @androidx.annotation.NonNull
+            @Override
+            public View getView(int position, View convertView, @androidx.annotation.NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getView(position, convertView, parent);
+                setLabelText(label, getItem(position));
+                return label;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, @androidx.annotation.NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getDropDownView(position, convertView, parent);
+                setLabelText(label, getItem(position));
+                return label;
+            }
+
+            private void setLabelText(android.widget.TextView label, Category category) {
+                if (category != null) {
+                    if (category.getId() == 0) {
+                        label.setText(getString(R.string.all_categories)); // Lấy từ string resource
+                    } else {
+                        label.setText(category.getLocalizedName(getContext()));
+                    }
+                }
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
     }
@@ -192,8 +222,10 @@ public class EditBudgetActivity extends BaseActivity {
         btnPeriodEnd.setText(dateFormat.format(periodEnd.getTime()));
     }
 
+    /**
+     * ✅ FIX: Update budget with localized messages
+     */
     private void updateBudget() {
-        // Validate amount
         String amountStr = etAmount.getText().toString().trim();
         if (amountStr.isEmpty()) {
             tilAmount.setError(getString(R.string.error_empty_field));
@@ -204,12 +236,12 @@ public class EditBudgetActivity extends BaseActivity {
         try {
             amount = Double.parseDouble(amountStr);
         } catch (NumberFormatException e) {
-            tilAmount.setError("Invalid amount");
+            tilAmount.setError(getString(R.string.msg_invalid_amount));
             return;
         }
 
         if (amount <= 0) {
-            tilAmount.setError("Amount must be greater than 0");
+            tilAmount.setError(getString(R.string.err_amount_positive));
             return;
         }
 
@@ -217,7 +249,7 @@ public class EditBudgetActivity extends BaseActivity {
 
         // Validate dates
         if (periodEnd.before(periodStart)) {
-            Toast.makeText(this, "End date must be after start date", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.err_date_range), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -235,19 +267,25 @@ public class EditBudgetActivity extends BaseActivity {
             Toast.makeText(this, getString(R.string.budget_updated), Toast.LENGTH_SHORT).show();
             finish();
         } else {
-            Toast.makeText(this, "Failed to update budget", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.budget_update_failed), Toast.LENGTH_SHORT).show();
         }
     }
 
+    /**
+     * ✅ FIX: Show delete dialog with localized strings
+     */
     private void showDeleteConfirmation() {
         new AlertDialog.Builder(this)
-                .setTitle("Delete Budget")
-                .setMessage("Are you sure you want to delete this budget?")
+                .setTitle(getString(R.string.budget_delete_confirm_title))
+                .setMessage(getString(R.string.budget_delete_confirm_message))
                 .setPositiveButton(getString(R.string.action_yes), (dialog, which) -> deleteBudget())
                 .setNegativeButton(getString(R.string.action_no), null)
                 .show();
     }
 
+    /**
+     * ✅ FIX: Delete budget with localized Snackbar
+     */
     private void deleteBudget() {
         // Store for undo
         deletedBudget = new Budget(
@@ -267,11 +305,11 @@ public class EditBudgetActivity extends BaseActivity {
             // Show snackbar with undo
             Snackbar snackbar = Snackbar.make(
                     findViewById(android.R.id.content),
-                    "Budget deleted",
+                    getString(R.string.budget_deleted),
                     Snackbar.LENGTH_LONG
             );
 
-            snackbar.setAction("UNDO", v -> undoDelete());
+            snackbar.setAction(getString(R.string.action_undo), v -> undoDelete());
 
             snackbar.addCallback(new Snackbar.Callback() {
                 @Override
@@ -284,10 +322,13 @@ public class EditBudgetActivity extends BaseActivity {
 
             snackbar.show();
         } else {
-            Toast.makeText(this, "Failed to delete budget", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.budget_delete_failed), Toast.LENGTH_SHORT).show();
         }
     }
 
+    /**
+     * ✅ FIX: Undo delete with localized messages
+     */
     private void undoDelete() {
         if (deletedBudget != null) {
             long newId = dbHelper.insertBudget(deletedBudget);
@@ -295,10 +336,10 @@ public class EditBudgetActivity extends BaseActivity {
             if (newId != -1) {
                 deletedBudget.setId((int) newId);
                 currentBudget = deletedBudget;
-                Toast.makeText(this, "Budget restored", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.budget_restored), Toast.LENGTH_SHORT).show();
                 prefillForm();
             } else {
-                Toast.makeText(this, "Failed to restore budget", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.budget_restore_failed), Toast.LENGTH_SHORT).show();
             }
         }
     }

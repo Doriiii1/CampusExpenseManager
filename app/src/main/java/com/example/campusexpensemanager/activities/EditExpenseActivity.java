@@ -129,7 +129,11 @@ public class EditExpenseActivity extends BaseActivity {
         fabUpdate = findViewById(R.id.fab_update);
 
         // Setup recurrence period spinner
-        String[] periods = {"Daily", "Weekly", "Monthly"};
+        List<String> periods = new java.util.ArrayList<>();
+        periods.add(getString(R.string.recurring_option_daily));   // Index 0
+        periods.add(getString(R.string.recurring_option_weekly));  // Index 1
+        periods.add(getString(R.string.recurring_option_monthly)); // Index 2
+
         ArrayAdapter<String> periodAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, periods);
         periodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -152,10 +156,40 @@ public class EditExpenseActivity extends BaseActivity {
         }
     }
 
+    /**
+     * ✅ FIX: Load categories with localization support
+     */
     private void loadCategories() {
         categories = dbHelper.getAllCategories();
-        ArrayAdapter<Category> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, categories);
+
+        // Custom Adapter để hiển thị tên đã dịch
+        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(
+                this,
+                android.R.layout.simple_spinner_item,
+                categories
+        ) {
+            @androidx.annotation.NonNull
+            @Override
+            public View getView(int position, View convertView, @androidx.annotation.NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getView(position, convertView, parent);
+                Category category = getItem(position);
+                if (category != null) {
+                    label.setText(category.getLocalizedName(getContext()));
+                }
+                return label;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, @androidx.annotation.NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getDropDownView(position, convertView, parent);
+                Category category = getItem(position);
+                if (category != null) {
+                    label.setText(category.getLocalizedName(getContext()));
+                }
+                return label;
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
     }
@@ -250,22 +284,25 @@ public class EditExpenseActivity extends BaseActivity {
     /**
      * ✅ NEW: Show recurring info banner
      */
+    /**
+     * ✅ FIX: Show recurring info banner with localized strings
+     */
     private void showRecurringInfoBanner(String frequency) {
         layoutRecurringInfo.setVisibility(View.VISIBLE);
 
         String displayText;
         switch (frequency != null ? frequency.toLowerCase() : "") {
             case "daily":
-                displayText = "🔁 Repeats Daily";
+                displayText = getString(R.string.recurring_info_daily);
                 break;
             case "weekly":
-                displayText = "🔁 Repeats Weekly";
+                displayText = getString(R.string.recurring_info_weekly);
                 break;
             case "monthly":
-                displayText = "🔁 Repeats Monthly";
+                displayText = getString(R.string.recurring_info_monthly);
                 break;
             default:
-                displayText = "🔁 Recurring Transaction";
+                displayText = getString(R.string.recurring_info_default);
         }
 
         tvRecurringFrequency.setText(displayText);
@@ -399,7 +436,7 @@ public class EditExpenseActivity extends BaseActivity {
     }
 
     /**
-     * ✅ ENHANCED: Update with option to affect future occurrences
+     * ✅ FIX: Update with localized messages
      */
     private void updateExpense(boolean updateFuture) {
         String amountStr = etAmount.getText().toString().trim();
@@ -412,18 +449,18 @@ public class EditExpenseActivity extends BaseActivity {
         try {
             amount = Double.parseDouble(amountStr);
         } catch (NumberFormatException e) {
-            tilAmount.setError("Invalid amount");
+            tilAmount.setError(getString(R.string.msg_invalid_amount));
             return;
         }
 
         if (amount <= 0) {
-            tilAmount.setError("Amount must be greater than 0");
+            tilAmount.setError(getString(R.string.err_amount_zero)); // "Số tiền phải lớn hơn 0"
             return;
         }
         tilAmount.setError(null);
 
         if (spinnerCategory.getSelectedItem() == null) {
-            Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_select_category), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -440,20 +477,20 @@ public class EditExpenseActivity extends BaseActivity {
         // Handle recurring
         currentExpense.setIsRecurring(cbRecurring.isChecked());
         if (cbRecurring.isChecked()) {
-            String periodText = spinnerRecurrencePeriod.getSelectedItem().toString().toLowerCase();
-            currentExpense.setRecurrencePeriod(periodText);
+            // Map index sang giá trị DB (daily/weekly/monthly)
+            String periodValue = "monthly";
+            switch (spinnerRecurrencePeriod.getSelectedItemPosition()) {
+                case 0: periodValue = "daily"; break;
+                case 1: periodValue = "weekly"; break;
+                case 2: periodValue = "monthly"; break;
+            }
+            currentExpense.setRecurrencePeriod(periodValue);
 
             Calendar nextOcc = (Calendar) selectedDateTime.clone();
-            switch (periodText) {
-                case "daily":
-                    nextOcc.add(Calendar.DAY_OF_MONTH, 1);
-                    break;
-                case "weekly":
-                    nextOcc.add(Calendar.WEEK_OF_YEAR, 1);
-                    break;
-                case "monthly":
-                    nextOcc.add(Calendar.MONTH, 1);
-                    break;
+            switch (periodValue) {
+                case "daily": nextOcc.add(Calendar.DAY_OF_MONTH, 1); break;
+                case "weekly": nextOcc.add(Calendar.WEEK_OF_YEAR, 1); break;
+                case "monthly": nextOcc.add(Calendar.MONTH, 1); break;
             }
             currentExpense.setNextOccurrenceDate(nextOcc.getTimeInMillis());
         } else {
@@ -463,10 +500,8 @@ public class EditExpenseActivity extends BaseActivity {
 
         int rowsAffected;
         if (updateFuture) {
-            // ✅ Update all future occurrences
             rowsAffected = dbHelper.updateAllFutureOccurrences(currentExpense);
         } else {
-            // Update only this occurrence
             rowsAffected = dbHelper.updateExpense(currentExpense);
         }
 
@@ -474,15 +509,18 @@ public class EditExpenseActivity extends BaseActivity {
             NumberFormat currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
             String formattedAmount = currencyFormat.format(amount) + "đ";
 
-            String message = getString(R.string.expense_updated) + ": " + formattedAmount;
+            String message = getString(R.string.msg_expense_updated) + ": " + formattedAmount;
             if (updateFuture) {
-                message += " (All future occurrences updated)";
+                message += getString(R.string.msg_update_all_future_suffix);
             }
 
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+            // Trả về kết quả OK để list tự refresh
+            setResult(RESULT_OK);
             finish();
         } else {
-            Toast.makeText(this, "Failed to update expense", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_expense_update_failed), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -496,35 +534,29 @@ public class EditExpenseActivity extends BaseActivity {
     }
 
     /**
-     * ✅ ENHANCED: Delete with option to affect future occurrences
+     * ✅ FIX: Delete with localized messages and Undo
      */
     private void deleteExpense(boolean deleteFuture) {
+        // Clone current expense for Undo
         deletedExpense = new Expense(
-                currentExpense.getId(),
-                currentExpense.getUserId(),
-                currentExpense.getCategoryId(),
-                currentExpense.getCurrencyId(),
-                currentExpense.getAmount(),
-                currentExpense.getDate(),
-                currentExpense.getDescription(),
-                currentExpense.getReceiptPath(),
-                currentExpense.getCreatedAt(),
-                currentExpense.getType()
+                currentExpense.getId(), currentExpense.getUserId(), currentExpense.getCategoryId(),
+                currentExpense.getCurrencyId(), currentExpense.getAmount(), currentExpense.getDate(),
+                currentExpense.getDescription(), currentExpense.getReceiptPath(),
+                currentExpense.getCreatedAt(), currentExpense.getType()
         );
+        // Copy recurring fields manually if needed...
 
         int rowsDeleted;
         if (deleteFuture) {
-            // ✅ Delete all future occurrences
             rowsDeleted = dbHelper.deleteAllFutureOccurrences(currentExpense);
         } else {
-            // Delete only this occurrence
             rowsDeleted = dbHelper.deleteExpense(currentExpense.getId());
         }
 
         if (rowsDeleted > 0) {
-            String message = getString(R.string.expense_deleted);
+            String message = getString(R.string.msg_expense_deleted);
             if (deleteFuture) {
-                message += " (All future occurrences deleted)";
+                message += getString(R.string.msg_delete_all_future_suffix);
             }
 
             Snackbar snackbar = Snackbar.make(
@@ -533,12 +565,13 @@ public class EditExpenseActivity extends BaseActivity {
                     Snackbar.LENGTH_LONG
             );
 
-            snackbar.setAction(getString(R.string.expense_undo), v -> undoDelete());
+            snackbar.setAction(getString(R.string.action_undo), v -> undoDelete());
 
             snackbar.addCallback(new Snackbar.Callback() {
                 @Override
                 public void onDismissed(Snackbar transientBottomBar, int event) {
                     if (event != DISMISS_EVENT_ACTION) {
+                        setResult(RESULT_OK); // Chỉ finish khi không Undo
                         finish();
                     }
                 }
@@ -546,21 +579,20 @@ public class EditExpenseActivity extends BaseActivity {
 
             snackbar.show();
         } else {
-            Toast.makeText(this, "Failed to delete expense", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_expense_delete_failed), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void undoDelete() {
         if (deletedExpense != null) {
             long newId = dbHelper.insertExpense(deletedExpense);
-
             if (newId != -1) {
                 deletedExpense.setId((int) newId);
                 currentExpense = deletedExpense;
-                Toast.makeText(this, "Expense restored", Toast.LENGTH_SHORT).show();
-                prefillForm();
+                Toast.makeText(this, getString(R.string.msg_expense_restored), Toast.LENGTH_SHORT).show();
+                prefillForm(); // Nạp lại dữ liệu vào form
             } else {
-                Toast.makeText(this, "Failed to restore expense", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.msg_expense_restore_failed), Toast.LENGTH_SHORT).show();
             }
         }
     }

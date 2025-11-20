@@ -366,7 +366,7 @@ public class ProfileActivity extends BaseActivity {
             } else {
                 // Nếu tắt -> Tắt luôn không cần hỏi
                 sessionManager.disableBiometric();
-                Toast.makeText(this, "Biometric login disabled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.biometric_disabled), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -617,8 +617,8 @@ public class ProfileActivity extends BaseActivity {
 
     private void showEnableBiometricDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        builder.setTitle("Enable Biometric Login");
-        builder.setMessage("Enter your password to confirm");
+        builder.setTitle(getString(R.string.biometric_enable));
+        builder.setMessage(getString(R.string.biometric_verify_password));
 
         // Tạo ô nhập mật khẩu
         final TextInputEditText input = new TextInputEditText(this);
@@ -638,7 +638,7 @@ public class ProfileActivity extends BaseActivity {
         builder.setView(container);
 
         // Xử lý nút Verify
-        builder.setPositiveButton("Verify", (dialog, which) -> {
+        builder.setPositiveButton(getString(R.string.biometric_verify), (dialog, which) -> {
             String password = input.getText().toString();
 
             User user = dbHelper.getUserById(sessionManager.getUserId());
@@ -647,16 +647,16 @@ public class ProfileActivity extends BaseActivity {
             if (user != null && SessionManager.verifyPassword(password, user.getPasswordHash())) {
                 // Nếu đúng -> Bật tính năng vân tay
                 sessionManager.enableBiometric(user.getEmail());
-                Toast.makeText(this, "Biometric login enabled!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.biometric_enabled), Toast.LENGTH_SHORT).show();
             } else {
                 // Nếu sai -> Báo lỗi và gạt cần Switch về tắt
-                Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.msg_incorrect_password), Toast.LENGTH_SHORT).show();
                 switchBiometric.setChecked(false);
             }
         });
 
         // Xử lý nút Cancel
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
+        builder.setNegativeButton(getText(R.string.action_cancel), (dialog, which) -> {
             switchBiometric.setChecked(false); // Trả về trạng thái tắt
             dialog.cancel();
         });

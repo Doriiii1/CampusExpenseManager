@@ -62,7 +62,7 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Giao dịch");
+            getSupportActionBar().setTitle(getString(R.string.nav_expenses));
         }
 
         dbHelper = DatabaseHelper.getInstance(this);
@@ -210,9 +210,24 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
         }
 
         adapter.updateExpenses(filtered);
+
+        // Cập nhật trạng thái trống nếu lọc không ra kết quả
+        if (filtered.isEmpty()) {
+            recyclerView.setVisibility(View.GONE);
+            tvEmptyState.setVisibility(View.VISIBLE);
+            // ✅ FIX: Set text thông báo trống (nếu trong XML chưa set hoặc muốn đổi động)
+            tvEmptyState.setText(getString(R.string.msg_no_expenses));
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            tvEmptyState.setVisibility(View.GONE);
+        }
+
         updateSummary();
     }
 
+    /**
+     * ✅ FIX: Update summary text with localized strings
+     */
     private void updateSummary() {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -229,11 +244,21 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
 
         for (Expense expense : expenses) {
             if (expense.getDate() >= monthStart && expense.getDate() < monthEnd) {
-                // Apply filter
+                // Apply filter logic to summary
                 if (currentFilter == -1 || expense.getType() == currentFilter) {
-                    if (expense.isExpense()) {
-                        monthlyTotal += expense.getAmount();
+
+                    // Sửa lại logic tính tổng cho phù hợp bộ lọc:
+                    if (currentFilter == Expense.TYPE_INCOME) {
+                        monthlyTotal += expense.getAmount(); // Tổng thu nhập
+                    } else if (currentFilter == Expense.TYPE_EXPENSE) {
+                        monthlyTotal += expense.getAmount(); // Tổng chi tiêu
+                    } else {
+
+                        if (expense.isExpense()) {
+                            monthlyTotal += expense.getAmount();
+                        }
                     }
+
                     monthlyCount++;
                 }
             }
@@ -242,16 +267,16 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
         NumberFormat currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         String formattedTotal = currencyFormat.format(monthlyTotal) + "đ";
 
-        String filterText = "";
+        // Xác định hậu tố (Suffix) dựa trên bộ lọc
+        String filterSuffix = "";
         if (currentFilter == Expense.TYPE_INCOME) {
-            filterText = " (Thu nhập)";
+            filterSuffix = getString(R.string.filter_income_suffix);
         } else if (currentFilter == Expense.TYPE_EXPENSE) {
-            filterText = " (Chi tiêu)";
+            filterSuffix = getString(R.string.filter_expense_suffix);
         }
 
-        tvMonthlyTotal.setText("Tổng tháng này" + filterText + ": " + formattedTotal);
-        tvExpenseCount.setText(monthlyCount + " giao dịch tháng này | " +
-                expenses.size() + " tổng cộng");
+        tvMonthlyTotal.setText(getString(R.string.summary_monthly_total, filterSuffix, formattedTotal));
+        tvExpenseCount.setText(getString(R.string.summary_expense_count, monthlyCount, expenses.size()));
     }
 
     @Override

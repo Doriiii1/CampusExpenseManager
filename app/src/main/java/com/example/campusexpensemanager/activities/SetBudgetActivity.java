@@ -98,31 +98,69 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
     /**
      * Load categories into spinner
      */
+    /**
+     * ✅ FIX: Load categories with localization support
+     */
     private void loadCategories() {
         categories = new ArrayList<>();
 
-        // Add "All Categories" option
-        Category allCategories = new Category(0, "All Categories", "");
+        // Thêm tùy chọn "Tất cả danh mục" với ID = 0
+        // Ta dùng key "cat_all" hoặc để trống name, adapter sẽ xử lý hiển thị
+        Category allCategories = new Category(0, "cat_all", "");
         categories.add(allCategories);
 
-        // Add existing categories
+        // Thêm các danh mục từ database
         List<Category> dbCategories = dbHelper.getAllCategories();
         categories.addAll(dbCategories);
 
-        ArrayAdapter<Category> adapter = new ArrayAdapter<>(
+        // Sử dụng Custom Adapter để hiển thị tên đa ngôn ngữ
+        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(
                 this,
                 android.R.layout.simple_spinner_item,
                 categories
-        );
+        ) {
+            @androidx.annotation.NonNull
+            @Override
+            public View getView(int position, View convertView, @androidx.annotation.NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getView(position, convertView, parent);
+                setLabelText(label, getItem(position));
+                return label;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, @androidx.annotation.NonNull android.view.ViewGroup parent) {
+                android.widget.TextView label = (android.widget.TextView) super.getDropDownView(position, convertView, parent);
+                setLabelText(label, getItem(position));
+                return label;
+            }
+
+            // Hàm phụ trợ để set text
+            private void setLabelText(android.widget.TextView label, Category category) {
+                if (category != null) {
+                    if (category.getId() == 0) {
+                        // Nếu là item đầu tiên -> Lấy chuỗi "Tất cả danh mục"
+                        label.setText(getString(R.string.all_categories));
+                    } else {
+                        // Các item khác -> Lấy tên từ DB đã được dịch
+                        label.setText(category.getLocalizedName(getContext()));
+                    }
+                }
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
     }
 
     /**
-     * Setup period spinner (Weekly/Monthly)
+     * ✅ FIX: Setup period spinner with localized strings
      */
     private void setupPeriodSpinner() {
-        String[] periods = {"Weekly", "Monthly"};
+        // Tạo danh sách tùy chọn từ Resource String
+        List<String> periods = new ArrayList<>();
+        periods.add(getString(R.string.period_weekly));  // Index 0
+        periods.add(getString(R.string.period_monthly)); // Index 1
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_item,
@@ -131,7 +169,7 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerPeriod.setAdapter(adapter);
 
-        // Calculate initial dates
+        // Tính toán ngày ban đầu
         calculatePeriodDates();
 
         // Update dates when period changes
@@ -149,15 +187,19 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
     /**
      * Calculate period start and end dates
      */
+    /**
+     * ✅ FIX: Calculate dates based on index instead of hardcoded string
+     */
     private void calculatePeriodDates() {
         Calendar calendar = Calendar.getInstance();
         periodStart = calendar.getTimeInMillis();
 
-        String selectedPeriod = spinnerPeriod.getSelectedItem().toString();
+        // Lấy vị trí đang chọn (0 = Weekly, 1 = Monthly)
+        int selectedIndex = spinnerPeriod.getSelectedItemPosition();
 
-        if (selectedPeriod.equals("Weekly")) {
+        if (selectedIndex == 0) { // Weekly
             calendar.add(Calendar.DAY_OF_MONTH, 7);
-        } else {
+        } else { // Monthly (Index 1)
             calendar.add(Calendar.MONTH, 1);
         }
 
@@ -168,7 +210,8 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
         String startDate = dateFormat.format(periodStart);
         String endDate = dateFormat.format(periodEnd);
 
-        tvPeriodDates.setText("Period: " + startDate + " - " + endDate);
+        // Sử dụng string resource cho nhãn "Period:"
+        tvPeriodDates.setText(getString(R.string.label_period_prefix) + startDate + " - " + endDate);
     }
 
     private void setupClickListeners() {
@@ -176,7 +219,7 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
     }
 
     /**
-     * Validate and save budget
+     * ✅ FIX: Validate and save budget with localized messages
      */
     private void saveBudget() {
         // Validate amount
@@ -190,12 +233,12 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
         try {
             amount = Double.parseDouble(amountStr);
         } catch (NumberFormatException e) {
-            tilAmount.setError("Invalid amount");
+            tilAmount.setError(getString(R.string.msg_invalid_amount));
             return;
         }
 
         if (amount <= 0) {
-            tilAmount.setError("Amount must be greater than 0");
+            tilAmount.setError(getString(R.string.err_amount_positive));
             return;
         }
 
@@ -221,7 +264,7 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
             // Reload budgets
             loadBudgets();
         } else {
-            Toast.makeText(this, "Failed to save budget", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.msg_save_budget_error), Toast.LENGTH_SHORT).show();
         }
     }
 

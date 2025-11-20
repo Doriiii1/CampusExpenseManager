@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
@@ -20,18 +19,16 @@ import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * BudgetDashboardActivity shows budget progress with predictions and alerts
+ * BudgetDashboardActivity - Đã tối ưu hóa đa ngôn ngữ
  */
 public class BudgetDashboardActivity extends BaseActivity {
 
@@ -53,30 +50,21 @@ public class BudgetDashboardActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_dashboard);
 
-        // Initialize helpers
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = new SessionManager(this);
 
-        // Check authentication
         if (!sessionManager.isLoggedIn()) {
             finish();
             return;
         }
 
-        // Initialize formatters
+        // ✅ FIX: Sử dụng Locale mặc định của máy để format tiền tệ và ngày tháng
         currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
 
-        // Initialize views
         initializeViews();
-
-        // Create notification channel
         createNotificationChannel();
-
-        // Load budgets
         loadBudgets();
-
-        // Setup click listeners
         setupClickListeners();
     }
 
@@ -93,14 +81,10 @@ public class BudgetDashboardActivity extends BaseActivity {
         });
     }
 
-    /**
-     * Load and display budgets with progress
-     */
     private void loadBudgets() {
         int userId = sessionManager.getUserId();
         List<Budget> budgets = dbHelper.getBudgetsByUser(userId);
 
-        // Clear existing views
         budgetContainer.removeAllViews();
 
         if (budgets.isEmpty()) {
@@ -110,11 +94,10 @@ public class BudgetDashboardActivity extends BaseActivity {
             tvEmptyState.setVisibility(View.GONE);
             budgetContainer.setVisibility(View.VISIBLE);
 
-            // Create card for each budget
             for (Budget budget : budgets) {
                 View budgetCard = createBudgetCard(budget);
 
-                // Add click listener to navigate to EditBudgetActivity
+                // Click để chỉnh sửa
                 budgetCard.setOnClickListener(v -> {
                     Intent intent = new Intent(BudgetDashboardActivity.this, EditBudgetActivity.class);
                     intent.putExtra("budget_id", budget.getId());
@@ -127,12 +110,11 @@ public class BudgetDashboardActivity extends BaseActivity {
     }
 
     /**
-     * Create budget card with progress and prediction
+     * ✅ FIX: Tạo thẻ ngân sách với Text đã được dịch (Localized)
      */
     private View createBudgetCard(Budget budget) {
         View cardView = getLayoutInflater().inflate(R.layout.item_budget_dashboard, budgetContainer, false);
 
-        // Get views
         TextView tvCategoryName = cardView.findViewById(R.id.tv_budget_category);
         TextView tvBudgetAmount = cardView.findViewById(R.id.tv_budget_amount);
         TextView tvSpentAmount = cardView.findViewById(R.id.tv_spent_amount);
@@ -141,34 +123,38 @@ public class BudgetDashboardActivity extends BaseActivity {
         TextView tvPrediction = cardView.findViewById(R.id.tv_prediction);
         ProgressBar progressBar = cardView.findViewById(R.id.progress_budget);
 
-        // Get category name
-        String categoryName = "Total Budget";
+        // ✅ FIX: Lấy tên danh mục đã dịch
+        String categoryName;
         if (budget.getCategoryId() > 0) {
             Category category = dbHelper.getCategoryById(budget.getCategoryId());
             if (category != null) {
-                categoryName = category.getName();
+                categoryName = DatabaseHelper.getLocalizedCategoryName(this, category.getName());
+            } else {
+                categoryName = getString(R.string.cat_unknown);
             }
+        } else {
+            categoryName = getString(R.string.label_total_budget); // "Tổng ngân sách"
         }
         tvCategoryName.setText(categoryName);
 
-        // Calculate spent amount
+        // Tính toán
         double spent = calculateSpent(budget);
         double remaining = budget.getAmount() - spent;
         double percentageSpent = budget.calculatePercentageSpent(spent);
 
-        // Format amounts
+        // Format số tiền
         String budgetAmount = currencyFormat.format(budget.getAmount()) + "đ";
         String spentAmount = currencyFormat.format(spent) + "đ";
         String remainingAmount = currencyFormat.format(remaining) + "đ";
 
-        tvBudgetAmount.setText("Budget: " + budgetAmount);
-        tvSpentAmount.setText("Spent: " + spentAmount + " (" + String.format("%.1f%%", percentageSpent) + ")");
-        tvRemainingAmount.setText("Remaining: " + remainingAmount);
+        // ✅ FIX: Sử dụng getString() với prefix
+        tvBudgetAmount.setText(getString(R.string.label_budget_prefix) + budgetAmount);
+        tvSpentAmount.setText(getString(R.string.label_spent_prefix) + spentAmount +
+                " (" + String.format("%.1f%%", percentageSpent) + ")");
+        tvRemainingAmount.setText(getString(R.string.label_remaining_prefix) + remainingAmount);
 
-        // Set progress bar
+        // Progress Bar
         progressBar.setProgress((int) percentageSpent);
-
-        // Set progress bar color
         int progressColor;
         if (percentageSpent < 50) {
             progressColor = ContextCompat.getColor(this, R.color.budget_safe);
@@ -179,12 +165,12 @@ public class BudgetDashboardActivity extends BaseActivity {
         }
         progressBar.setProgressTintList(android.content.res.ColorStateList.valueOf(progressColor));
 
-        // Period dates
+        // ✅ FIX: Format ngày tháng
         String periodStart = dateFormat.format(new Date(budget.getPeriodStart()));
         String periodEnd = dateFormat.format(new Date(budget.getPeriodEnd()));
-        tvPeriod.setText("Period: " + periodStart + " - " + periodEnd);
+        tvPeriod.setText(getString(R.string.label_period_prefix) + periodStart + " - " + periodEnd);
 
-        // Calculate prediction
+        // Dự báo (Prediction)
         String prediction = calculatePrediction(budget, spent);
         if (!prediction.isEmpty()) {
             tvPrediction.setVisibility(View.VISIBLE);
@@ -193,7 +179,7 @@ public class BudgetDashboardActivity extends BaseActivity {
             tvPrediction.setVisibility(View.GONE);
         }
 
-        // Check for low budget alert
+        // Gửi thông báo nếu cần
         if (percentageSpent > 80) {
             sendBudgetAlert(categoryName, remaining);
         }
@@ -201,81 +187,68 @@ public class BudgetDashboardActivity extends BaseActivity {
         return cardView;
     }
 
-    /**
-     * Calculate spent amount for budget
-     */
     private double calculateSpent(Budget budget) {
         List<Expense> allExpenses = dbHelper.getExpensesByUser(budget.getUserId());
-
         double total = 0;
         for (Expense expense : allExpenses) {
-            if (expense.getDate() >= budget.getPeriodStart() &&
-                    expense.getDate() <= budget.getPeriodEnd()) {
-
-                if (budget.getCategoryId() == 0 ||
-                        expense.getCategoryId() == budget.getCategoryId()) {
-                    total += expense.getAmount();
+            // Chỉ tính chi tiêu (TYPE_EXPENSE = 0)
+            if (expense.getType() == Expense.TYPE_EXPENSE) {
+                if (expense.getDate() >= budget.getPeriodStart() &&
+                        expense.getDate() <= budget.getPeriodEnd()) {
+                    if (budget.getCategoryId() == 0 ||
+                            expense.getCategoryId() == budget.getCategoryId()) {
+                        total += expense.getAmount();
+                    }
                 }
             }
         }
-
         return total;
     }
 
     /**
-     * Calculate simple rule-based prediction
+     * ✅ FIX: Hàm tính dự báo trả về chuỗi đa ngôn ngữ
      */
     private String calculatePrediction(Budget budget, double spent) {
         long currentTime = System.currentTimeMillis();
 
-        // Check if period has started
-        if (currentTime < budget.getPeriodStart()) {
-            return "";
-        }
+        if (currentTime < budget.getPeriodStart()) return "";
 
-        // Calculate days elapsed and remaining
-        long periodDuration = budget.getPeriodEnd() - budget.getPeriodStart();
-        long timeElapsed = currentTime - budget.getPeriodStart();
         long timeRemaining = budget.getPeriodEnd() - currentTime;
-
         if (timeRemaining <= 0) {
-            return "Budget period ended";
+            return getString(R.string.prediction_ended);
         }
 
+        long timeElapsed = currentTime - budget.getPeriodStart();
         int daysElapsed = (int) (timeElapsed / (1000 * 60 * 60 * 24));
         int daysRemaining = (int) (timeRemaining / (1000 * 60 * 60 * 24));
 
-        if (daysElapsed == 0) {
-            return "";
-        }
+        if (daysElapsed == 0) return "";
 
-        // Calculate daily average
         double dailyAverage = spent / daysElapsed;
-
-        // Predict total spending
         double predictedTotal = spent + (dailyAverage * daysRemaining);
         double predictedExcess = predictedTotal - budget.getAmount();
 
         if (predictedExcess > 0) {
             String excessAmount = currencyFormat.format(predictedExcess) + "đ";
-            return "⚠️ Prediction: May exceed budget by " + excessAmount + " if spending continues";
+            return getString(R.string.prediction_warning, excessAmount);
         } else {
-            return "✅ On track to stay within budget";
+            return getString(R.string.prediction_safe);
         }
     }
 
     /**
-     * Send local notification for low budget
+     * ✅ FIX: Gửi thông báo với nội dung đa ngôn ngữ
      */
     private void sendBudgetAlert(String categoryName, double remaining) {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        String title = "Budget Alert: " + categoryName;
-        String message = "Only " + currencyFormat.format(remaining) + "đ remaining!";
+        // Dùng string resource có tham số %s
+        String title = getString(R.string.budget_alert_title, categoryName);
+        String message = getString(R.string.budget_alert_message, currencyFormat.format(remaining) + "đ");
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_wallet)
+                .setSmallIcon(R.drawable.ic_warning) // Đảm bảo có icon này
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -286,13 +259,10 @@ public class BudgetDashboardActivity extends BaseActivity {
         }
     }
 
-    /**
-     * Create notification channel for Android 8.0+
-     */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Budget Alerts";
-            String description = "Notifications for low budget warnings";
+            CharSequence name = getString(R.string.budget_alert_channel_name); // Cần thêm string này nếu chưa có
+            String description = getString(R.string.budget_alert_channel_desc);
             int importance = NotificationManager.IMPORTANCE_HIGH;
 
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);

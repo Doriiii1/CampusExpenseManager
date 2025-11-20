@@ -355,6 +355,7 @@
     <string name="biometric_prompt_description">Login to CampusExpense Manager</string>
     <string name="biometric_prompt_negative">Use Password</string>
     <string name="biometric_verify_password">Enter password to enable biometric</string>
+    <string name="biometric_verify">Verify</string>
 
     <string name="budget_alert_channel_name">Budget Alerts</string>
     <string name="budget_alert_channel_desc">Notifications when expenses exceed budget</string>
@@ -363,4 +364,77 @@
     <string name="budget_warning_title">⚠️ Budget Warning</string>
     <string name="budget_warning_message">Your %1$s budget is %2$s used. Spent: %3$s / Limit: %4$s</string>
     <string name="label_total_budget">Total Budget</string>
+
+    <string name="dialog_budget_exceeded_message">This transaction will exceed your budget limit!\n\nBudget: %1$s\nProjected: %2$s\n\nAre you sure you want to continue?</string>
+    <string name="msg_save_error">Error saving transaction</string>
+
+    <string name="tmpl_rent">Rent</string>
+    <string name="tmpl_breakfast">Breakfast</string>
+    <string name="tmpl_lunch">Lunch</string>
+    <string name="tmpl_dinner">Dinner</string>
+    <string name="tmpl_coffee">Coffee</string>
+    <string name="tmpl_bus">Bus Ticket</string>
+    <string name="tmpl_grab">Ride-hailing (Grab/Uber)</string>
+    <string name="tmpl_fuel">Fuel/Gas</string>
+    <string name="tmpl_utilities">Utilities (Electric/Water)</string>
+    <string name="tmpl_internet">Internet/WiFi</string>
+    <string name="tmpl_tuition">Tuition Fee</string>
+    <string name="tmpl_books">Books/Supplies</string>
+    <string name="tmpl_movie">Movie Ticket</string>
+    <string name="tmpl_hangout">Hangout</string>
+
+    <string name="all_categories">All Categories</string>
+    <string name="period_weekly">Weekly</string>
+    <string name="period_monthly">Monthly</string>
+    <string name="err_amount_positive">Amount must be greater than 0</string>
+    <string name="msg_save_budget_error">Failed to save budget</string>
+    <string name="msg_invalid_amount">Invalid amount</string>
+
+    <string name="label_period_range">Period: </string>
+    <string name="label_total_spent_prefix">Total Spent: </string>
+    <string name="msg_no_expenses_month">No expenses this month</string>
+    <string name="chart_expense_by_category">Expense by Category</string>
+    <string name="chart_center_text">Expenses\nby Category</string>
+    <string name="chart_monthly_spending">Monthly Spending</string>
+    <string name="chart_6_month_trend">6-Month Spending Trend</string>
+    <string name="cat_unknown">Unknown</string>
+
+    <string name="prediction_ended">Budget period ended</string>
+    <string name="prediction_warning">⚠️ Prediction: May exceed budget by %s if spending continues</string>
+    <string name="prediction_safe">✅ On track to stay within budget</string>
+    <string name="budget_alert_title">Budget Alert: %s</string>
+    <string name="budget_alert_message">Only %s remaining!</string>
+
+    <string name="budget_delete_confirm_title">Delete Budget</string>
+    <string name="budget_delete_confirm_message">Are you sure you want to delete this budget?</string>
+    <string name="budget_deleted">Budget deleted</string>
+    <string name="budget_delete_failed">Failed to delete budget</string>
+    <string name="budget_restored">Budget restored</string>
+    <string name="budget_restore_failed">Failed to restore budget</string>
+    <string name="budget_update_failed">Failed to update budget</string>
+    <string name="err_date_range">End date must be after start date</string>
+    <string name="action_undo">UNDO</string>
+
+    <string name="msg_expense_not_found">Expense not found</string>
+    <string name="msg_expense_updated">Expense updated</string>
+    <string name="msg_expense_update_failed">Failed to update expense</string>
+    <string name="msg_expense_deleted">Expense deleted</string>
+    <string name="msg_expense_delete_failed">Failed to delete expense</string>
+    <string name="msg_expense_restored">Expense restored</string>
+    <string name="msg_expense_restore_failed">Failed to restore expense</string>
+    <string name="expense_delete_confirm_title">Delete Expense</string>
+    <string name="expense_delete_confirm_message">Are you sure you want to delete this transaction?</string>
+
+    <string name="recurring_info_daily">🔁 Repeats Daily</string>
+    <string name="recurring_info_weekly">🔁 Repeats Weekly</string>
+    <string name="recurring_info_monthly">🔁 Repeats Monthly</string>
+    <string name="recurring_info_default">🔁 Recurring Transaction</string>
+    <string name="msg_update_all_future_suffix"> (All future occurrences updated)</string>
+    <string name="msg_delete_all_future_suffix"> (All future occurrences deleted)</string>
+
+    <string name="filter_income_suffix"> (Income)</string>
+    <string name="filter_expense_suffix"> (Expense)</string>
+    <string name="summary_monthly_total">Total this month%1$s: %2$s</string>
+    <string name="summary_expense_count">%1$d transactions this month | %2$d total</string>
+    <string name="msg_no_expenses">No transactions found</string>
 </resources>
