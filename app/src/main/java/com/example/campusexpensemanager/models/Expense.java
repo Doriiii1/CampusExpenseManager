@@ -29,6 +29,7 @@ public class Expense {
     private boolean isRecurring;
     private String recurrencePeriod; // daily/weekly/monthly
     private long nextOccurrenceDate; // Unix timestamp
+    private int recurringGroupId;
 
     // Default constructor
     public Expense() {
@@ -165,6 +166,14 @@ public class Expense {
     // NEW: Recurring getters/setters
     public boolean isRecurring() {
         return isRecurring;
+    }
+
+    public int getRecurringGroupId() {
+        return recurringGroupId;
+    }
+
+    public void setRecurringGroupId(int recurringGroupId) {
+        this.recurringGroupId = recurringGroupId;
     }
 
     public void setIsRecurring(boolean isRecurring) {

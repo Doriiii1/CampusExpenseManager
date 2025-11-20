@@ -28,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
     private static final String DATABASE_NAME = "CampusExpense.db";
-    private static final int DATABASE_VERSION = 3; // ✅ UPGRADED from 2 to 3
+    private static final int DATABASE_VERSION = 4; // ✅ UPGRADED from 3 to 4
 
     // Table Names
     private static final String TABLE_USERS = "users";
@@ -77,6 +77,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_EXPENSE_IS_RECURRING = "is_recurring";
     private static final String KEY_EXPENSE_RECURRENCE_PERIOD = "recurrence_period"; // daily/weekly/monthly
     private static final String KEY_EXPENSE_NEXT_OCCURRENCE = "next_occurrence_date";
+    private static final String KEY_EXPENSE_RECURRING_GROUP_ID = "recurring_group_id";
 
     // Budget Columns
     private static final String KEY_BUDGET_USER_ID = "user_id";
@@ -155,9 +156,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + KEY_EXPENSE_DESCRIPTION + " TEXT,"
                 + KEY_EXPENSE_RECEIPT + " TEXT,"
                 + KEY_EXPENSE_TYPE + " INTEGER DEFAULT 0," // 0=expense, 1=income
-                + KEY_EXPENSE_IS_RECURRING + " INTEGER DEFAULT 0," // NEW
-                + KEY_EXPENSE_RECURRENCE_PERIOD + " TEXT," // NEW: daily/weekly/monthly
-                + KEY_EXPENSE_NEXT_OCCURRENCE + " INTEGER," // NEW: timestamp
+                + KEY_EXPENSE_IS_RECURRING + " INTEGER DEFAULT 0,"
+                + KEY_EXPENSE_RECURRENCE_PERIOD + " TEXT,"
+                + KEY_EXPENSE_NEXT_OCCURRENCE + " INTEGER,"
+                + KEY_EXPENSE_RECURRING_GROUP_ID + " INTEGER DEFAULT 0," // ✅ NEW
                 + KEY_CREATED_AT + " INTEGER NOT NULL,"
                 + "FOREIGN KEY(" + KEY_EXPENSE_USER_ID + ") REFERENCES "
                 + TABLE_USERS + "(" + KEY_ID + ") ON DELETE CASCADE,"
@@ -276,9 +278,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         if (oldVersion < 4) {
-            // Migrate category names to localization keys
-            migrateCategoryNamesToKeys(db);
-            Log.d(TAG, "Database upgraded to v4 - Categories localized");
+            // Add recurring_group_id column
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_EXPENSES + " ADD COLUMN "
+                        + KEY_EXPENSE_RECURRING_GROUP_ID + " INTEGER DEFAULT 0");
+                Log.d(TAG, "Database upgraded to v4 - Added recurring_group_id column");
+
+                // Assign group IDs to existing recurring expenses
+                assignRecurringGroupIds(db);
+            } catch (Exception e) {
+                Log.e(TAG, "Error upgrading to v4: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
@@ -286,6 +297,41 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
         db.execSQL("PRAGMA foreign_keys=ON");
+    }
+
+    /**
+     * ✅ Assign recurring_group_id to existing recurring expenses
+     * Called during database migration
+     */
+    private void assignRecurringGroupIds(SQLiteDatabase db) {
+        try {
+            // Get all recurring expenses without group ID
+            String query = "SELECT " + KEY_ID + " FROM " + TABLE_EXPENSES
+                    + " WHERE " + KEY_EXPENSE_IS_RECURRING + "=1"
+                    + " AND (" + KEY_EXPENSE_RECURRING_GROUP_ID + "=0"
+                    + " OR " + KEY_EXPENSE_RECURRING_GROUP_ID + " IS NULL)";
+
+            Cursor cursor = db.rawQuery(query, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    int expenseId = cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID));
+
+                    // Set recurring_group_id = id (each recurring expense is its own group master)
+                    ContentValues values = new ContentValues();
+                    values.put(KEY_EXPENSE_RECURRING_GROUP_ID, expenseId);
+
+                    db.update(TABLE_EXPENSES, values, KEY_ID + "=?",
+                            new String[]{String.valueOf(expenseId)});
+
+                } while (cursor.moveToNext());
+                cursor.close();
+                Log.d(TAG, "Assigned group IDs to existing recurring expenses");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error assigning group IDs: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // =============== PRE-POPULATE DATA (LOCALIZED) ===============
@@ -537,6 +583,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param originalExpense The recurring expense template
      * @return ID of new expense
      */
+    /**
+     * Create new occurrence of recurring expense
+     * @param originalExpense The recurring expense template
+     * @return ID of new expense
+     */
     public long createRecurringOccurrence(Expense originalExpense) {
         // Create new expense with current date
         Expense newExpense = new Expense(
@@ -550,13 +601,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newExpense.setCurrencyId(originalExpense.getCurrencyId());
         newExpense.setIsRecurring(false); // New occurrence is NOT recurring
         newExpense.setReceiptPath(null); // No receipt for auto-created
+        newExpense.setRecurringGroupId(originalExpense.getRecurringGroupId()); // ✅ Set group ID
 
         // Insert new expense
         long newId = insertExpense(newExpense);
 
         if (newId != -1) {
-
-            Log.d(TAG, "Created recurring occurrence, ID: " + newId);
+            Log.d(TAG, "Created recurring occurrence, ID: " + newId +
+                    ", GroupID: " + originalExpense.getRecurringGroupId());
 
             // Update original expense's next_occurrence_date
             long nextOccurrence = calculateNextOccurrence(
@@ -571,7 +623,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.update(TABLE_EXPENSES, values, KEY_ID + "=?",
                     new String[]{String.valueOf(originalExpense.getId())});
 
-            Log.d(TAG, "Created recurring occurrence, next due: " + nextOccurrence);
+            Log.d(TAG, "Next occurrence scheduled for: " + nextOccurrence);
         }
 
         return newId;
@@ -679,17 +731,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_RECEIPT, expense.getReceiptPath());
         values.put(KEY_EXPENSE_TYPE, expense.getType());
 
-        // NEW: Recurring fields
+        // Recurring fields
         values.put(KEY_EXPENSE_IS_RECURRING, expense.isRecurring() ? 1 : 0);
         values.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
         values.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
+        values.put(KEY_EXPENSE_RECURRING_GROUP_ID, expense.getRecurringGroupId()); // ✅ NEW
 
         values.put(KEY_CREATED_AT, expense.getCreatedAt());
 
         long id = db.insert(TABLE_EXPENSES, null, values);
+
+        // ✅ If this is a NEW recurring expense, set its own ID as group ID
+        if (id != -1 && expense.isRecurring() && expense.getRecurringGroupId() == 0) {
+            ContentValues updateValues = new ContentValues();
+            updateValues.put(KEY_EXPENSE_RECURRING_GROUP_ID, id);
+            db.update(TABLE_EXPENSES, updateValues, KEY_ID + "=?",
+                    new String[]{String.valueOf(id)});
+            expense.setRecurringGroupId((int) id);
+        }
+
         Log.d(TAG, "Expense inserted: " + id + " (Type: " +
                 (expense.isIncome() ? "INCOME" : "EXPENSE") +
-                ", Recurring: " + expense.isRecurring() + ")");
+                ", Recurring: " + expense.isRecurring() +
+                ", GroupID: " + expense.getRecurringGroupId() + ")");
 
         return id;
     }
@@ -710,12 +774,87 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_IS_RECURRING, expense.isRecurring() ? 1 : 0);
         values.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
         values.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
+        values.put(KEY_EXPENSE_RECURRING_GROUP_ID, expense.getRecurringGroupId());
 
         int rowsAffected = db.update(TABLE_EXPENSES, values, KEY_ID + "=?",
                 new String[]{String.valueOf(expense.getId())});
 
         Log.d(TAG, "Expense updated: " + rowsAffected + " rows");
         return rowsAffected;
+    }
+
+    /**
+     * ✅ UPDATE ALL FUTURE OCCURRENCES of a recurring expense
+     * This updates:
+     * 1. The master recurring expense (original)
+     * 2. All future occurrences (date >= current expense date) in the same group
+     *
+     * @param expense The expense being edited (with new values)
+     * @return Number of rows affected
+     */
+    public int updateAllFutureOccurrences(Expense expense) {
+        if (!expense.isRecurring() || expense.getRecurringGroupId() == 0) {
+            Log.w(TAG, "Cannot update future: expense is not recurring or has no group ID");
+            return 0;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        int totalUpdated = 0;
+
+        try {
+            db.beginTransaction();
+
+            // 1. Update the master recurring expense (always update this)
+            ContentValues masterValues = new ContentValues();
+            masterValues.put(KEY_EXPENSE_CATEGORY_ID, expense.getCategoryId());
+            masterValues.put(KEY_EXPENSE_CURRENCY_ID, expense.getCurrencyId());
+            masterValues.put(KEY_EXPENSE_AMOUNT, expense.getAmount());
+            masterValues.put(KEY_EXPENSE_DESCRIPTION, expense.getDescription());
+            masterValues.put(KEY_EXPENSE_TYPE, expense.getType());
+            masterValues.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
+            masterValues.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
+            // DON'T update date - master keeps original date
+
+            int masterUpdated = db.update(TABLE_EXPENSES, masterValues,
+                    KEY_ID + "=? AND " + KEY_EXPENSE_IS_RECURRING + "=1",
+                    new String[]{String.valueOf(expense.getRecurringGroupId())});
+
+            totalUpdated += masterUpdated;
+
+            // 2. Update all FUTURE occurrences in the same group (date >= current expense date)
+            ContentValues futureValues = new ContentValues();
+            futureValues.put(KEY_EXPENSE_CATEGORY_ID, expense.getCategoryId());
+            futureValues.put(KEY_EXPENSE_CURRENCY_ID, expense.getCurrencyId());
+            futureValues.put(KEY_EXPENSE_AMOUNT, expense.getAmount());
+            futureValues.put(KEY_EXPENSE_DESCRIPTION, expense.getDescription());
+            futureValues.put(KEY_EXPENSE_TYPE, expense.getType());
+            // DON'T update date for occurrences - they keep their occurrence dates
+            // DON'T update recurring fields - occurrences are not recurring
+
+            String whereClause = KEY_EXPENSE_RECURRING_GROUP_ID + "=?"
+                    + " AND " + KEY_EXPENSE_IS_RECURRING + "=0" // Only non-recurring occurrences
+                    + " AND " + KEY_EXPENSE_DATE + ">=?"; // Future or current
+
+            String[] whereArgs = new String[]{
+                    String.valueOf(expense.getRecurringGroupId()),
+                    String.valueOf(expense.getDate())
+            };
+
+            int futureUpdated = db.update(TABLE_EXPENSES, futureValues, whereClause, whereArgs);
+            totalUpdated += futureUpdated;
+
+            db.setTransactionSuccessful();
+            Log.d(TAG, "Updated all future occurrences: " + totalUpdated + " rows " +
+                    "(Master: " + masterUpdated + ", Future: " + futureUpdated + ")");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating future occurrences: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+        }
+
+        return totalUpdated;
     }
 
     // =============== HELPER METHODS ===============
@@ -744,6 +883,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int nextOccIndex = cursor.getColumnIndex(KEY_EXPENSE_NEXT_OCCURRENCE);
         long nextOcc = (nextOccIndex >= 0) ? cursor.getLong(nextOccIndex) : 0;
 
+        int groupIdIndex = cursor.getColumnIndex(KEY_EXPENSE_RECURRING_GROUP_ID);
+        int groupId = (groupIdIndex >= 0) ? cursor.getInt(groupIdIndex) : 0;
+
         Expense expense = new Expense(
                 cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
                 cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_USER_ID)),
@@ -760,6 +902,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         expense.setIsRecurring(isRecurring);
         expense.setRecurrencePeriod(period);
         expense.setNextOccurrenceDate(nextOcc);
+        expense.setRecurringGroupId(groupId);
 
         return expense;
     }
@@ -870,6 +1013,61 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public int deleteExpense(int expenseId) {
         SQLiteDatabase db = this.getWritableDatabase();
         return db.delete(TABLE_EXPENSES, KEY_ID + "=?", new String[]{String.valueOf(expenseId)});
+    }
+
+    /**
+     * ✅ DELETE ALL FUTURE OCCURRENCES of a recurring expense
+     * This deletes:
+     * 1. The master recurring expense (stops recurrence)
+     * 2. All future occurrences (date >= current expense date) in the same group
+     *
+     * @param expense The expense being deleted
+     * @return Number of rows deleted
+     */
+    public int deleteAllFutureOccurrences(Expense expense) {
+        if (expense.getRecurringGroupId() == 0) {
+            Log.w(TAG, "Cannot delete future: expense has no group ID");
+            return deleteExpense(expense.getId());
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        int totalDeleted = 0;
+
+        try {
+            db.beginTransaction();
+
+            // 1. Delete the master recurring expense
+            int masterDeleted = db.delete(TABLE_EXPENSES,
+                    KEY_ID + "=? AND " + KEY_EXPENSE_IS_RECURRING + "=1",
+                    new String[]{String.valueOf(expense.getRecurringGroupId())});
+
+            totalDeleted += masterDeleted;
+
+            // 2. Delete all FUTURE occurrences in the same group (date >= current expense date)
+            String whereClause = KEY_EXPENSE_RECURRING_GROUP_ID + "=?"
+                    + " AND " + KEY_EXPENSE_IS_RECURRING + "=0" // Only occurrences
+                    + " AND " + KEY_EXPENSE_DATE + ">=?"; // Future or current
+
+            String[] whereArgs = new String[]{
+                    String.valueOf(expense.getRecurringGroupId()),
+                    String.valueOf(expense.getDate())
+            };
+
+            int futureDeleted = db.delete(TABLE_EXPENSES, whereClause, whereArgs);
+            totalDeleted += futureDeleted;
+
+            db.setTransactionSuccessful();
+            Log.d(TAG, "Deleted all future occurrences: " + totalDeleted + " rows " +
+                    "(Master: " + masterDeleted + ", Future: " + futureDeleted + ")");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error deleting future occurrences: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+        }
+
+        return totalDeleted;
     }
 
     public long insertBudget(Budget budget) {

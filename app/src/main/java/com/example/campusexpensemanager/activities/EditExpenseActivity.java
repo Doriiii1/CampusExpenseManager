@@ -461,10 +461,14 @@ public class EditExpenseActivity extends BaseActivity {
             currentExpense.setNextOccurrenceDate(0);
         }
 
-        int rowsAffected = dbHelper.updateExpense(currentExpense);
-
-        // ✅ TODO: If updateFuture = true, implement logic to update future occurrences
-        // This would require tracking recurring expense groups in database
+        int rowsAffected;
+        if (updateFuture) {
+            // ✅ Update all future occurrences
+            rowsAffected = dbHelper.updateAllFutureOccurrences(currentExpense);
+        } else {
+            // Update only this occurrence
+            rowsAffected = dbHelper.updateExpense(currentExpense);
+        }
 
         if (rowsAffected > 0) {
             NumberFormat currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
@@ -508,10 +512,14 @@ public class EditExpenseActivity extends BaseActivity {
                 currentExpense.getType()
         );
 
-        int rowsDeleted = dbHelper.deleteExpense(currentExpense.getId());
-
-        // ✅ TODO: If deleteFuture = true, implement logic to delete future occurrences
-        // This would require tracking recurring expense groups in database
+        int rowsDeleted;
+        if (deleteFuture) {
+            // ✅ Delete all future occurrences
+            rowsDeleted = dbHelper.deleteAllFutureOccurrences(currentExpense);
+        } else {
+            // Delete only this occurrence
+            rowsDeleted = dbHelper.deleteExpense(currentExpense.getId());
+        }
 
         if (rowsDeleted > 0) {
             String message = getString(R.string.expense_deleted);
