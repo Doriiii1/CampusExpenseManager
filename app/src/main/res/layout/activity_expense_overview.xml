@@ -16,7 +16,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Expense Overview"
+            android:text="@string/expense_overview"
             android:textAppearance="?attr/textAppearanceHeadline2"
             android:textColor="?attr/colorPrimary"
             android:textStyle="bold" />
@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_small"
-            android:text="Period: ..."
+            android:text="@string/label_period_range"
             android:textAppearance="?attr/textAppearanceBody2"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_tiny"
-            android:text="Total Spent: 0đ"
+            android:text="@string/label_total_spent_prefix"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold" />
@@ -60,7 +60,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="💰 Spending by Category"
+                    android:text="@string/chart_expense_by_category"
                     android:textAppearance="?attr/textAppearanceBody1"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
@@ -93,7 +93,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="📈 6-Month Spending Trend"
+                    android:text="@string/chart_6_month_trend"
                     android:textAppearance="?attr/textAppearanceBody1"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
@@ -127,7 +127,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="💡 Quick Insights"
+                    android:text="@string/quick_insights"
                     android:textAppearance="?attr/textAppearanceBody1"
                     android:textColor="?attr/colorOnPrimaryContainer"
                     android:textStyle="bold" />
@@ -136,7 +136,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
-                    android:text="• Tap on chart segments for details\n• Spending trends help identify patterns\n• Compare months to track improvement"
+                    android:text="@string/text"
                     android:textAppearance="?attr/textAppearanceBody2"
                     android:textColor="?attr/colorOnPrimaryContainer" />
 

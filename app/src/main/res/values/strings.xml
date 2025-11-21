@@ -209,7 +209,7 @@
     <string name="budget_set">Set Budget</string>
     <string name="budget_edit">Edit Budget</string>
     <string name="budget_amount">Budget Amount</string>
-    <string name="budget_period">Period</string>
+    <string name="budget_period">Budget Period</string>
     <string name="budget_period_week">Weekly</string>
     <string name="budget_period_month">Monthly</string>
     <string name="budget_remaining">Remaining</string>
@@ -236,7 +236,7 @@
     <string name="report_exported">Report exported to Downloads</string>
     <string name="report_email_subject">Expense Report - %s</string>
     <string name="report_export_pdf">Export as PDF</string>
-    <string name="report_export_format_title">Select Export Format</string>
+    <string name="report_export_format_title">Select Export Format (CSV/PDF)</string>
     <string name="report_export_csv_option">📄 Export as CSV</string>
     <string name="report_export_pdf_option">📑 Export as PDF</string>
     <string name="report_pdf_saved">PDF report saved to Downloads</string>
@@ -393,11 +393,14 @@
     <string name="label_period_range">Period: </string>
     <string name="label_total_spent_prefix">Total Spent: </string>
     <string name="msg_no_expenses_month">No expenses this month</string>
-    <string name="chart_expense_by_category">Expense by Category</string>
+    <string name="chart_expense_by_category">💰 Spending by Category</string>
     <string name="chart_center_text">Expenses\nby Category</string>
     <string name="chart_monthly_spending">Monthly Spending</string>
-    <string name="chart_6_month_trend">6-Month Spending Trend</string>
+    <string name="chart_6_month_trend">📈 6-Month Spending Trend</string>
     <string name="cat_unknown">Unknown</string>
+    <string name="expense_overview">Expense Overview</string>
+    <string name="quick_insights">💡 Quick Insights</string>
+    <string name="text">• Tap on chart segments for details\n• Spending trends help identify patterns\n• Compare months to track improvement</string>
 
     <string name="prediction_ended">Budget period ended</string>
     <string name="prediction_warning">⚠️ Prediction: May exceed budget by %s if spending continues</string>

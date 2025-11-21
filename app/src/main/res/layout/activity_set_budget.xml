@@ -93,7 +93,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
-                    android:text="Period: ..."
+                    android:text="@string/label_period_prefix"
                     android:textAppearance="?attr/textAppearanceBody2"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 

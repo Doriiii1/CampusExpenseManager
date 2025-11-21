@@ -173,7 +173,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:drawableStart="@android:drawable/ic_menu_save"
-                    android:text="📄 Export Report (CSV/PDF)"
+                    android:text="@string/report_export_format_title"
                     app:cornerRadius="@dimen/corner_radius_medium" />
 
                 <!-- ✅ NEW: Direct PDF Export Button -->
@@ -184,7 +184,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
                     android:drawableStart="@android:drawable/ic_menu_save"
-                    android:text="📑 Export as PDF"
+                    android:text="@string/report_export_pdf_option"
                     android:textColor="?attr/colorPrimary" />
 
                 <!-- Share Email Button -->

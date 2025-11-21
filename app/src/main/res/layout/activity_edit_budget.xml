@@ -75,7 +75,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
-                    android:text="Budget Period"
+                    android:text="@string/budget_period"
                     android:textAppearance="?attr/textAppearanceBody1"
                     android:textColor="?attr/colorOnSurface" />
 
@@ -92,7 +92,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="Start Date" />
+                        android:text="@string/report_start_date" />
 
                     <Button
                         android:id="@+id/btn_period_end"
@@ -101,7 +101,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="End Date" />
+                        android:text="@string/report_end_date" />
                 </LinearLayout>
 
                 <!-- Update Button -->
@@ -124,7 +124,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_medium"
             android:drawableStart="@drawable/ic_delete"
-            android:text="Delete Budget"
+            android:text="@string/budget_delete_confirm_title"
             android:textColor="@color/error"
             app:strokeColor="@color/error" />
 

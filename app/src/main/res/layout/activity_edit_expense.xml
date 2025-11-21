@@ -39,7 +39,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💸 Chi tiêu"
+                    android:text="@string/add_expense_type_expense_emoji"
                     android:textAlignment="center" />
 
                 <com.google.android.material.chip.Chip
@@ -48,7 +48,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💰 Thu nhập"
+                    android:text="@string/add_expense_type_income_emoji"
                     android:textAlignment="center" />
             </com.google.android.material.chip.ChipGroup>
 
@@ -75,7 +75,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="🔁 Repeats Monthly"
+                        android:text="@string/recurring_info_monthly"
                         android:textAppearance="?attr/textAppearanceBody2"
                         android:textColor="?attr/colorOnPrimaryContainer"
                         android:textStyle="bold" />
@@ -191,7 +191,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_medium"
-                        android:text="🔁 Lặp lại tự động"
+                        android:text="@string/add_expense_recurring_auto"
                         android:textAppearance="?attr/textAppearanceBody1" />
 
                     <Spinner
@@ -228,7 +228,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:layout_marginTop="@dimen/spacing_small"
-                        android:contentDescription="Receipt preview"
+                        android:contentDescription="@string/content_description_receipt"
                         android:scaleType="centerCrop"
                         android:visibility="gone" />
 
@@ -257,7 +257,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:contentDescription="Update expense"
+        android:contentDescription="@string/success_updated"
         app:srcCompat="@drawable/ic_check" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

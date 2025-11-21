@@ -75,7 +75,7 @@
                             android:textAppearance="?attr/textAppearanceHeadline1"
                             android:textColor="?attr/colorOnPrimaryContainer"
                             android:textStyle="bold"
-                            android:textSize="36sp" />
+                            android:textSize="32sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -129,7 +129,7 @@
                                 android:textAppearance="?attr/textAppearanceBody1"
                                 android:textColor="@color/success"
                                 android:textStyle="bold"
-                                android:textSize="18sp" />
+                                android:textSize="16sp" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -175,7 +175,7 @@
                                 android:textAppearance="?attr/textAppearanceBody1"
                                 android:textColor="@color/error"
                                 android:textStyle="bold"
-                                android:textSize="18sp" />
+                                android:textSize="16sp" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>

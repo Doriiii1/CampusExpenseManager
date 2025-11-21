@@ -95,7 +95,7 @@ public class ExpenseOverviewActivity extends BaseActivity {
         // Display period with localized prefix
         // Sử dụng Locale.getDefault() để định dạng ngày tháng theo ngôn ngữ máy
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
-        String periodText = getString(R.string.label_period_range) +
+        String periodText = getString(R.string.label_period_range) + " " +
                 dateFormat.format(monthStart) + " - " +
                 dateFormat.format(monthEnd);
 
@@ -129,7 +129,7 @@ public class ExpenseOverviewActivity extends BaseActivity {
         }
 
         // Display total with localized prefix
-        String totalText = getString(R.string.label_total_spent_prefix) + currencyFormat.format(totalSpent) + "đ";
+        String totalText = getString(R.string.label_total_spent_prefix) + " " + currencyFormat.format(totalSpent) + "đ";
         tvTotalSpent.setText(totalText);
 
         if (categoryTotals.isEmpty()) {

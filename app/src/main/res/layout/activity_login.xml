@@ -153,7 +153,7 @@
                     android:layout_width="@dimen/icon_size_large"
                     android:layout_height="@dimen/icon_size_large"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Login with biometric"
+                    android:contentDescription="@string/biometric_prompt_title"
                     android:src="@drawable/ic_fingerprint"
                     android:visibility="gone"
                     app:tint="?attr/colorPrimary" />

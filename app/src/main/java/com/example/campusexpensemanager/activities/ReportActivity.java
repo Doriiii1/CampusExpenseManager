@@ -217,16 +217,16 @@ public class    ReportActivity extends BaseActivity {
         String dateRangeText = dateFormat.format(startDate.getTime()) + " - " +
                 dateFormat.format(endDate.getTime());
         // "Date Range: 01 Jan - 31 Jan"
-        tvDateRange.setText(getString(R.string.report_date_range) + dateRangeText);
+        tvDateRange.setText(getString(R.string.report_date_range) + " " + dateRangeText);
 
         // Update total expense
         String totalText = currencyFormat.format(totalExpense) + "đ";
         // "Total Expense: 500.000đ"
-        tvTotalExpense.setText(getString(R.string.report_total_expense_label) + totalText);
+        tvTotalExpense.setText(getString(R.string.report_total_expense_label) + " " + totalText);
 
         // Update expense count
         // "Number of Expenses: 15"
-        tvExpenseCount.setText(getString(R.string.report_expense_count_label) + expenseCount);
+        tvExpenseCount.setText(getString(R.string.report_expense_count_label) + " " + expenseCount);
 
         // Generate category summary
         StringBuilder categorySummary = new StringBuilder();

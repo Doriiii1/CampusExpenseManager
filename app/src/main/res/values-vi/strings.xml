@@ -235,7 +235,7 @@
     <string name="report_exported">Đã xuất báo cáo</string>
     <string name="report_email_subject">Báo cáo chi tiêu - %s</string>
     <string name="report_export_pdf">Xuất dưới dạng PDF</string>
-    <string name="report_export_format_title">Chọn Định Dạng Xuất</string>
+    <string name="report_export_format_title">Chọn Định Dạng Xuất (CSV/PDF)</string>
     <string name="report_export_csv_option">📄 Xuất dưới dạng CSV</string>
     <string name="report_export_pdf_option">📑 Xuất dưới dạng PDF</string>
     <string name="report_pdf_saved">Báo cáo PDF đã lưu vào Tải Xuống</string>
@@ -391,6 +391,9 @@
     <string name="chart_monthly_spending">Chi tiêu hàng tháng</string>
     <string name="chart_6_month_trend">Xu hướng 6 tháng gần nhất</string>
     <string name="cat_unknown">Không xác định</string>
+    <string name="expense_overview">Tổng Quan Chi Tiêu</string>
+    <string name="quick_insights">Thông Tin Nhanh</string>
+    <string name="text">• Chạm vào các phần biểu đồ để xem chi tiết\n• Xu hướng chi tiêu giúp nhận biết thói quen\n• So sánh các tháng để theo dõi tiến bộ</string>
 
     <string name="prediction_ended">Kỳ ngân sách đã kết thúc</string>
     <string name="prediction_warning">⚠️ Dự đoán: Có thể vượt ngân sách %s nếu tiếp tục chi tiêu như hiện tại</string>

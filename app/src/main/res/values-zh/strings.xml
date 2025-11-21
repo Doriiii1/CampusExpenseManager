@@ -232,7 +232,7 @@
     <string name="report_exported">报告已导出</string>
     <string name="report_email_subject">支出报告 - %s</string>
     <string name="report_export_pdf">导出为 PDF</string>
-    <string name="report_export_format_title">选择导出格式</string>
+    <string name="report_export_format_title">选择导出格式 (CSV/PDF)</string>
     <string name="report_export_csv_option">📄 导出为 CSV</string>
     <string name="report_export_pdf_option">📑 导出为 PDF</string>
     <string name="report_pdf_saved">PDF 报告已保存到下载</string>
@@ -387,6 +387,9 @@
     <string name="chart_monthly_spending">每月支出</string>
     <string name="chart_6_month_trend">最近6个月趋势</string>
     <string name="cat_unknown">未知</string>
+    <string name="expense_overview">支出概览</string>
+    <string name="quick_insights">快速洞察</string>
+    <string name="text">• 点击图表区块查看详情\n• 支出趋势有助于发现消费习惯\n• 对比各月以追踪改善情况</string>
 
     <string name="prediction_ended">预算周期已结束</string>
     <string name="prediction_warning">⚠️ 预测：如果继续当前支出，将超支 %s</string>
