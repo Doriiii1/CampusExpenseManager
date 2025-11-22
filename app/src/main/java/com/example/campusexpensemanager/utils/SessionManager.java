@@ -110,6 +110,7 @@ public class SessionManager {
         // Nếu không bật Remember Me thì mới xóa Email
         if (!isRememberMeEnabled()) {
             editor.remove(KEY_USER_EMAIL);
+            editor.remove(KEY_REMEMBER_ME);
         }
 
         // QUAN TRỌNG: KHÔNG xóa KEY_BIOMETRIC_ENABLED, KEY_BIOMETRIC_EMAIL, KEY_DARK_MODE
