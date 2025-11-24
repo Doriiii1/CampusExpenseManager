@@ -133,6 +133,18 @@
                     android:layout_weight="1"
                     android:text="@string/auth_remember_me"
                     android:textAppearance="?attr/textAppearanceBody2" />
+
+                <!-- ✅ THÊM Forgot Password Link -->
+                <TextView
+                    android:id="@+id/tv_forgot_password"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/auth_forgot_password"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <View

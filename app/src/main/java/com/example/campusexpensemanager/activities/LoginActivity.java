@@ -41,6 +41,7 @@ public class LoginActivity extends BaseActivity {
     private CheckBox cbRememberMe;
     private Button btnLogin;
     private TextView tvRegisterLink;
+    private TextView tvForgotPassword;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -101,7 +102,7 @@ public class LoginActivity extends BaseActivity {
         cbRememberMe = findViewById(R.id.cb_remember_me);
         btnLogin = findViewById(R.id.btn_login);
         tvRegisterLink = findViewById(R.id.tv_register_link);
-        // ✅ NEW: Biometric views
+        tvForgotPassword = findViewById(R.id.tv_forgot_password);
         btnBiometric = findViewById(R.id.btn_biometric);
         switchBiometric = findViewById(R.id.switch_biometric);
     }
@@ -116,6 +117,11 @@ public class LoginActivity extends BaseActivity {
         // Register link
         tvRegisterLink.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
+        });
+
+        tvForgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
         });
     }

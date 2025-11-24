@@ -480,4 +480,17 @@
 
     <string name="email_header">Expense Report</string>
     <string name="chooser_email_title">Send report via...</string>
+
+    <!-- ✅ THÊM Forgot Password Strings -->
+    <string name="forgot_password_title">Forgot Password</string>
+    <string name="forgot_password_subtitle">Enter your email to receive OTP code</string>
+    <string name="forgot_password_send_otp">Send OTP</string>
+    <string name="forgot_password_enter_otp">Enter 6-digit OTP</string>
+    <string name="forgot_password_verify_otp">Verify OTP</string>
+    <string name="forgot_password_resend_otp">Didn\'t receive code? Resend</string>
+    <string name="forgot_password_otp_sent">OTP sent to your email</string>
+    <string name="forgot_password_reset">Reset Password</string>
+    <string name="forgot_password_success">Password reset successfully</string>
+    <string name="forgot_password_invalid_otp">Invalid OTP code</string>
+    <string name="forgot_password_email_not_found">Email not found</string>
 </resources>

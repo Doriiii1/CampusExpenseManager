@@ -468,4 +468,17 @@
 
     <string name="email_header">支出报告</string>
     <string name="chooser_email_title">通过以下方式发送报告...</string>
+
+    <!-- Chinese (Simplified) Translations -->
+    <string name="forgot_password_title">忘记密码</string>
+    <string name="forgot_password_subtitle">输入邮箱以接收验证码</string>
+    <string name="forgot_password_send_otp">发送验证码</string>
+    <string name="forgot_password_enter_otp">输入6位验证码</string>
+    <string name="forgot_password_verify_otp">验证验证码</string>
+    <string name="forgot_password_resend_otp">未收到验证码？重新发送</string>
+    <string name="forgot_password_otp_sent">验证码已发送至您的邮箱</string>
+    <string name="forgot_password_reset">重置密码</string>
+    <string name="forgot_password_success">密码重置成功</string>
+    <string name="forgot_password_invalid_otp">验证码无效</string>
+    <string name="forgot_password_email_not_found">未找到该邮箱</string>
 </resources>

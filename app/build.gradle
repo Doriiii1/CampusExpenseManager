@@ -63,4 +63,8 @@ dependencies {
     implementation 'org.slf4j:slf4j-nop:1.7.36'
 
     implementation 'androidx.biometric:biometric:1.2.0-alpha05'
+
+    implementation 'com.google.firebase:firebase-auth:24.0.1'
+    implementation platform('com.google.firebase:firebase-bom:34.6.0')
 }
+apply plugin: 'com.google.gms.google-services'

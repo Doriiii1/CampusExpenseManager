@@ -473,4 +473,17 @@
 
     <string name="email_header">Báo cáo Chi tiêu</string>
     <string name="chooser_email_title">Gửi báo cáo qua...</string>
+
+    <!-- Vietnamese Translations -->
+    <string name="forgot_password_title">Quên Mật Khẩu</string>
+    <string name="forgot_password_subtitle">Nhập email để nhận mã OTP</string>
+    <string name="forgot_password_send_otp">Gửi Mã OTP</string>
+    <string name="forgot_password_enter_otp">Nhập mã OTP 6 chữ số</string>
+    <string name="forgot_password_verify_otp">Xác Nhận OTP</string>
+    <string name="forgot_password_resend_otp">Chưa nhận được mã? Gửi lại</string>
+    <string name="forgot_password_otp_sent">Mã OTP đã được gửi đến email của bạn</string>
+    <string name="forgot_password_reset">Đặt Lại Mật Khẩu</string>
+    <string name="forgot_password_success">Đặt lại mật khẩu thành công</string>
+    <string name="forgot_password_invalid_otp">Mã OTP không hợp lệ</string>
+    <string name="forgot_password_email_not_found">Không tìm thấy email</string>
 </resources>
