@@ -7,6 +7,16 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campusexpensemanager.utils.LocaleHelper;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
+
+import com.example.campusexpensemanager.R;
+import com.example.campusexpensemanager.utils.SessionManager;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.Locale;
 
@@ -17,11 +27,123 @@ import java.util.Locale;
  */
 public abstract class BaseActivity extends AppCompatActivity {
 
+    protected BottomNavigationView bottomNavigation;
+    private SessionManager sessionManager;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Apply saved locale
-        LocaleHelper.setLocale(this);
+
+        // Apply locale
+        LocaleHelper.setLocale(this, LocaleHelper.getLanguage(this));
+
+        // Apply dark mode
+        sessionManager = new SessionManager(this);
+        if (sessionManager.isDarkModeEnabled()) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+    }
+
+    @Override
+    public void setContentView(int layoutResID) {
+        super.setContentView(layoutResID);
+        setupBottomNavigation();
+    }
+
+    /**
+     * ✅ Setup global Bottom Navigation
+     * Override this method in activities that DON'T need bottom nav
+     */
+    protected void setupBottomNavigation() {
+        bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        if (bottomNavigation != null) {
+            // Set selected item based on current activity
+            int currentItem = getCurrentNavigationItem();
+            if (currentItem != -1) {
+                bottomNavigation.setSelectedItemId(currentItem);
+            }
+
+            // Handle navigation item clicks
+            bottomNavigation.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+
+                // Don't navigate if already on current screen
+                if (itemId == currentItem) {
+                    return true;
+                }
+
+                if (itemId == R.id.nav_dashboard) {
+                    navigateTo(MainActivity.class);
+                    return true;
+                } else if (itemId == R.id.nav_expenses) {
+                    navigateTo(ExpenseListActivity.class);
+                    return true;
+                } else if (itemId == R.id.nav_budget) {
+                    navigateTo(BudgetDashboardActivity.class);
+                    return true;
+                } else if (itemId == R.id.nav_report) {
+                    navigateTo(ReportActivity.class);
+                    return true;
+                } else if (itemId == R.id.nav_profile) {
+                    navigateTo(ProfileActivity.class);
+                    return true;
+                }
+
+                return false;
+            });
+        }
+    }
+
+    /**
+     * ✅ Get current navigation item ID based on activity
+     */
+    protected int getCurrentNavigationItem() {
+        if (this instanceof MainActivity) {
+            return R.id.nav_dashboard;
+        } else if (this instanceof ExpenseListActivity) {
+            return R.id.nav_expenses;
+        } else if (this instanceof BudgetDashboardActivity) {
+            return R.id.nav_budget;
+        } else if (this instanceof ReportActivity) {
+            return R.id.nav_report;
+        } else if (this instanceof ProfileActivity) {
+            return R.id.nav_profile;
+        }
+        return -1;
+    }
+
+    /**
+     * ✅ Navigate to another activity without back stack
+     */
+    protected void navigateTo(Class<?> targetActivity) {
+        if (this.getClass().equals(targetActivity)) {
+            return; // Already on this screen
+        }
+
+        Intent intent = new Intent(this, targetActivity);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
+    }
+
+    /**
+     * ✅ Hide bottom navigation (for child activities like Add/Edit)
+     */
+    protected void hideBottomNavigation() {
+        if (bottomNavigation != null) {
+            bottomNavigation.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * ✅ Show bottom navigation
+     */
+    protected void showBottomNavigation() {
+        if (bottomNavigation != null) {
+            bottomNavigation.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

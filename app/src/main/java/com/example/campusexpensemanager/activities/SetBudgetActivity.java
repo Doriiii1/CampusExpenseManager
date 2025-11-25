@@ -54,6 +54,7 @@ public class SetBudgetActivity extends BaseActivity implements BudgetAdapter.OnB
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_budget);
+        hideBottomNavigation();
 
         // Initialize helpers
         dbHelper = DatabaseHelper.getInstance(this);

@@ -23,6 +23,8 @@
     <string name="nav_dashboard">主页</string>
     <string name="nav_expenses">交易</string>
     <string name="nav_profile">个人资料</string>
+    <string name="nav_budget">预算</string>
+    <string name="nav_report">报告</string>
 
     <!-- Authentication -->
     <string name="auth_login">登录</string>

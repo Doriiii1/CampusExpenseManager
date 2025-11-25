@@ -35,7 +35,6 @@ public class MainActivity extends BaseActivity {
 
     private static final String TAG = "MainActivity";
 
-    private BottomNavigationView bottomNavigation;
     private LinearLayout layoutDashboard;
 
     private TextView tvIncomeAmount, tvExpenseAmount, tvBalanceAmount;
@@ -64,7 +63,6 @@ public class MainActivity extends BaseActivity {
         currencyConverter = new CurrencyConverter(this);
 
         initializeViews();
-        setupBottomNavigation();
         setupRecurringWorker();
         showDashboard();
     }
@@ -77,7 +75,6 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initializeViews() {
-        bottomNavigation = findViewById(R.id.bottom_navigation);
         layoutDashboard = findViewById(R.id.layout_dashboard);
         tvGreeting = findViewById(R.id.tv_greeting);
         tvTopCategory = findViewById(R.id.tv_top_category);
@@ -127,29 +124,6 @@ public class MainActivity extends BaseActivity {
             Intent intent = new Intent(MainActivity.this, ExpenseOverviewActivity.class);
             startActivity(intent);
         });
-    }
-
-    private void setupBottomNavigation() {
-        bottomNavigation.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-
-            if (itemId == R.id.nav_dashboard) {
-                showDashboard();
-                return true;
-            } else if (itemId == R.id.nav_expenses) {
-                Intent intent = new Intent(MainActivity.this, ExpenseListActivity.class);
-                startActivity(intent);
-                return false;
-            } else if (itemId == R.id.nav_profile) {
-                Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                startActivity(intent);
-                return false;
-            }
-
-            return false;
-        });
-
-        bottomNavigation.setSelectedItemId(R.id.nav_dashboard);
     }
 
     private void setupRecurringWorker() {
@@ -275,8 +249,5 @@ public class MainActivity extends BaseActivity {
             loadDashboardData();
         }
 
-        if (bottomNavigation != null) {
-            bottomNavigation.setSelectedItemId(R.id.nav_dashboard);
-        }
     }
 }

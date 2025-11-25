@@ -23,6 +23,8 @@
     <string name="nav_dashboard">Dashboard</string>
     <string name="nav_expenses">Expenses</string>
     <string name="nav_profile">Profile</string>
+    <string name="nav_budget">Budget</string>
+    <string name="nav_report">Report</string>
 
     <!-- Authentication -->
     <string name="auth_login">Login</string>

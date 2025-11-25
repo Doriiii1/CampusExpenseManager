@@ -110,6 +110,7 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expense);
+        hideBottomNavigation();
 
         // Initialize helpers
         dbHelper = DatabaseHelper.getInstance(this);
