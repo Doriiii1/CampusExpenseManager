@@ -39,7 +39,7 @@ public class MainActivity extends BaseActivity {
 
     private TextView tvIncomeAmount, tvExpenseAmount, tvBalanceAmount;
     private TextView tvGreeting, tvTopCategory;
-    private Button btnAddExpense, btnViewBudget, btnGenerateReport;
+    private Button btnAddExpense, btnViewBudget;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -85,9 +85,6 @@ public class MainActivity extends BaseActivity {
 
         btnAddExpense = findViewById(R.id.btn_add_expense);
         btnViewBudget = findViewById(R.id.btn_view_budget);
-        btnGenerateReport = findViewById(R.id.btn_generate_report);
-
-        Button btnViewOverview = findViewById(R.id.btn_view_overview);
 
         btnAddExpense.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddExpenseActivity.class);
@@ -99,10 +96,6 @@ public class MainActivity extends BaseActivity {
             startActivity(intent);
         });
 
-        btnGenerateReport.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ReportActivity.class);
-            startActivity(intent);
-        });
 
         btnAddExpense.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddExpenseActivity.class);
@@ -111,17 +104,6 @@ public class MainActivity extends BaseActivity {
 
         btnViewBudget.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, BudgetDashboardActivity.class);
-            startActivity(intent);
-        });
-
-        btnGenerateReport.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ReportActivity.class);
-            startActivity(intent);
-        });
-
-        // ✅ NEW: Navigate to Expense Overview
-        btnViewOverview.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ExpenseOverviewActivity.class);
             startActivity(intent);
         });
     }

@@ -100,7 +100,7 @@
     <string name="add_expense_type_expense_emoji">💸 Expense</string>
     <string name="add_expense_type_income_emoji">💰 Income</string>
     <string name="add_expense_quick_add">Quick Add</string>
-    <string name="add_expense_recurring_auto">🔁 Auto Recurring</string>
+    <string name="add_expense_recurring_auto">🔁 Recurring Expense</string>
     <string name="msg_no_categories">No categories available</string>
     <string name="msg_receipt_captured">Receipt captured</string>
     <string name="msg_no_camera_app">No camera app found</string>
@@ -498,4 +498,12 @@
 
     <string name="msg_image_too_large">Image too large: %1$s MB. Maximum size: 1 MB</string>
     <string name="msg_image_size_validation">Please select an image smaller than 1 MB</string>
+
+    <!-- ✅ THÊM Sort options -->
+    <string name="sort_by">Sort by:</string>
+    <string name="sort_date_newest">Date (Newest First)</string>
+    <string name="sort_date_oldest">Date (Oldest First)</string>
+    <string name="sort_amount_highest">Amount (Highest First)</string>
+    <string name="sort_amount_lowest">Amount (Lowest First)</string>
+    <string name="sort_category">Category (A-Z)</string>
 </resources>

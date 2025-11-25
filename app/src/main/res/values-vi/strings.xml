@@ -99,7 +99,7 @@
     <string name="add_expense_type_expense_emoji">💸 Chi tiêu</string>
     <string name="add_expense_type_income_emoji">💰 Thu nhập</string>
     <string name="add_expense_quick_add">Thêm Nhanh</string>
-    <string name="add_expense_recurring_auto">🔁 Lặp lại tự động</string>
+    <string name="add_expense_recurring_auto">🔁 Chi phí định kỳ</string>
     <string name="msg_no_categories">Không có danh mục nào</string>
     <string name="msg_receipt_captured">Đã chụp hóa đơn</string>
     <string name="msg_no_camera_app">Không tìm thấy ứng dụng máy ảnh</string>
@@ -490,4 +490,12 @@
 
     <string name="msg_image_too_large">Hình ảnh quá lớn: %1$s MB. Kích thước tối đa: 1 MB</string>
     <string name="msg_image_size_validation">Vui lòng chọn hình ảnh nhỏ hơn 1 MB</string>
+
+    <!-- Vietnamese Translations -->
+    <string name="sort_by">Sắp xếp theo:</string>
+    <string name="sort_date_newest">Ngày (Mới nhất trước)</string>
+    <string name="sort_date_oldest">Ngày (Cũ nhất trước)</string>
+    <string name="sort_amount_highest">Số tiền (Cao nhất trước)</string>
+    <string name="sort_amount_lowest">Số tiền (Thấp nhất trước)</string>
+    <string name="sort_category">Danh mục (A-Z)</string>
 </resources>

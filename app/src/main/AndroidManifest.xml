@@ -99,10 +99,6 @@
                 android:resource="@xml/file_provider_paths" />
         </provider>
 
-        <activity
-            android:name=".activities.ExpenseOverviewActivity"
-            android:exported="false"
-            android:label="Expense Overview" />
 
         <!-- Priority 4: Feedback Activity -->
         <activity

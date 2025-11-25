@@ -7,6 +7,13 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -17,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campusexpensemanager.R;
 import com.example.campusexpensemanager.adapters.ExpenseAdapter;
+import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.models.Expense;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
@@ -42,6 +50,8 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
     // Filter chips
     private ChipGroup chipGroupFilter;
     private Chip chipAll, chipIncome, chipExpense;
+    private Spinner spinnerSort;
+    private String currentSortOption = "date_newest";
 
     private TextView tvMonthlyTotal, tvExpenseCount, tvEmptyState;
     private FloatingActionButton fabAddExpense;
@@ -77,6 +87,7 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
         setupRecyclerView();
         setupSearch();
         setupFilterChips();
+        setupSortSpinner();
         setupClickListeners();
         setupActivityLaunchers();
         loadExpenses();
@@ -108,6 +119,7 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
         tvExpenseCount = findViewById(R.id.tv_expense_count);
         tvEmptyState = findViewById(R.id.tv_empty_state);
         fabAddExpense = findViewById(R.id.fab_add_expense);
+        spinnerSort = findViewById(R.id.spinner_sort);
     }
 
     private void setupRecyclerView() {
@@ -142,6 +154,55 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
                 currentFilter = Expense.TYPE_EXPENSE;
             }
             applyTypeFilter();
+        });
+    }
+
+    /**
+     * ✅ Setup Sort Spinner
+     */
+    private void setupSortSpinner() {
+        String[] sortOptions = {
+                getString(R.string.sort_date_newest),
+                getString(R.string.sort_date_oldest),
+                getString(R.string.sort_amount_highest),
+                getString(R.string.sort_amount_lowest),
+                getString(R.string.sort_category)
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                sortOptions
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSort.setAdapter(adapter);
+
+        spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        currentSortOption = "date_newest";
+                        break;
+                    case 1:
+                        currentSortOption = "date_oldest";
+                        break;
+                    case 2:
+                        currentSortOption = "amount_highest";
+                        break;
+                    case 3:
+                        currentSortOption = "amount_lowest";
+                        break;
+                    case 4:
+                        currentSortOption = "category";
+                        break;
+                }
+                applySortAndFilter();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
     }
 
@@ -197,25 +258,36 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
     }
 
     private void applyTypeFilter() {
+        applySortAndFilter();
+    }
+
+    /**
+     * ✅ Apply both Filter and Sort
+     */
+    private void applySortAndFilter() {
         if (adapter == null) return;
 
-        List<Expense> filtered = new java.util.ArrayList<>();
+        List<Expense> filtered = new ArrayList<>();
 
+        // Step 1: Filter by type
         for (Expense expense : expenses) {
             if (currentFilter == -1) {
-                filtered.add(expense); // Show all
+                filtered.add(expense);
             } else if (expense.getType() == currentFilter) {
-                filtered.add(expense); // Show matching type
+                filtered.add(expense);
             }
         }
 
+        // Step 2: Sort
+        sortExpenses(filtered);
+
+        // Step 3: Update adapter
         adapter.updateExpenses(filtered);
 
-        // Cập nhật trạng thái trống nếu lọc không ra kết quả
+        // Update empty state
         if (filtered.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             tvEmptyState.setVisibility(View.VISIBLE);
-            // ✅ FIX: Set text thông báo trống (nếu trong XML chưa set hoặc muốn đổi động)
             tvEmptyState.setText(getString(R.string.msg_no_expenses));
         } else {
             recyclerView.setVisibility(View.VISIBLE);
@@ -223,6 +295,47 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
         }
 
         updateSummary();
+    }
+
+    /**
+     * ✅ Sort expenses based on current option
+     */
+    private void sortExpenses(List<Expense> expenseList) {
+        switch (currentSortOption) {
+            case "date_newest":
+                Collections.sort(expenseList, (e1, e2) ->
+                        Long.compare(e2.getDate(), e1.getDate()));
+                break;
+
+            case "date_oldest":
+                Collections.sort(expenseList, (e1, e2) ->
+                        Long.compare(e1.getDate(), e2.getDate()));
+                break;
+
+            case "amount_highest":
+                Collections.sort(expenseList, (e1, e2) ->
+                        Double.compare(e2.getAmount(), e1.getAmount()));
+                break;
+
+            case "amount_lowest":
+                Collections.sort(expenseList, (e1, e2) ->
+                        Double.compare(e1.getAmount(), e2.getAmount()));
+                break;
+
+            case "category":
+                Collections.sort(expenseList, (e1, e2) -> {
+                    Category cat1 = dbHelper.getCategoryById(e1.getCategoryId());
+                    Category cat2 = dbHelper.getCategoryById(e2.getCategoryId());
+
+                    String name1 = (cat1 != null) ?
+                            DatabaseHelper.getLocalizedCategoryName(this, cat1.getName()) : "";
+                    String name2 = (cat2 != null) ?
+                            DatabaseHelper.getLocalizedCategoryName(this, cat2.getName()) : "";
+
+                    return name1.compareTo(name2);
+                });
+                break;
+        }
     }
 
     /**

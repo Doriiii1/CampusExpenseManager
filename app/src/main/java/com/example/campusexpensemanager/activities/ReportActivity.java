@@ -30,6 +30,7 @@ import java.io.FileWriter;
 import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -53,6 +54,22 @@ import com.itextpdf.io.font.constants.StandardFonts;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import android.graphics.Color;
+import androidx.core.content.ContextCompat;
+
 /**
  * ReportActivity - FIXED Runtime Permission handling
  * Now properly requests WRITE_EXTERNAL_STORAGE for Android 6-9
@@ -67,6 +84,9 @@ public class    ReportActivity extends BaseActivity {
 
     private TextView tvDateRange, tvTotalExpense, tvExpenseCount, tvCategorySummary;
     private Button btnSelectStartDate, btnSelectEndDate, btnExportCSV, btnShareEmail, btnExportPDF;
+
+    private PieChart pieChart;
+    private LineChart lineChart;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -117,6 +137,8 @@ public class    ReportActivity extends BaseActivity {
         btnExportCSV = findViewById(R.id.btn_export_csv);
         btnShareEmail = findViewById(R.id.btn_share_email);
         btnExportPDF = findViewById(R.id.btn_export_pdf);
+        pieChart = findViewById(R.id.pie_chart);
+        lineChart = findViewById(R.id.line_chart);
     }
 
     /**
@@ -253,6 +275,8 @@ public class    ReportActivity extends BaseActivity {
         }
 
         tvCategorySummary.setText(categorySummary.toString());
+        setupPieChart(allExpenses, startTime, endTime);
+        setupLineChart(allExpenses);
     }
 
     /**
@@ -826,5 +850,189 @@ public class    ReportActivity extends BaseActivity {
         }
 
         return filtered;
+    }
+
+    /**
+     * ✅ Setup Pie Chart (Category Breakdown)
+     * Copied from ExpenseOverviewActivity
+     */
+    private void setupPieChart(List<Expense> expenses, long monthStart, long monthEnd) {
+        Map<Integer, Double> categoryTotals = new HashMap<>();
+        double totalSpent = 0;
+
+        // Aggregate by category (only expenses, not income)
+        for (Expense expense : expenses) {
+            if (expense.getDate() >= monthStart && expense.getDate() <= monthEnd) {
+                if (expense.isExpense()) {
+                    int categoryId = expense.getCategoryId();
+                    double amount = expense.getAmount();
+                    categoryTotals.put(categoryId,
+                            categoryTotals.getOrDefault(categoryId, 0.0) + amount);
+                    totalSpent += amount;
+                }
+            }
+        }
+
+        if (categoryTotals.isEmpty()) {
+            pieChart.setNoDataText(getString(R.string.msg_no_expenses_month));
+            pieChart.invalidate();
+            return;
+        }
+
+        // Create Pie Chart entries
+        List<PieEntry> pieEntries = new ArrayList<>();
+        int[] colors = getSeraUIColors();
+
+        for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
+            Category category = dbHelper.getCategoryById(entry.getKey());
+
+            String categoryName;
+            if (category != null) {
+                categoryName = DatabaseHelper.getLocalizedCategoryName(this, category.getName());
+            } else {
+                categoryName = getString(R.string.cat_unknown);
+            }
+
+            float value = entry.getValue().floatValue();
+            pieEntries.add(new PieEntry(value, categoryName));
+        }
+
+        // Setup Pie Chart styling
+        PieDataSet dataSet = new PieDataSet(pieEntries, getString(R.string.chart_expense_by_category));
+        dataSet.setColors(colors);
+        dataSet.setValueTextSize(12f);
+        dataSet.setValueTextColor(Color.WHITE);
+        dataSet.setSliceSpace(3f);
+        dataSet.setValueFormatter(new PercentFormatter(pieChart));
+
+        PieData pieData = new PieData(dataSet);
+        pieChart.setData(pieData);
+
+        pieChart.setUsePercentValues(true);
+        pieChart.setDrawHoleEnabled(true);
+        pieChart.setHoleColor(Color.WHITE);
+        pieChart.setHoleRadius(40f);
+        pieChart.setTransparentCircleRadius(45f);
+        pieChart.setDrawCenterText(true);
+        pieChart.setCenterText(getString(R.string.chart_center_text));
+        pieChart.setCenterTextSize(14f);
+        pieChart.setRotationEnabled(true);
+        pieChart.setHighlightPerTapEnabled(true);
+
+        Description description = new Description();
+        description.setText("");
+        pieChart.setDescription(description);
+
+        Legend legend = pieChart.getLegend();
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
+        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
+        legend.setDrawInside(false);
+        legend.setWordWrapEnabled(true);
+        legend.setTextSize(10f);
+
+        pieChart.animateY(1000);
+        pieChart.invalidate();
+    }
+
+    /**
+     * ✅ Setup Line Chart (6-Month Trend)
+     * Copied from ExpenseOverviewActivity
+     */
+    private void setupLineChart(List<Expense> expenses) {
+        Calendar calendar = Calendar.getInstance();
+        List<String> monthLabels = new ArrayList<>();
+        List<Entry> lineEntries = new ArrayList<>();
+
+        // Start from 5 months ago
+        calendar.add(Calendar.MONTH, -5);
+
+        for (int i = 0; i < 6; i++) {
+            calendar.set(Calendar.DAY_OF_MONTH, 1);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            long monthStart = calendar.getTimeInMillis();
+
+            calendar.add(Calendar.MONTH, 1);
+            long monthEnd = calendar.getTimeInMillis();
+
+            double monthTotal = 0;
+            for (Expense expense : expenses) {
+                if (expense.getDate() >= monthStart && expense.getDate() < monthEnd) {
+                    if (expense.isExpense()) {
+                        monthTotal += expense.getAmount();
+                    }
+                }
+            }
+
+            lineEntries.add(new Entry(i, (float) monthTotal));
+
+            SimpleDateFormat monthFormat = new SimpleDateFormat("MMM", Locale.getDefault());
+            calendar.add(Calendar.MONTH, -1);
+            monthLabels.add(monthFormat.format(calendar.getTime()));
+            calendar.add(Calendar.MONTH, 1);
+        }
+
+        LineDataSet dataSet = new LineDataSet(lineEntries, getString(R.string.chart_monthly_spending));
+        dataSet.setColor(ContextCompat.getColor(this, R.color.primary_blue));
+        dataSet.setCircleColor(ContextCompat.getColor(this, R.color.primary_blue));
+        dataSet.setCircleRadius(5f);
+        dataSet.setLineWidth(3f);
+        dataSet.setDrawFilled(true);
+        dataSet.setFillColor(ContextCompat.getColor(this, R.color.primary_blue_light));
+        dataSet.setFillAlpha(50);
+        dataSet.setValueTextSize(10f);
+        dataSet.setValueTextColor(ContextCompat.getColor(this, R.color.primary_blue_dark));
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        dataSet.setDrawValues(false);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setGranularity(1f);
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(monthLabels));
+        xAxis.setTextSize(10f);
+        xAxis.setDrawGridLines(false);
+
+        lineChart.getAxisLeft().setTextSize(10f);
+        lineChart.getAxisLeft().setDrawGridLines(true);
+        lineChart.getAxisRight().setEnabled(false);
+
+        Description description = new Description();
+        description.setText(getString(R.string.chart_6_month_trend));
+        description.setTextSize(12f);
+        lineChart.setDescription(description);
+
+        Legend legend = lineChart.getLegend();
+        legend.setEnabled(false);
+
+        lineChart.setTouchEnabled(true);
+        lineChart.setDragEnabled(true);
+        lineChart.setScaleEnabled(false);
+        lineChart.setPinchZoom(false);
+        lineChart.setDrawGridBackground(false);
+        lineChart.animateX(1000);
+        lineChart.invalidate();
+    }
+
+    /**
+     * ✅ Get Sera UI color palette for charts
+     */
+    private int[] getSeraUIColors() {
+        return new int[]{
+                ContextCompat.getColor(this, R.color.primary_blue),
+                ContextCompat.getColor(this, R.color.secondary_teal),
+                ContextCompat.getColor(this, R.color.accent_orange),
+                ContextCompat.getColor(this, R.color.accent_green),
+                ContextCompat.getColor(this, R.color.accent_red),
+                ContextCompat.getColor(this, R.color.accent_yellow),
+                ContextCompat.getColor(this, R.color.primary_blue_light),
+                ContextCompat.getColor(this, R.color.secondary_teal_light),
+                ContextCompat.getColor(this, R.color.budget_warning),
+                ContextCompat.getColor(this, R.color.budget_danger)
+        };
     }
 }

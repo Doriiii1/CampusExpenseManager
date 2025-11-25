@@ -100,7 +100,7 @@
     <string name="add_expense_type_expense_emoji">💸 支出</string>
     <string name="add_expense_type_income_emoji">💰 收入</string>
     <string name="add_expense_quick_add">快速添加</string>
-    <string name="add_expense_recurring_auto">🔁 自动重复</string>
+    <string name="add_expense_recurring_auto">🔁 定期支出</string>
     <string name="msg_no_categories">没有可用类别</string>
     <string name="msg_receipt_captured">已拍摄收据</string>
     <string name="msg_no_camera_app">未找到相机应用</string>
@@ -486,4 +486,12 @@
 
     <string name="msg_image_too_large">图片过大：%1$s MB。最大限制：1 MB</string>
     <string name="msg_image_size_validation">请选择小于 1 MB 的图片</string>
+
+    <!-- Chinese (Simplified) Translations -->
+    <string name="sort_by">排序方式：</string>
+    <string name="sort_date_newest">日期（最新在前）</string>
+    <string name="sort_date_oldest">日期（最早在前）</string>
+    <string name="sort_amount_highest">金额（从高到低）</string>
+    <string name="sort_amount_lowest">金额（从低到高）</string>
+    <string name="sort_category">类别（A-Z）</string>
 </resources>
