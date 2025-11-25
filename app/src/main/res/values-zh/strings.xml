@@ -483,4 +483,7 @@
     <string name="forgot_password_success">密码重置成功</string>
     <string name="forgot_password_invalid_otp">验证码无效</string>
     <string name="forgot_password_email_not_found">未找到该邮箱</string>
+
+    <string name="msg_image_too_large">图片过大：%1$s MB。最大限制：1 MB</string>
+    <string name="msg_image_size_validation">请选择小于 1 MB 的图片</string>
 </resources>

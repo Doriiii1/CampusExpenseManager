@@ -495,4 +495,7 @@
     <string name="forgot_password_success">Password reset successfully</string>
     <string name="forgot_password_invalid_otp">Invalid OTP code</string>
     <string name="forgot_password_email_not_found">Email not found</string>
+
+    <string name="msg_image_too_large">Image too large: %1$s MB. Maximum size: 1 MB</string>
+    <string name="msg_image_size_validation">Please select an image smaller than 1 MB</string>
 </resources>

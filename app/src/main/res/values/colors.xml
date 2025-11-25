@@ -57,4 +57,9 @@
     <color name="bottom_nav_unselected">#757575</color>
     <color name="bottom_nav_selected_dark">#81D4FA</color>
     <color name="bottom_nav_unselected_dark">#BDBDBD</color>
+
+    <!-- ✅ THÊM colors cho spinner (nếu chưa có) -->
+    <color name="colorOnSurface">#000000</color>
+    <color name="primaryContainer">#E3F2FD</color>
+    <color name="colorPrimary">#2196F3</color>
 </resources>

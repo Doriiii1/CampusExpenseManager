@@ -487,4 +487,7 @@
     <string name="forgot_password_success">Đặt lại mật khẩu thành công</string>
     <string name="forgot_password_invalid_otp">Mã OTP không hợp lệ</string>
     <string name="forgot_password_email_not_found">Không tìm thấy email</string>
+
+    <string name="msg_image_too_large">Hình ảnh quá lớn: %1$s MB. Kích thước tối đa: 1 MB</string>
+    <string name="msg_image_size_validation">Vui lòng chọn hình ảnh nhỏ hơn 1 MB</string>
 </resources>

@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
@@ -45,7 +46,6 @@ public class ProfileActivity extends BaseActivity {
     private static final int CAMERA_PERMISSION_CODE = 200;
 
     private ImageView ivAvatar;
-    private FloatingActionButton fabChangeAvatar;
     private TextInputLayout tilName, tilEmail, tilAddress, tilPhone;
     private TextInputLayout tilOldPassword, tilNewPassword, tilConfirmNewPassword;
     private TextInputEditText etName, etEmail, etAddress, etPhone;
@@ -112,7 +112,6 @@ public class ProfileActivity extends BaseActivity {
 
     private void initializeViews() {
         ivAvatar = findViewById(R.id.iv_avatar);
-        fabChangeAvatar = findViewById(R.id.fab_change_avatar);
 
         tilName = findViewById(R.id.til_profile_name);
         tilEmail = findViewById(R.id.til_profile_email);
@@ -145,6 +144,7 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void setupAvatarLauncher() {
+        // Camera launcher
         avatarLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -153,31 +153,47 @@ public class ProfileActivity extends BaseActivity {
                             Bundle extras = result.getData().getExtras();
                             Bitmap imageBitmap = (Bitmap) extras.get("data");
 
+                            // ✅ Validate size
+                            if (!validateBitmapSize(imageBitmap)) {
+                                return;
+                            }
+
                             // Scale and save avatar
                             Bitmap scaledBitmap = scaleAvatarImage(imageBitmap);
                             String avatarPath = saveAvatar(scaledBitmap);
                             if (avatarPath != null) {
                                 currentUser.setAvatarPath(avatarPath);
                                 dbHelper.updateUser(currentUser);
+
+                                // ✅ Display image immediately
                                 ivAvatar.setImageBitmap(scaledBitmap);
-                                // FIX: Localized Toast
-                                Toast.makeText(this, getString(R.string.msg_avatar_updated), Toast.LENGTH_SHORT).show();
+                                ivAvatar.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+
+                                Toast.makeText(this, getString(R.string.msg_avatar_updated),
+                                        Toast.LENGTH_SHORT).show();
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            // FIX: Localized Toast
-                            Toast.makeText(this, getString(R.string.msg_failed_update_avatar), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, getString(R.string.msg_failed_update_avatar),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
         );
 
+        // Gallery launcher
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         try {
                             Uri selectedImageUri = result.getData().getData();
+
+                            // ✅ Validate size before loading
+                            if (!validateImageSize(selectedImageUri)) {
+                                return;
+                            }
+
                             Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(
                                     getContentResolver(), selectedImageUri);
 
@@ -187,18 +203,87 @@ public class ProfileActivity extends BaseActivity {
                             if (avatarPath != null) {
                                 currentUser.setAvatarPath(avatarPath);
                                 dbHelper.updateUser(currentUser);
+
+                                // ✅ Display image immediately
                                 ivAvatar.setImageBitmap(scaledBitmap);
-                                // FIX: Localized Toast
-                                Toast.makeText(this, getString(R.string.msg_avatar_updated), Toast.LENGTH_SHORT).show();
+                                ivAvatar.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+
+                                Toast.makeText(this, getString(R.string.msg_avatar_updated),
+                                        Toast.LENGTH_SHORT).show();
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            // FIX: Localized Toast
-                            Toast.makeText(this, getString(R.string.msg_failed_update_avatar), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, getString(R.string.msg_failed_update_avatar),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
         );
+    }
+
+    /**
+     * ✅ Validate image size (max 1MB)
+     * @param uri Image URI
+     * @return true if valid, false if exceeds 1MB
+     */
+    private boolean validateImageSize(android.net.Uri uri) {
+        try {
+            android.content.ContentResolver resolver = getContentResolver();
+            java.io.InputStream inputStream = resolver.openInputStream(uri);
+
+            if (inputStream == null) return false;
+
+            int fileSize = inputStream.available();
+            inputStream.close();
+
+            // 1MB = 1,048,576 bytes
+            int maxSizeBytes = 1048576;
+
+            if (fileSize > maxSizeBytes) {
+                String sizeInMB = String.format(java.util.Locale.US, "%.2f", fileSize / 1048576.0);
+                Toast.makeText(this,
+                        String.format("Image too large: %s MB. Max size: 1 MB", sizeInMB),
+                        Toast.LENGTH_LONG).show();
+                return false;
+            }
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * ✅ Validate image size from Bitmap
+     * @param bitmap Bitmap image
+     * @return true if valid
+     */
+    private boolean validateBitmapSize(android.graphics.Bitmap bitmap) {
+        try {
+            java.io.ByteArrayOutputStream stream = new java.io.ByteArrayOutputStream();
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+            stream.close();
+
+            int sizeInBytes = byteArray.length;
+            int maxSizeBytes = 1048576; // 1MB
+
+            if (sizeInBytes > maxSizeBytes) {
+                String sizeInMB = String.format(java.util.Locale.US, "%.2f", sizeInBytes / 1048576.0);
+                Toast.makeText(this,
+                        String.format("Image too large: %s MB. Max size: 1 MB", sizeInMB),
+                        Toast.LENGTH_LONG).show();
+                return false;
+            }
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -232,12 +317,24 @@ public class ProfileActivity extends BaseActivity {
             try {
                 File avatarFile = new File(currentUser.getAvatarPath());
                 if (avatarFile.exists()) {
-                    Uri avatarUri = Uri.fromFile(avatarFile);
-                    ivAvatar.setImageURI(avatarUri);
+                    // ✅ Load và hiển thị ảnh thật
+                    Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(avatarFile.getAbsolutePath());
+                    if (bitmap != null) {
+                        ivAvatar.setImageBitmap(bitmap);
+                        ivAvatar.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+                    } else {
+                        // Fallback to placeholder
+                        ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+                    }
+                } else {
+                    ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
             }
+        } else {
+            ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
         }
     }
 
@@ -293,16 +390,48 @@ public class ProfileActivity extends BaseActivity {
         }
     }
 
-    /**
-     * Setup Language Selector (EN/VI/ZH)
-     */
     private void setupLanguageSelector() {
         String[] languages = LocaleHelper.getLanguageDisplayNames();
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, R.layout.spinner_item, languages);
-        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_spinner_item,
+                languages) {
+
+            @Override
+            public View getView(int position, View convertView, android.view.ViewGroup parent) {
+                TextView textView = (TextView) super.getView(position, convertView, parent);
+                textView.setTextColor(getResources().getColor(R.color.colorOnSurface, getTheme()));
+                textView.setTextSize(16);
+                textView.setPadding(0, 0, 16, 0);
+                textView.setGravity(android.view.Gravity.END | android.view.Gravity.CENTER_VERTICAL);
+                return textView;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, android.view.ViewGroup parent) {
+                TextView textView = (TextView) super.getDropDownView(position, convertView, parent);
+                textView.setTextColor(getResources().getColor(R.color.colorOnSurface, getTheme()));
+                textView.setTextSize(16);
+                textView.setPadding(32, 24, 32, 24);
+
+                String currentLang = LocaleHelper.getLanguage(ProfileActivity.this);
+                String[] langCodes = LocaleHelper.getAvailableLanguages();
+
+                // Highlight dòng đang được chọn thực tế
+                if (langCodes[position].equals(currentLang)) {
+                    textView.setBackgroundColor(getResources().getColor(R.color.primaryContainer, getTheme()));
+                    textView.setTextColor(getResources().getColor(R.color.colorPrimary, getTheme()));
+                    textView.setTypeface(null, android.graphics.Typeface.BOLD);
+                }
+                return textView;
+            }
+        };
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerLanguage.setAdapter(adapter);
 
+        // Lấy ngôn ngữ hiện tại để set vị trí ban đầu
         String currentLang = LocaleHelper.getLanguage(this);
         int position = 0;
         switch (currentLang) {
@@ -315,8 +444,11 @@ public class ProfileActivity extends BaseActivity {
             default:
                 position = 0;
         }
-        spinnerLanguage.setSelection(position);
 
+        // Quan trọng: Đặt selection nhưng KHÔNG animate (để hạn chế trigger lộn xộn)
+        spinnerLanguage.setSelection(position, false);
+
+        // ✅ SỬA LỖI: Xóa bỏ biến isFirstSelection
         spinnerLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -324,6 +456,8 @@ public class ProfileActivity extends BaseActivity {
                 String selectedLang = langCodes[position];
                 String currentLang = LocaleHelper.getLanguage(ProfileActivity.this);
 
+                // Logic bảo vệ: Chỉ đổi nếu Ngôn ngữ chọn KHÁC Ngôn ngữ hiện tại
+                // Điều này ngăn chặn việc App tự reload khi vừa mở màn hình lên
                 if (!selectedLang.equals(currentLang)) {
                     changeLanguage(selectedLang);
                 }
@@ -336,7 +470,7 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void setupClickListeners() {
-        fabChangeAvatar.setOnClickListener(v -> showAvatarOptions());
+        ivAvatar.setOnClickListener(v -> showAvatarOptions());
 
         btnEditMode.setOnClickListener(v -> {
             if (isEditMode) {
@@ -427,10 +561,13 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void removeAvatar() {
-        ivAvatar.setImageResource(android.R.drawable.ic_menu_myplaces);
+        // ✅ Reset to placeholder
+        ivAvatar.setImageResource(R.drawable.ic_avatar_placeholder);
+        ivAvatar.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
+
         currentUser.setAvatarPath(null);
         dbHelper.updateUser(currentUser);
-        // FIX: Localized Toast
+
         Toast.makeText(this, getString(R.string.msg_avatar_removed), Toast.LENGTH_SHORT).show();
     }
 

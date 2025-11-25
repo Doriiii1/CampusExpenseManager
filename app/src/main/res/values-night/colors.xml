@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ✅ Dark mode colors -->
+    <color name="colorOnSurface">#FFFFFF</color>
+    <color name="primaryContainer">#1E3A5F</color>
+    <color name="colorPrimary">#90CAF9</color>
+</resources>
