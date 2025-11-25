@@ -47,6 +47,34 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        // --- 1. FIX ĐA NGÔN NGỮ ---
+        // Kiểm tra xem ngôn ngữ lưu trong máy (Pref) có khác ngôn ngữ đang hiển thị không
+        String storedLang = LocaleHelper.getLanguage(this);
+        String currentLang = getResources().getConfiguration().locale.getLanguage();
+
+        // Nếu khác (ví dụ: đang hiển thị 'en' nhưng vừa đổi sang 'vi' ở màn hình khác)
+        if (!currentLang.equals(storedLang)) {
+            LocaleHelper.setLocale(this, storedLang); // Nạp lại Locale chuẩn
+            recreate(); // Tải lại màn hình này để áp dụng tiếng mới
+            return; // Dừng code để tránh lỗi
+        }
+
+        // --- 2. FIX THANH ĐIỀU HƯỚNG (Icon không sáng) ---
+        // Mỗi khi màn hình hiện lên, ép buộc BottomNav sáng đúng icon của màn hình đó
+        if (bottomNavigation != null) {
+            int currentId = getCurrentNavigationItem();
+            if (currentId != -1 && bottomNavigation.getSelectedItemId() != currentId) {
+                // Vì trong listener bạn đã có dòng 'if (itemId == currentItem) return true;'
+                // nên dòng này an toàn, không gây loop hay reload lại màn hình.
+                bottomNavigation.setSelectedItemId(currentId);
+            }
+        }
+    }
+
+    @Override
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
         setupBottomNavigation();

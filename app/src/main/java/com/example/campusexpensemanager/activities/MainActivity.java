@@ -221,11 +221,11 @@ public class MainActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
-        String storedLanguage = LocaleHelper.getLanguage(this);
-        if (!currentLanguageCode.equals(storedLanguage)) {
-            recreate(); // Tải lại màn hình để áp dụng ngôn ngữ mới
-            return;
-        }
+//        String storedLanguage = LocaleHelper.getLanguage(this);
+//        if (!currentLanguageCode.equals(storedLanguage)) {
+//            recreate(); // Tải lại màn hình để áp dụng ngôn ngữ mới
+//            return;
+//        }
 
         if (layoutDashboard != null && layoutDashboard.getVisibility() == View.VISIBLE) {
             loadDashboardData();
