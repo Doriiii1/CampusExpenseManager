@@ -62,12 +62,16 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         Budget budget = budgets.get(position);
 
         // Get category name
-        String categoryName = "Total Budget";
+        String categoryName;
         if (budget.getCategoryId() > 0) {
             Category category = dbHelper.getCategoryById(budget.getCategoryId());
             if (category != null) {
-                categoryName = category.getName();
+                categoryName = DatabaseHelper.getLocalizedCategoryName(context, category.getName());
+            } else {
+                categoryName = context.getString(R.string.cat_unknown);
             }
+        } else {
+            categoryName = context.getString(R.string.label_total_budget);
         }
         holder.tvCategoryName.setText(categoryName);
 
