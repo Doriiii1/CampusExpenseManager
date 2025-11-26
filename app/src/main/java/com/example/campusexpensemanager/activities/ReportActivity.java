@@ -561,8 +561,7 @@ public class    ReportActivity extends BaseActivity {
                 }
 
                 int categoryId = expense.getCategoryId();
-                categoryTotals.put(categoryId,
-                        categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
+                categoryTotals.put(categoryId,categoryTotals.getOrDefault(categoryId, 0.0) + expense.getAmount());
             }
 
             double balance = totalIncome - totalExpense;
@@ -859,15 +858,13 @@ public class    ReportActivity extends BaseActivity {
     private void setupPieChart(List<Expense> expenses, long monthStart, long monthEnd) {
         Map<Integer, Double> categoryTotals = new HashMap<>();
         double totalSpent = 0;
-
         // Aggregate by category (only expenses, not income)
         for (Expense expense : expenses) {
             if (expense.getDate() >= monthStart && expense.getDate() <= monthEnd) {
                 if (expense.isExpense()) {
                     int categoryId = expense.getCategoryId();
                     double amount = expense.getAmount();
-                    categoryTotals.put(categoryId,
-                            categoryTotals.getOrDefault(categoryId, 0.0) + amount);
+                    categoryTotals.put(categoryId, categoryTotals.getOrDefault(categoryId, 0.0) + amount);
                     totalSpent += amount;
                 }
             }

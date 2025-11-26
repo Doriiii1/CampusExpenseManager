@@ -137,7 +137,6 @@ public class FeedbackActivity extends BaseActivity {
                     Toast.LENGTH_SHORT).show();
             return;
         }
-
         // Get feedback content (optional)
         String content = etFeedback.getText() != null ?
                 etFeedback.getText().toString().trim() : "";
@@ -160,17 +159,14 @@ public class FeedbackActivity extends BaseActivity {
 
         // Insert feedback into database
         long feedbackId = dbHelper.insertFeedback(userId, rating, content);
-
         if (feedbackId != -1) {
             Toast.makeText(this, getString(R.string.feedback_success),
                     Toast.LENGTH_LONG).show();
-
             // Optional: Show thank you message based on rating
             if (rating >= 4) {
                 Toast.makeText(this, getString(R.string.feedback_thank_you_positive),
                         Toast.LENGTH_SHORT).show();
             }
-
             finish();
         } else {
             Toast.makeText(this, getString(R.string.feedback_error_submit),

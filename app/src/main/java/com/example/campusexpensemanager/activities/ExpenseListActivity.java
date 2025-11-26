@@ -266,9 +266,7 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
      */
     private void applySortAndFilter() {
         if (adapter == null) return;
-
         List<Expense> filtered = new ArrayList<>();
-
         // Step 1: Filter by type
         for (Expense expense : expenses) {
             if (currentFilter == -1) {
@@ -277,10 +275,8 @@ public class ExpenseListActivity extends BaseActivity implements ExpenseAdapter.
                 filtered.add(expense);
             }
         }
-
-        // Step 2: Sort
+        // Step 2: Sort filtered list
         sortExpenses(filtered);
-
         // Step 3: Update adapter
         adapter.updateExpenses(filtered);
 

@@ -63,10 +63,8 @@ public class LocaleHelper {
     private static Context updateResources(Context context, String language) {
         Locale locale = new Locale(language);
         Locale.setDefault(locale);
-
         Resources resources = context.getResources();
         Configuration configuration = new Configuration(resources.getConfiguration());
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             configuration.setLocale(locale);
             context = context.createConfigurationContext(configuration);
@@ -74,7 +72,6 @@ public class LocaleHelper {
             configuration.locale = locale;
             resources.updateConfiguration(configuration, resources.getDisplayMetrics());
         }
-
         return context;
     }
 

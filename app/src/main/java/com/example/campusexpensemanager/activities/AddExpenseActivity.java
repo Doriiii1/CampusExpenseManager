@@ -773,22 +773,19 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
 
         // Nếu vượt quá 100% -> Hiện cảnh báo
         if (newTotal > relevantBudget.getAmount()) {
-            // Format số tiền: 500,000đ
             String formattedBudget = String.format("%,.0f", relevantBudget.getAmount()) + "đ";
             String formattedProjected = String.format("%,.0f", newTotal) + "đ";
-
-            // Tạo nội dung thông báo từ resources
             String message = getString(R.string.dialog_budget_exceeded_message, formattedBudget, formattedProjected);
 
             new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.budget_exceeded_title)) // Tiêu đề lấy từ strings.xml
-                    .setMessage(message) // Nội dung đã format
+                    .setTitle(getString(R.string.budget_exceeded_title))
+                    .setMessage(message)
                     .setPositiveButton(getString(R.string.action_save), (dialog, which) -> proceedToSaveExpense(expense))
                     .setNegativeButton(getString(R.string.action_cancel), null)
-                    .setIcon(R.drawable.ic_warning) // Đảm bảo icon này tồn tại hoặc dùng android.R.drawable.ic_dialog_alert
+                    .setIcon(R.drawable.ic_warning)
                     .show();
         } else {
-            proceedToSaveExpense(expense); // Chưa vượt -> Lưu luôn
+            proceedToSaveExpense(expense);
         }
     }
 

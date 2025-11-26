@@ -30,22 +30,17 @@ public class RecurringExpenseWorker extends Worker {
     @Override
     public Result doWork() {
         Log.d(TAG, "RecurringExpenseWorker started");
-
         try {
             List<Expense> dueExpenses = dbHelper.getDueRecurringExpenses();
-
             if (dueExpenses.isEmpty()) {
                 Log.d(TAG, "No recurring expenses due");
                 return Result.success();
             }
-
             int created = 0;
             long currentTime = System.currentTimeMillis();
-
             for (Expense expense : dueExpenses) {
                 // FIX: Catch up ALL missed occurrences
                 long nextOcc = expense.getNextOccurrenceDate();
-
                 while (nextOcc <= currentTime) {
                     // Create occurrence for this date
                     long newId = dbHelper.createRecurringOccurrence(expense);
@@ -54,16 +49,13 @@ public class RecurringExpenseWorker extends Worker {
                         Log.d(TAG, "Created recurring expense: " + newId +
                                 " (Original: " + expense.getId() + ", Date: " + nextOcc + ")");
                     }
-
                     // Move to next occurrence
                     nextOcc = calculateNextOccurrence(nextOcc, expense.getRecurrencePeriod());
                 }
-
                 // Update the original expense with final next occurrence
                 expense.setNextOccurrenceDate(nextOcc);
                 dbHelper.updateExpense(expense);
             }
-
             Log.d(TAG, "RecurringExpenseWorker completed: " + created + " expenses created");
             return Result.success();
 
