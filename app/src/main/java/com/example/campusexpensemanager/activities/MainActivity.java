@@ -20,6 +20,7 @@ import com.example.campusexpensemanager.utils.DatabaseHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
 import com.example.campusexpensemanager.workers.RecurringExpenseWorker;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import android.view.animation.OvershootInterpolator;
 
 import java.util.Calendar;
 import java.util.Map;
@@ -65,6 +66,7 @@ public class MainActivity extends BaseActivity {
         initializeViews();
         setupRecurringWorker();
         showDashboard();
+        runLayoutAnimation();
     }
 
     private void navigateToLogin() {
@@ -205,15 +207,13 @@ public class MainActivity extends BaseActivity {
             String topCategoryLabel = getString(R.string.dashboard_top_category);
             tvTopCategory.setText(topCategoryLabel + ": " + topCategoryName + " (" + formattedTopAmount + ")");
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {e.printStackTrace();
             // ✅ LOCALIZED: Fallback values using string resources
             tvGreeting.setText(getString(R.string.dashboard_greeting, "User"));
             tvIncomeAmount.setText("+0₫");
             tvExpenseAmount.setText("-0₫");
             tvBalanceAmount.setText("0₫");
-            tvTopCategory.setText(getString(R.string.dashboard_top_category) + ": " +
-                    getString(R.string.cat_others));
+            tvTopCategory.setText(getString(R.string.dashboard_top_category) + ": " + getString(R.string.cat_others));
         }
     }
 
@@ -230,6 +230,40 @@ public class MainActivity extends BaseActivity {
         if (layoutDashboard != null && layoutDashboard.getVisibility() == View.VISIBLE) {
             loadDashboardData();
         }
+    }
 
+    /**
+     * ✅ NEW: Tạo hiệu ứng trượt lên cho các phần tử Dashboard
+     */
+    private void runLayoutAnimation() {
+        // Danh sách các View cần animate theo thứ tự
+        View[] views = {
+                tvGreeting,
+                findViewById(R.id.card_balance),
+                findViewById(R.id.card_income), // Hoặc layout chứa 2 card nhỏ
+                findViewById(R.id.card_expense),
+                tvTopCategory, // Card Top Category
+                btnAddExpense, // Nút Quick Action
+                btnViewBudget
+        };
+
+        // Bắt đầu animate từng cái
+        for (int i = 0; i < views.length; i++) {
+            View view = views[i];
+            if (view == null) continue;
+
+            // 1. Đặt trạng thái ban đầu: Dịch xuống 100px và trong suốt
+            view.setTranslationY(100f);
+            view.setAlpha(0f);
+
+            // 2. Animate trở về vị trí cũ
+            view.animate()
+                    .translationY(0f)
+                    .alpha(1f)
+                    .setDuration(500) // Thời gian chạy: 0.5 giây
+                    .setStartDelay(i * 100) // Mỗi phần tử trễ nhau 100ms (tạo hiệu ứng dây chuyền)
+                    .setInterpolator(new OvershootInterpolator(1.0f)) // Hiệu ứng bật nảy nhẹ khi dừng
+                    .start();
+        }
     }
 }

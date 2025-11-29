@@ -104,7 +104,6 @@ public class LoginActivity extends BaseActivity {
         tvRegisterLink = findViewById(R.id.tv_register_link);
         tvForgotPassword = findViewById(R.id.tv_forgot_password);
         btnBiometric = findViewById(R.id.btn_biometric);
-        switchBiometric = findViewById(R.id.switch_biometric);
     }
 
     private void setupClickListeners() {
@@ -147,8 +146,6 @@ public class LoginActivity extends BaseActivity {
                     etEmail.setText(savedEmail);
                     btnBiometric.setVisibility(View.VISIBLE);
                     btnBiometric.setAlpha(1.0f);
-                    switchBiometric.setVisibility(View.VISIBLE);
-                    switchBiometric.setChecked(true);
 
                     if (getIntent().getBooleanExtra("auto_biometric", true)) {
                         btnBiometric.postDelayed(this::showBiometricPrompt, 500);
@@ -156,28 +153,21 @@ public class LoginActivity extends BaseActivity {
                 } else {
                     btnBiometric.setVisibility(View.VISIBLE);
                     btnBiometric.setAlpha(0.5f);
-                    switchBiometric.setVisibility(View.VISIBLE);
-                    switchBiometric.setChecked(false);
                 }
                 break;
 
             case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
                 btnBiometric.setVisibility(View.GONE);
-                switchBiometric.setVisibility(View.GONE);
                 break;
 
             case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
                 Toast.makeText(this, getString(R.string.biometric_not_available), Toast.LENGTH_SHORT).show();
                 btnBiometric.setVisibility(View.GONE);
-                switchBiometric.setVisibility(View.GONE);
                 break;
 
             case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
                 btnBiometric.setVisibility(View.VISIBLE);
                 btnBiometric.setAlpha(0.5f);
-                switchBiometric.setVisibility(View.VISIBLE);
-                switchBiometric.setChecked(false);
-                switchBiometric.setEnabled(false);
 
                 Toast.makeText(this, getString(R.string.biometric_not_enrolled), Toast.LENGTH_LONG).show();
                 break;
@@ -196,23 +186,6 @@ public class LoginActivity extends BaseActivity {
             }
         });
 
-        switchBiometric.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (!buttonView.isPressed()) return;
-
-            if (isChecked) {
-                String email = etEmail.getText().toString().trim();
-                if (email.isEmpty()) {
-                    Toast.makeText(this, getString(R.string.msg_biometric_enable_first), Toast.LENGTH_SHORT).show();
-                    switchBiometric.setChecked(false);
-                    return;
-                }
-                showEnableBiometricDialog(email);
-            } else {
-                sessionManager.disableBiometric();
-                btnBiometric.setAlpha(0.5f);
-                Toast.makeText(this, getString(R.string.biometric_disabled), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     /**

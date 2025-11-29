@@ -149,8 +149,7 @@ public class BudgetDashboardActivity extends BaseActivity {
 
         // ✅ FIX: Sử dụng getString() với prefix
         tvBudgetAmount.setText(getString(R.string.label_budget_prefix) + budgetAmount);
-        tvSpentAmount.setText(getString(R.string.label_spent_prefix) + spentAmount +
-                " (" + String.format("%.1f%%", percentageSpent) + ")");
+        tvSpentAmount.setText(getString(R.string.label_spent_prefix) + spentAmount + " (" + String.format("%.1f%%", percentageSpent) + ")");
         tvRemainingAmount.setText(getString(R.string.label_remaining_prefix) + remainingAmount);
 
         // Progress Bar

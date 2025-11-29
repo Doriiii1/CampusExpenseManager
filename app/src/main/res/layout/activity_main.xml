@@ -30,40 +30,42 @@
                 android:orientation="vertical"
                 android:visibility="visible">
 
-                <!-- Greeting -->
                 <TextView
                     android:id="@+id/tv_greeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_small"
                     android:text="@string/main_greeting_default"
                     android:textAppearance="?attr/textAppearanceHeadline2"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
 
-                <!-- Balance Card (Full Width at Top - Centered) -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_balance"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_medium"
-                    app:cardCornerRadius="@dimen/corner_radius_large"
-                    app:cardElevation="@dimen/elevation_high"
-                    app:cardBackgroundColor="?attr/colorPrimaryContainer">
+                    android:layout_marginTop="@dimen/spacing_small"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="8dp"
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:background="@drawable/bg_balance_gradient"
+                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="@dimen/spacing_xlarge"
-                        android:gravity="center">
+                        android:paddingVertical="32dp"
+                        android:paddingHorizontal="@dimen/spacing_large">
 
                         <TextView
                             android:id="@+id/tv_balance_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:alpha="0.9"
                             android:text="@string/balance"
                             android:textAppearance="?attr/textAppearanceBody1"
-                            android:textColor="?attr/colorOnPrimaryContainer"
+                            android:textColor="@android:color/white"
                             android:textStyle="bold" />
 
                         <TextView
@@ -73,43 +75,49 @@
                             android:layout_marginTop="@dimen/spacing_small"
                             android:text="0đ"
                             android:textAppearance="?attr/textAppearanceHeadline1"
-                            android:textColor="?attr/colorOnPrimaryContainer"
-                            android:textStyle="bold"
-                            android:textSize="32sp" />
+                            android:textColor="@android:color/white"
+                            android:textSize="36sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- ✅ FIX 4: Income & Expense Cards with Theme-Aware Colors -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
-                    android:orientation="horizontal"
-                    android:baselineAligned="false">
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
 
-                    <!-- Income Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/card_income"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/spacing_small"
-                        app:cardCornerRadius="@dimen/corner_radius_medium"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="@dimen/corner_radius_large"
                         app:cardElevation="@dimen/elevation_default"
                         app:cardBackgroundColor="?attr/colorSurface">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:gravity="center"
                             android:orientation="vertical"
-                            android:padding="@dimen/spacing_large"
-                            android:gravity="center">
+                            android:padding="@dimen/spacing_medium">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="💰"
-                                android:textSize="40sp" />
+                            <FrameLayout
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="@drawable/bg_category_icon_circle">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_add"
+                                    app:tint="@color/success"
+                                    android:contentDescription="@string/label_income" />
+                            </FrameLayout>
 
                             <TextView
                                 android:id="@+id/tv_income_label"
@@ -117,45 +125,57 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/spacing_small"
                                 android:text="@string/income_total"
-                                android:textAppearance="?attr/textAppearanceBody1"
+                                android:textAppearance="?attr/textAppearanceBody2"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
 
                             <TextView
                                 android:id="@+id/tv_income_amount"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/spacing_tiny"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
+                                android:maxLines="1"
                                 android:text="+0đ"
                                 android:textAppearance="?attr/textAppearanceBody1"
                                 android:textColor="@color/success"
                                 android:textStyle="bold"
-                                android:textSize="16sp" />
+                                app:autoSizeMaxTextSize="18sp"
+                                app:autoSizeMinTextSize="12sp"
+                                app:autoSizeStepGranularity="1sp"
+                                app:autoSizeTextType="uniform" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Expense Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/card_expense"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/spacing_small"
-                        app:cardCornerRadius="@dimen/corner_radius_medium"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="@dimen/corner_radius_large"
                         app:cardElevation="@dimen/elevation_default"
                         app:cardBackgroundColor="?attr/colorSurface">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:gravity="center"
                             android:orientation="vertical"
-                            android:padding="@dimen/spacing_large"
-                            android:gravity="center">
+                            android:padding="@dimen/spacing_medium">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="💸"
-                                android:textSize="40sp" />
+                            <FrameLayout
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:background="@drawable/bg_category_icon_circle">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_expenses"
+                                    app:tint="@color/error"
+                                    android:contentDescription="@string/label_expense" />
+                            </FrameLayout>
 
                             <TextView
                                 android:id="@+id/tv_expense_label"
@@ -163,24 +183,28 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/spacing_small"
                                 android:text="@string/expense_total"
-                                android:textAppearance="?attr/textAppearanceBody1"
+                                android:textAppearance="?attr/textAppearanceBody2"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
 
                             <TextView
                                 android:id="@+id/tv_expense_amount"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/spacing_tiny"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
+                                android:maxLines="1"
                                 android:text="-0đ"
                                 android:textAppearance="?attr/textAppearanceBody1"
                                 android:textColor="@color/error"
                                 android:textStyle="bold"
-                                android:textSize="16sp" />
+                                app:autoSizeMaxTextSize="18sp"
+                                app:autoSizeMinTextSize="12sp"
+                                app:autoSizeStepGranularity="1sp"
+                                app:autoSizeTextType="uniform" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
-                <!-- Top Category Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -214,7 +238,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Quick Actions -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -237,7 +260,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="@string/main_btn_add_transaction" />
+                        android:text="@string/main_btn_add_transaction"
+                        android:stateListAnimator="@animator/button_press"/>
 
                     <Button
                         android:id="@+id/btn_view_budget"
@@ -246,7 +270,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/spacing_small"
                         android:layout_weight="1"
-                        android:text="@string/main_btn_view_budget" />
+                        android:text="@string/main_btn_view_budget"
+                        android:stateListAnimator="@animator/button_press"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -265,5 +290,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_navigation_menu" />
+        app:menu="@menu/bottom_navigation_menu"
+        app:itemRippleColor="#204FC3F7"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
