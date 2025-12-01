@@ -506,4 +506,10 @@
     <string name="sort_amount_highest">Amount (Highest First)</string>
     <string name="sort_amount_lowest">Amount (Lowest First)</string>
     <string name="sort_category">Category (A-Z)</string>
+
+    <string name="content_description_toggle_balance">Toggle balance visibility</string>
+    <string name="chart_income_vs_expense">Income vs Expense This Month</string>
+    <string name="main_budget_preview_title">Budget Overview</string>
+    <string name="empty_budgets_preview">No active budgets. Tap + to create one.</string>
+    <string name="main_fab_menu">Quick Actions Menu</string>
 </resources>

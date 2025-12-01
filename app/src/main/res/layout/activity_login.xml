@@ -161,7 +161,7 @@
                     android:id="@+id/cb_remember_me"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:buttonTint="@drawable/ic_check"
+                    android:buttonTint="@android:color/white"
                     android:text="@string/auth_remember_me"
                     android:textColor="@android:color/white"
                     android:textSize="13sp" />

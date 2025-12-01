@@ -498,4 +498,10 @@
     <string name="sort_amount_highest">Số tiền (Cao nhất trước)</string>
     <string name="sort_amount_lowest">Số tiền (Thấp nhất trước)</string>
     <string name="sort_category">Danh mục (A-Z)</string>
+
+    <string name="content_description_toggle_balance">Ẩn/Hiện số dư</string>
+    <string name="chart_income_vs_expense">Thu nhập so với Chi tiêu tháng này</string>
+    <string name="main_budget_preview_title">Tổng quan Ngân sách</string>
+    <string name="empty_budgets_preview">Chưa có ngân sách nào. Nhấn + để tạo mới.</string>
+    <string name="main_fab_menu">Menu Thao tác nhanh</string>
 </resources>

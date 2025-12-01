@@ -1,51 +1,93 @@
 package com.example.campusexpensemanager.activities;
 
+import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.OvershootInterpolator;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.campusexpensemanager.R;
+import com.example.campusexpensemanager.adapters.BudgetPreviewAdapter;
+import com.example.campusexpensemanager.models.Budget;
 import com.example.campusexpensemanager.models.Category;
 import com.example.campusexpensemanager.utils.CurrencyConverter;
 import com.example.campusexpensemanager.utils.DatabaseHelper;
+import com.example.campusexpensemanager.utils.LocaleHelper;
 import com.example.campusexpensemanager.utils.SessionManager;
 import com.example.campusexpensemanager.workers.RecurringExpenseWorker;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import android.view.animation.OvershootInterpolator;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.example.campusexpensemanager.utils.LocaleHelper;
-
 /**
- * MainActivity - OPTIMIZED Dashboard (Priority 1.3)
- * Now uses SQL queries instead of Java loops for 10x faster performance
+ * MainActivity - REDESIGNED with Minimalist UI + Animations
+ * ✅ Features:
+ * - Number rolling animation for balance
+ * - Eye toggle for privacy
+ * - Bar chart (Income vs Expense)
+ * - Pie chart (Expense by Category)
+ * - Budget preview (2-3 items)
+ * - Expandable FAB menu
+ * - Staggered entrance animation
  */
 public class MainActivity extends BaseActivity {
 
     private static final String TAG = "MainActivity";
 
+    // ===== UI Components =====
     private LinearLayout layoutDashboard;
-
     private TextView tvIncomeAmount, tvExpenseAmount, tvBalanceAmount;
-    private TextView tvGreeting, tvTopCategory;
-    private Button btnAddExpense, btnViewBudget;
+    private TextView tvGreeting, tvTopCategory, tvEmptyBudgets;
+    private ImageButton btnToggleBalanceVisibility;
 
+    // ✅ NEW: Charts
+    private BarChart barChartIncomeExpense;
+    private PieChart pieChartCategory;
+
+    // ✅ NEW: Budget Preview
+    private RecyclerView rvBudgetPreview;
+    private BudgetPreviewAdapter budgetPreviewAdapter;
+
+    // ✅ NEW: FAB Menu
+    private FloatingActionButton fabMain, fabAddExpense, fabSetBudget;
+    private View dimOverlay;
+    private boolean isFabMenuOpen = false;
+
+    // ===== Data & State =====
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
     private CurrencyConverter currencyConverter;
     private String currentLanguageCode;
+    private boolean isBalanceVisible = true;
+    private double currentBalance = 0; // For eye toggle
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,8 +107,9 @@ public class MainActivity extends BaseActivity {
 
         initializeViews();
         setupRecurringWorker();
+        setupBalanceToggle();
+        setupFabMenu();
         showDashboard();
-        runLayoutAnimation();
     }
 
     private void navigateToLogin() {
@@ -85,29 +128,24 @@ public class MainActivity extends BaseActivity {
         tvExpenseAmount = findViewById(R.id.tv_expense_amount);
         tvBalanceAmount = findViewById(R.id.tv_balance_amount);
 
-        btnAddExpense = findViewById(R.id.btn_add_expense);
-        btnViewBudget = findViewById(R.id.btn_view_budget);
+        // ✅ NEW: Eye toggle button
+        btnToggleBalanceVisibility = findViewById(R.id.btn_toggle_balance_visibility);
 
-        btnAddExpense.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, AddExpenseActivity.class);
-            startActivity(intent);
-        });
+        // ✅ NEW: Charts
+        barChartIncomeExpense = findViewById(R.id.bar_chart_income_expense);
+        pieChartCategory = findViewById(R.id.pie_chart_category);
 
-        btnViewBudget.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, BudgetDashboardActivity.class);
-            startActivity(intent);
-        });
+        // ✅ NEW: Budget Preview RecyclerView
+        rvBudgetPreview = findViewById(R.id.rv_budget_preview);
+        tvEmptyBudgets = findViewById(R.id.tv_empty_budgets);
+        rvBudgetPreview.setLayoutManager(new LinearLayoutManager(this));
+        rvBudgetPreview.setNestedScrollingEnabled(false);
 
-
-        btnAddExpense.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, AddExpenseActivity.class);
-            startActivity(intent);
-        });
-
-        btnViewBudget.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, BudgetDashboardActivity.class);
-            startActivity(intent);
-        });
+        // ✅ NEW: FAB Menu components
+        fabMain = findViewById(R.id.fab_main);
+        fabAddExpense = findViewById(R.id.fab_add_expense);
+        fabSetBudget = findViewById(R.id.fab_set_budget);
+        dimOverlay = findViewById(R.id.dim_overlay);
     }
 
     private void setupRecurringWorker() {
@@ -123,22 +161,154 @@ public class MainActivity extends BaseActivity {
         );
     }
 
+    // ========== ✅ NEW: EYE TOGGLE FUNCTIONALITY ==========
+    private void setupBalanceToggle() {
+        btnToggleBalanceVisibility.setOnClickListener(v -> {
+            Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
+            Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+
+            tvBalanceAmount.startAnimation(fadeOut);
+
+            fadeOut.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {}
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    if (isBalanceVisible) {
+                        // Hide balance
+                        tvBalanceAmount.setText("*****đ");
+                        btnToggleBalanceVisibility.setImageResource(R.drawable.ic_eye_off);
+                        isBalanceVisible = false;
+                    } else {
+                        // Show balance
+                        String formattedBalance = currencyConverter.format(Math.abs(currentBalance), 1);
+                        tvBalanceAmount.setText((currentBalance >= 0 ? "+" : "-") + formattedBalance);
+                        btnToggleBalanceVisibility.setImageResource(R.drawable.ic_eye);
+                        isBalanceVisible = true;
+                    }
+                    tvBalanceAmount.startAnimation(fadeIn);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {}
+            });
+        });
+    }
+
+    // ========== ✅ NEW: FAB EXPANDABLE MENU ==========
+    private void setupFabMenu() {
+        fabMain.setOnClickListener(v -> {
+            if (isFabMenuOpen) {
+                closeFabMenu();
+            } else {
+                openFabMenu();
+            }
+        });
+
+        dimOverlay.setOnClickListener(v -> closeFabMenu());
+
+        // Sub FAB actions
+        fabAddExpense.setOnClickListener(v -> {
+            closeFabMenu();
+            Intent intent = new Intent(MainActivity.this, AddExpenseActivity.class);
+            startActivity(intent);
+        });
+
+        fabSetBudget.setOnClickListener(v -> {
+            closeFabMenu();
+            Intent intent = new Intent(MainActivity.this, BudgetDashboardActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void openFabMenu() {
+        isFabMenuOpen = true;
+
+        // Show dim overlay with fade in
+        dimOverlay.setVisibility(View.VISIBLE);
+        dimOverlay.animate()
+                .alpha(1f)
+                .setDuration(200)
+                .start();
+
+        // Rotate main FAB icon
+        fabMain.animate()
+                .rotation(45f)
+                .setDuration(200)
+                .start();
+
+        // Show and animate sub FABs
+        fabAddExpense.setVisibility(View.VISIBLE);
+        fabSetBudget.setVisibility(View.VISIBLE);
+
+        fabAddExpense.setAlpha(0f);
+        fabAddExpense.setTranslationY(100f);
+        fabAddExpense.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(300)
+                .setInterpolator(new OvershootInterpolator(1.5f))
+                .setStartDelay(50)
+                .start();
+
+        fabSetBudget.setAlpha(0f);
+        fabSetBudget.setTranslationY(100f);
+        fabSetBudget.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(300)
+                .setInterpolator(new OvershootInterpolator(1.5f))
+                .setStartDelay(100)
+                .start();
+    }
+
+    private void closeFabMenu() {
+        isFabMenuOpen = false;
+
+        // Hide dim overlay
+        dimOverlay.animate()
+                .alpha(0f)
+                .setDuration(200)
+                .withEndAction(() -> dimOverlay.setVisibility(View.GONE))
+                .start();
+
+        // Rotate main FAB back
+        fabMain.animate()
+                .rotation(0f)
+                .setDuration(200)
+                .start();
+
+        // Hide sub FABs
+        fabAddExpense.animate()
+                .alpha(0f)
+                .translationY(100f)
+                .setDuration(200)
+                .withEndAction(() -> fabAddExpense.setVisibility(View.GONE))
+                .start();
+
+        fabSetBudget.animate()
+                .alpha(0f)
+                .translationY(100f)
+                .setDuration(200)
+                .withEndAction(() -> fabSetBudget.setVisibility(View.GONE))
+                .start();
+    }
+
     private void showDashboard() {
         layoutDashboard.setVisibility(View.VISIBLE);
         loadDashboardData();
+        runLayoutAnimation();
     }
 
-    /**
-     * ✅ LOCALIZED: Load dashboard data with proper string resources
-     */
     private void loadDashboardData() {
         try {
             int userId = sessionManager.getUserId();
 
-            // Display greeting with localized string
+            // Display greeting
             String userName = sessionManager.getUserName();
             if (userName == null || userName.isEmpty()) {
-                userName = getString(R.string.auth_name); // Fallback to "User"
+                userName = getString(R.string.auth_name);
             }
             tvGreeting.setText(getString(R.string.dashboard_greeting, userName));
 
@@ -160,15 +330,17 @@ public class MainActivity extends BaseActivity {
             double totalIncomeVnd = dashboardData.totalIncome;
             double totalExpenseVnd = dashboardData.totalExpense;
             double balance = dashboardData.getBalance();
+            currentBalance = balance; // Store for eye toggle
 
-            // ✅ LOCALIZED: Format amounts with + / - signs
+            // Format amounts
             String formattedIncome = currencyConverter.format(totalIncomeVnd, 1);
             String formattedExpense = currencyConverter.format(totalExpenseVnd, 1);
-            String formattedBalance = currencyConverter.format(Math.abs(balance), 1);
 
             tvIncomeAmount.setText("+" + formattedIncome);
             tvExpenseAmount.setText("-" + formattedExpense);
-            tvBalanceAmount.setText((balance >= 0 ? "+" : "-") + formattedBalance);
+
+            // ✅ ANIMATION: Number rolling for balance
+            animateNumberRoll(tvBalanceAmount, 0, balance, 1500);
 
             // Color coding for balance
             if (balance >= 0) {
@@ -181,10 +353,9 @@ public class MainActivity extends BaseActivity {
                 );
             }
 
-            // ✅ LOCALIZED: Get top category with localized name
+            // Get top category
             Map<Integer, Double> topCategoryMap = dashboardData.topCategoryMap;
-
-            String topCategoryName = getString(R.string.cat_others); // Default
+            String topCategoryName = getString(R.string.cat_others);
             double topAmount = 0;
 
             if (!topCategoryMap.isEmpty()) {
@@ -193,22 +364,24 @@ public class MainActivity extends BaseActivity {
 
                 Category cat = dbHelper.getCategoryById(entry.getKey());
                 if (cat != null) {
-                    // ✅ Get localized category name
-                    topCategoryName = DatabaseHelper.getLocalizedCategoryName(
-                            this,
-                            cat.getName()
-                    );
+                    topCategoryName = DatabaseHelper.getLocalizedCategoryName(this, cat.getName());
                 }
             }
 
             String formattedTopAmount = currencyConverter.format(topAmount, 1);
-
-            // ✅ LOCALIZED: Use string resource for "Top Category:"
             String topCategoryLabel = getString(R.string.dashboard_top_category);
             tvTopCategory.setText(topCategoryLabel + ": " + topCategoryName + " (" + formattedTopAmount + ")");
 
-        } catch (Exception e) {e.printStackTrace();
-            // ✅ LOCALIZED: Fallback values using string resources
+            // ✅ NEW: Setup Charts
+            setupBarChart(totalIncomeVnd, totalExpenseVnd);
+            setupPieChart(topCategoryMap);
+
+            // ✅ NEW: Load Budget Preview
+            loadBudgetPreview();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Fallback values
             tvGreeting.setText(getString(R.string.dashboard_greeting, "User"));
             tvIncomeAmount.setText("+0₫");
             tvExpenseAmount.setText("-0₫");
@@ -217,53 +390,205 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    // ========== ✅ NEW: NUMBER ROLLING ANIMATION ==========
+    private void animateNumberRoll(TextView textView, double start, double end, int duration) {
+        ValueAnimator animator = ValueAnimator.ofFloat((float) start, (float) end);
+        animator.setDuration(duration);
+        animator.setInterpolator(new OvershootInterpolator(0.5f));
+
+        animator.addUpdateListener(animation -> {
+            double value = (float) animation.getAnimatedValue();
+            String formatted = currencyConverter.format(Math.abs(value), 1);
+            textView.setText((value >= 0 ? "+" : "-") + formatted);
+        });
+
+        animator.start();
+    }
+
+    // ========== ✅ NEW: BAR CHART (Income vs Expense) ==========
+    private void setupBarChart(double income, double expense) {
+        List<BarEntry> entries = new ArrayList<>();
+        entries.add(new BarEntry(0f, (float) income));  // Income
+        entries.add(new BarEntry(1f, (float) expense)); // Expense
+
+        BarDataSet dataSet = new BarDataSet(entries, "");
+        dataSet.setColors(
+                ContextCompat.getColor(this, R.color.success),
+                ContextCompat.getColor(this, R.color.error)
+        );
+        dataSet.setValueTextSize(12f);
+        dataSet.setValueTextColor(ContextCompat.getColor(this, R.color.light_on_surface));
+
+        BarData barData = new BarData(dataSet);
+        barData.setBarWidth(0.5f);
+        barChartIncomeExpense.setData(barData);
+
+        // Chart styling
+        barChartIncomeExpense.getXAxis().setEnabled(false);
+        barChartIncomeExpense.getAxisLeft().setEnabled(false);
+        barChartIncomeExpense.getAxisRight().setEnabled(false);
+        barChartIncomeExpense.getLegend().setEnabled(false);
+        barChartIncomeExpense.setDrawGridBackground(false);
+        barChartIncomeExpense.setTouchEnabled(false);
+
+        Description desc = new Description();
+        desc.setText("");
+        barChartIncomeExpense.setDescription(desc);
+
+        // ✅ ANIMATION: Chart growth
+        barChartIncomeExpense.animateY(1000);
+        barChartIncomeExpense.invalidate();
+    }
+
+    // ========== ✅ NEW: PIE CHART (Expense by Category) ==========
+    private void setupPieChart(Map<Integer, Double> categoryTotals) {
+        if (categoryTotals.isEmpty()) {
+            pieChartCategory.setNoDataText(getString(R.string.msg_no_expenses_month));
+            pieChartCategory.invalidate();
+            return;
+        }
+
+        List<PieEntry> pieEntries = new ArrayList<>();
+        int[] colors = getSeraUIColors();
+
+        for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
+            Category category = dbHelper.getCategoryById(entry.getKey());
+
+            String categoryName;
+            if (category != null) {
+                categoryName = DatabaseHelper.getLocalizedCategoryName(this, category.getName());
+            } else {
+                categoryName = getString(R.string.cat_unknown);
+            }
+
+            float value = entry.getValue().floatValue();
+            pieEntries.add(new PieEntry(value, categoryName));
+        }
+
+        PieDataSet dataSet = new PieDataSet(pieEntries, "");
+        dataSet.setColors(colors);
+        dataSet.setValueTextSize(11f);
+        dataSet.setValueTextColor(Color.WHITE);
+        dataSet.setSliceSpace(2f);
+        dataSet.setValueFormatter(new PercentFormatter(pieChartCategory));
+
+        PieData pieData = new PieData(dataSet);
+        pieChartCategory.setData(pieData);
+
+        // Chart styling
+        pieChartCategory.setUsePercentValues(true);
+        pieChartCategory.setDrawHoleEnabled(true);
+        pieChartCategory.setHoleColor(Color.TRANSPARENT);
+        pieChartCategory.setHoleRadius(35f);
+        pieChartCategory.setTransparentCircleRadius(40f);
+        pieChartCategory.setDrawCenterText(false);
+        pieChartCategory.setRotationEnabled(true);
+        pieChartCategory.setHighlightPerTapEnabled(true);
+
+        Description description = new Description();
+        description.setText("");
+        pieChartCategory.setDescription(description);
+
+        Legend legend = pieChartCategory.getLegend();
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
+        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
+        legend.setDrawInside(false);
+        legend.setWordWrapEnabled(true);
+        legend.setTextSize(9f);
+
+        // ✅ ANIMATION: Chart growth
+        pieChartCategory.animateY(1000);
+        pieChartCategory.invalidate();
+    }
+
+    // ========== ✅ NEW: COLOR PALETTE ==========
+    private int[] getSeraUIColors() {
+        return new int[]{
+                ContextCompat.getColor(this, R.color.primary_blue),
+                ContextCompat.getColor(this, R.color.secondary_teal),
+                ContextCompat.getColor(this, R.color.accent_orange),
+                ContextCompat.getColor(this, R.color.accent_green),
+                ContextCompat.getColor(this, R.color.accent_red),
+                ContextCompat.getColor(this, R.color.accent_yellow),
+                ContextCompat.getColor(this, R.color.primary_blue_light),
+                ContextCompat.getColor(this, R.color.secondary_teal_light),
+        };
+    }
+
+    // ========== ✅ NEW: BUDGET PREVIEW (2-3 items) ==========
+    private void loadBudgetPreview() {
+        int userId = sessionManager.getUserId();
+        List<Budget> allBudgets = dbHelper.getBudgetsByUser(userId);
+
+        if (allBudgets.isEmpty()) {
+            rvBudgetPreview.setVisibility(View.GONE);
+            tvEmptyBudgets.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        // Show only 2-3 budgets
+        List<Budget> previewBudgets = allBudgets.size() > 3
+                ? allBudgets.subList(0, 3)
+                : allBudgets;
+
+        budgetPreviewAdapter = new BudgetPreviewAdapter(this, previewBudgets, dbHelper);
+        rvBudgetPreview.setAdapter(budgetPreviewAdapter);
+        rvBudgetPreview.setVisibility(View.VISIBLE);
+        tvEmptyBudgets.setVisibility(View.GONE);
+
+        // Click to view full budget dashboard
+        budgetPreviewAdapter.setOnItemClickListener(budget -> {
+            Intent intent = new Intent(MainActivity.this, BudgetDashboardActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    // ========== STAGGERED ENTRANCE ANIMATION ==========
+    private void runLayoutAnimation() {
+        View[] views = {
+                tvGreeting,
+                findViewById(R.id.card_balance),
+                findViewById(R.id.card_income),
+                findViewById(R.id.card_expense),
+                (View) barChartIncomeExpense.getRootView().findViewById(R.id.bar_chart_income_expense).getParent(),
+                (View) pieChartCategory.getRootView().findViewById(R.id.pie_chart_category).getParent(),
+                (View) tvTopCategory.getParent(),
+                rvBudgetPreview
+        };
+
+        for (int i = 0; i < views.length; i++) {
+            View view = views[i];
+            if (view == null) continue;
+
+            view.setTranslationY(100f);
+            view.setAlpha(0f);
+
+            view.animate()
+                    .translationY(0f)
+                    .alpha(1f)
+                    .setDuration(500)
+                    .setStartDelay(i * 100)
+                    .setInterpolator(new OvershootInterpolator(1.0f))
+                    .start();
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-
-//        String storedLanguage = LocaleHelper.getLanguage(this);
-//        if (!currentLanguageCode.equals(storedLanguage)) {
-//            recreate(); // Tải lại màn hình để áp dụng ngôn ngữ mới
-//            return;
-//        }
 
         if (layoutDashboard != null && layoutDashboard.getVisibility() == View.VISIBLE) {
             loadDashboardData();
         }
     }
 
-    /**
-     * ✅ NEW: Tạo hiệu ứng trượt lên cho các phần tử Dashboard
-     */
-    private void runLayoutAnimation() {
-        // Danh sách các View cần animate theo thứ tự
-        View[] views = {
-                tvGreeting,
-                findViewById(R.id.card_balance),
-                findViewById(R.id.card_income), // Hoặc layout chứa 2 card nhỏ
-                findViewById(R.id.card_expense),
-                tvTopCategory, // Card Top Category
-                btnAddExpense, // Nút Quick Action
-                btnViewBudget
-        };
-
-        // Bắt đầu animate từng cái
-        for (int i = 0; i < views.length; i++) {
-            View view = views[i];
-            if (view == null) continue;
-
-            // 1. Đặt trạng thái ban đầu: Dịch xuống 100px và trong suốt
-            view.setTranslationY(100f);
-            view.setAlpha(0f);
-
-            // 2. Animate trở về vị trí cũ
-            view.animate()
-                    .translationY(0f)
-                    .alpha(1f)
-                    .setDuration(500) // Thời gian chạy: 0.5 giây
-                    .setStartDelay(i * 100) // Mỗi phần tử trễ nhau 100ms (tạo hiệu ứng dây chuyền)
-                    .setInterpolator(new OvershootInterpolator(1.0f)) // Hiệu ứng bật nảy nhẹ khi dừng
-                    .start();
+    @Override
+    public void onBackPressed() {
+        if (isFabMenuOpen) {
+            closeFabMenu();
+        } else {
+            super.onBackPressed();
         }
     }
 }
