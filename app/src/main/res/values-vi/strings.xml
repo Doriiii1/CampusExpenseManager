@@ -504,4 +504,7 @@
     <string name="main_budget_preview_title">Tổng quan Ngân sách</string>
     <string name="empty_budgets_preview">Chưa có ngân sách nào. Nhấn + để tạo mới.</string>
     <string name="main_fab_menu">Menu Thao tác nhanh</string>
+
+    <!-- Vietnamese Translations -->
+    <string name="recurring_end_date_forever">Ngày kết thúc: Vô hạn</string>
 </resources>

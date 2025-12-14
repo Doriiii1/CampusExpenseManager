@@ -41,7 +41,26 @@ public class RecurringExpenseWorker extends Worker {
             for (Expense expense : dueExpenses) {
                 // FIX: Catch up ALL missed occurrences
                 long nextOcc = expense.getNextOccurrenceDate();
+                boolean isEnded = false; // Cờ đánh dấu đã kết thúc chưa
                 while (nextOcc <= currentTime) {
+
+                    //  Kiểm tra ngày kết thúc
+                    // Nếu có ngày kết thúc ( > 0) VÀ ngày tiếp theo vượt quá ngày đó
+                    if (expense.getRecurringEndDate() > 0 && nextOcc > expense.getRecurringEndDate()) {
+                        Log.d(TAG, "Recurring expense ended: " + expense.getId());
+
+                        // Tắt lặp lại
+                        expense.setIsRecurring(false);
+
+                        // Cập nhật ngày tiếp theo (để lưu trạng thái cuối)
+                        expense.setNextOccurrenceDate(nextOcc);
+
+                        // Lưu vào DB ngay lập tức
+                        dbHelper.updateExpense(expense);
+                        isEnded = true;
+                        break; // Thoát khỏi vòng lặp tạo mới
+                    }
+
                     // Create occurrence for this date
                     long newId = dbHelper.createRecurringOccurrence(expense);
                     if (newId != -1) {
@@ -52,9 +71,16 @@ public class RecurringExpenseWorker extends Worker {
                     // Move to next occurrence
                     nextOcc = calculateNextOccurrence(nextOcc, expense.getRecurrencePeriod());
                 }
-                // Update the original expense with final next occurrence
-                expense.setNextOccurrenceDate(nextOcc);
-                dbHelper.updateExpense(expense);
+                // Nếu chưa kết thúc thì cập nhật ngày tiếp theo cho lần chạy sau
+                if (!isEnded) {
+                    expense.setNextOccurrenceDate(nextOcc);
+                    // Kiểm tra phụ: Nếu ngày tiếp theo (vừa tính xong) đã vượt quá End Date
+                    // thì tắt luôn bây giờ để đỡ tốn công lần sau quét lại
+                    if (expense.getRecurringEndDate() > 0 && nextOcc > expense.getRecurringEndDate()) {
+                        expense.setIsRecurring(false);
+                    }
+                    dbHelper.updateExpense(expense);
+                }
             }
             Log.d(TAG, "RecurringExpenseWorker completed: " + created + " expenses created");
             return Result.success();
@@ -72,6 +98,8 @@ public class RecurringExpenseWorker extends Worker {
     private long calculateNextOccurrence(long currentDate, String period) {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         calendar.setTimeInMillis(currentDate);
+
+        if (period == null) return currentDate;
 
         switch (period.toLowerCase()) {
             case "daily":

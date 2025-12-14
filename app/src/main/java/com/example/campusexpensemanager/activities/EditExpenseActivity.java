@@ -60,6 +60,8 @@ public class EditExpenseActivity extends BaseActivity {
     // Recurring fields
     private CheckBox cbRecurring;
     private Spinner spinnerRecurrencePeriod;
+    private Button btnRecurringEndDate;
+    private long recurringEndDate = 0;
 
     private FloatingActionButton fabUpdate;
 
@@ -121,6 +123,7 @@ public class EditExpenseActivity extends BaseActivity {
 
         cbRecurring = findViewById(R.id.cb_recurring);
         spinnerRecurrencePeriod = findViewById(R.id.spinner_recurrence_period);
+        btnRecurringEndDate = findViewById(R.id.btn_recurring_end_date);
 
         // ✅ NEW: Recurring info display
         layoutRecurringInfo = findViewById(R.id.layout_recurring_info);
@@ -249,6 +252,15 @@ public class EditExpenseActivity extends BaseActivity {
         if (currentExpense.isRecurring()) {
             cbRecurring.setChecked(true);
             spinnerRecurrencePeriod.setVisibility(View.VISIBLE);
+            btnRecurringEndDate.setVisibility(View.VISIBLE);
+            recurringEndDate = currentExpense.getRecurringEndDate();
+
+            if (recurringEndDate > 0) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+                btnRecurringEndDate.setText("End: " + dateFormat.format(recurringEndDate));
+            } else {
+                btnRecurringEndDate.setText("End Date: Forever");
+            }
 
             String period = currentExpense.getRecurrencePeriod();
             if (period != null) {
@@ -262,9 +274,10 @@ public class EditExpenseActivity extends BaseActivity {
             }
 
             // ✅ Show recurring info banner
-            showRecurringInfoBanner(period);
+            showRecurringInfoBanner(currentExpense.getRecurrencePeriod());
         } else {
             layoutRecurringInfo.setVisibility(View.GONE);
+            btnRecurringEndDate.setVisibility(View.GONE);
         }
 
         // Receipt
@@ -379,7 +392,13 @@ public class EditExpenseActivity extends BaseActivity {
 
         cbRecurring.setOnCheckedChangeListener((buttonView, isChecked) -> {
             spinnerRecurrencePeriod.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            btnRecurringEndDate.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            if (!isChecked) {
+                recurringEndDate = 0;
+                btnRecurringEndDate.setText("End Date: Forever");
+            }
         });
+        btnRecurringEndDate.setOnClickListener(v -> showRecurringEndDatePicker());
     }
 
     private void updateUIForType() {
@@ -478,6 +497,7 @@ public class EditExpenseActivity extends BaseActivity {
         // Handle recurring
         currentExpense.setIsRecurring(cbRecurring.isChecked());
         if (cbRecurring.isChecked()) {
+            currentExpense.setRecurringEndDate(recurringEndDate);
             // Map index sang giá trị DB (daily/weekly/monthly)
             String periodValue = "monthly";
             switch (spinnerRecurrencePeriod.getSelectedItemPosition()) {
@@ -493,10 +513,15 @@ public class EditExpenseActivity extends BaseActivity {
                 case "weekly": nextOcc.add(Calendar.WEEK_OF_YEAR, 1); break;
                 case "monthly": nextOcc.add(Calendar.MONTH, 1); break;
             }
+            if (recurringEndDate > 0 && recurringEndDate < nextOcc.getTimeInMillis()) {
+                Toast.makeText(this, "End date must be after the next occurrence", Toast.LENGTH_SHORT).show();
+                return;
+            }
             currentExpense.setNextOccurrenceDate(nextOcc.getTimeInMillis());
         } else {
             currentExpense.setRecurrencePeriod(null);
             currentExpense.setNextOccurrenceDate(0);
+            currentExpense.setRecurringEndDate(0);
         }
 
         int rowsAffected;
@@ -596,5 +621,38 @@ public class EditExpenseActivity extends BaseActivity {
                 Toast.makeText(this, getString(R.string.msg_expense_restore_failed), Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    // ✅ NEW: Hàm chọn ngày kết thúc
+    private void showRecurringEndDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        if (recurringEndDate > 0) {
+            calendar.setTimeInMillis(recurringEndDate);
+        }
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    Calendar endCal = Calendar.getInstance();
+                    endCal.set(Calendar.YEAR, year);
+                    endCal.set(Calendar.MONTH, month);
+                    endCal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                    endCal.set(Calendar.HOUR_OF_DAY, 23);
+                    endCal.set(Calendar.MINUTE, 59);
+                    endCal.set(Calendar.SECOND, 59);
+
+                    recurringEndDate = endCal.getTimeInMillis();
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+                    btnRecurringEndDate.setText("End: " + dateFormat.format(endCal.getTime()));
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+
+        datePickerDialog.getDatePicker().setMinDate(selectedDateTime.getTimeInMillis());
+        datePickerDialog.show();
     }
 }

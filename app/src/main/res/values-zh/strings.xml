@@ -500,4 +500,7 @@
     <string name="main_budget_preview_title">预算概览</string>
     <string name="empty_budgets_preview">暂无预算。点击 + 创建</string>
     <string name="main_fab_menu">快速操作菜单</string>
+
+    <!-- Chinese (Simplified) Translations -->
+    <string name="recurring_end_date_forever">结束日期：永久</string>
 </resources>

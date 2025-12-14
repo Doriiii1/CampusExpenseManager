@@ -512,4 +512,6 @@
     <string name="main_budget_preview_title">Budget Overview</string>
     <string name="empty_budgets_preview">No active budgets. Tap + to create one.</string>
     <string name="main_fab_menu">Quick Actions Menu</string>
+
+    <string name="recurring_end_date_forever">End Date: Forever</string>
 </resources>

@@ -86,6 +86,7 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
     // Recurring fields
     private CheckBox cbRecurring;
     private Spinner spinnerRecurrencePeriod;
+    private Button btnRecurringEndDate;
 
     // Quick templates
     private RecyclerView recyclerTemplates;
@@ -102,6 +103,7 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
 
     private Calendar selectedDateTime;
     private String receiptPhotoPath;
+    private long recurringEndDate = 0;
     private int currentType = Expense.TYPE_EXPENSE; // Default: Expense
 
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -247,6 +249,7 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
 
         cbRecurring = findViewById(R.id.cb_recurring);
         spinnerRecurrencePeriod = findViewById(R.id.spinner_recurrence_period);
+        btnRecurringEndDate = findViewById(R.id.btn_recurring_end_date);
 
         recyclerTemplates = findViewById(R.id.recycler_templates);
         recyclerTemplates.setLayoutManager(
@@ -254,6 +257,7 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
 
         fabSave = findViewById(R.id.fab_save);
         spinnerRecurrencePeriod.setVisibility(View.GONE);
+        btnRecurringEndDate.setVisibility(View.GONE);
     }
 
     private void loadCategories() {
@@ -348,7 +352,14 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
 
         cbRecurring.setOnCheckedChangeListener((buttonView, isChecked) -> {
             spinnerRecurrencePeriod.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            btnRecurringEndDate.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+
+            if (!isChecked) {
+                recurringEndDate = 0;
+                btnRecurringEndDate.setText(getString(R.string.recurring_end_date_forever));
+            }
         });
+        btnRecurringEndDate.setOnClickListener(v -> showRecurringEndDatePicker());
 
         // FIX: Localized strings for recurring periods
         String[] periods = {
@@ -548,6 +559,7 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
 
         if (cbRecurring.isChecked()) {
             expense.setIsRecurring(true);
+            expense.setRecurringEndDate(recurringEndDate);
 
             // Map localized period back to DB value (english) for consistency or save logic
             // Ideally, save constants like "daily", "weekly", "monthly" regardless of display language
@@ -571,6 +583,10 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
                 case "monthly":
                     nextOcc.add(Calendar.MONTH, 1);
                     break;
+            }
+            if (recurringEndDate > 0 && recurringEndDate < nextOcc.getTimeInMillis()) {
+                Toast.makeText(this, "End date must be after the next occurrence", Toast.LENGTH_SHORT).show();
+                return;
             }
             expense.setNextOccurrenceDate(nextOcc.getTimeInMillis());
         }
@@ -812,5 +828,41 @@ public class    AddExpenseActivity extends BaseActivity implements TemplateAdapt
             // Sử dụng string resource cho thông báo lỗi
             Toast.makeText(this, getString(R.string.msg_save_error), Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+    private void showRecurringEndDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        if (recurringEndDate > 0) {
+            calendar.setTimeInMillis(recurringEndDate);
+        }
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    Calendar endCal = Calendar.getInstance();
+                    endCal.set(Calendar.YEAR, year);
+                    endCal.set(Calendar.MONTH, month);
+                    endCal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                    // Set giờ về cuối ngày (23:59:59) để đảm bảo bao gồm cả ngày đó
+                    endCal.set(Calendar.HOUR_OF_DAY, 23);
+                    endCal.set(Calendar.MINUTE, 59);
+                    endCal.set(Calendar.SECOND, 59);
+
+                    recurringEndDate = endCal.getTimeInMillis();
+
+                    // Cập nhật text hiển thị (Dùng SimpleDateFormat)
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+                    btnRecurringEndDate.setText("End: " + dateFormat.format(endCal.getTime()));
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+
+        // Không cho chọn ngày trong quá khứ (nhỏ hơn ngày bắt đầu giao dịch)
+        datePickerDialog.getDatePicker().setMinDate(selectedDateTime.getTimeInMillis());
+        datePickerDialog.show();
     }
 }

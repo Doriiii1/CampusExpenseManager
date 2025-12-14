@@ -30,6 +30,7 @@ public class Expense {
     private String recurrencePeriod; // daily/weekly/monthly
     private long nextOccurrenceDate; // Unix timestamp
     private int recurringGroupId;
+    private long recurringEndDate;
 
     // Default constructor
     public Expense() {
@@ -38,6 +39,7 @@ public class Expense {
         this.type = TYPE_EXPENSE;
         this.currencyId = 1; // Default VND
         this.isRecurring = false;
+        this.recurringEndDate = 0;
     }
 
     // Constructor with essential fields
@@ -194,6 +196,14 @@ public class Expense {
 
     public void setNextOccurrenceDate(long nextOccurrenceDate) {
         this.nextOccurrenceDate = nextOccurrenceDate;
+    }
+
+    public long getRecurringEndDate() {
+        return recurringEndDate;
+    }
+
+    public void setRecurringEndDate(long recurringEndDate) {
+        this.recurringEndDate = recurringEndDate;
     }
 
     // Helper methods

@@ -182,6 +182,16 @@
                         android:padding="@dimen/spacing_small"
                         android:visibility="gone" />
 
+                    <Button
+                        android:id="@+id/btn_recurring_end_date"
+                        style="@style/Widget.App.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_small"
+                        android:drawableLeft="@android:drawable/ic_menu_my_calendar"
+                        android:text="End Date: Forever"
+                        android:visibility="gone" />
+
                     <!-- Description -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/til_description"

@@ -28,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
     private static final String DATABASE_NAME = "CampusExpense.db";
-    private static final int DATABASE_VERSION = 5; // ✅ UPGRADED from 4 to 5
+    private static final int DATABASE_VERSION = 6;
 
     // Table Names
     private static final String TABLE_USERS = "users";
@@ -78,6 +78,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_EXPENSE_RECURRENCE_PERIOD = "recurrence_period"; // daily/weekly/monthly
     private static final String KEY_EXPENSE_NEXT_OCCURRENCE = "next_occurrence_date";
     private static final String KEY_EXPENSE_RECURRING_GROUP_ID = "recurring_group_id";
+    private static final String KEY_EXPENSE_RECURRING_END_DATE = "recurring_end_date";
 
     // Budget Columns
     private static final String KEY_BUDGET_USER_ID = "user_id";
@@ -306,6 +307,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + ")";
             db.execSQL(CREATE_TEMPLATES_TABLE);
             prepopulateTemplates(db);
+        }
+
+        if (oldVersion < 6) {
+            // ✅ NEW: Thêm cột recurring_end_date vào bảng expenses
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_EXPENSES + " ADD COLUMN "
+                        + KEY_EXPENSE_RECURRING_END_DATE + " INTEGER DEFAULT 0");
+                Log.d(TAG, "Database upgraded to v6 - Added recurring_end_date column");
+            } catch (Exception e) {
+                Log.e(TAG, "Error upgrading to v6: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
@@ -751,7 +764,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_IS_RECURRING, expense.isRecurring() ? 1 : 0);
         values.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
         values.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
-        values.put(KEY_EXPENSE_RECURRING_GROUP_ID, expense.getRecurringGroupId()); // ✅ NEW
+        values.put(KEY_EXPENSE_RECURRING_GROUP_ID, expense.getRecurringGroupId());
+        values.put(KEY_EXPENSE_RECURRING_END_DATE, expense.getRecurringEndDate());
 
         values.put(KEY_CREATED_AT, expense.getCreatedAt());
 
@@ -791,6 +805,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
         values.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
         values.put(KEY_EXPENSE_RECURRING_GROUP_ID, expense.getRecurringGroupId());
+        values.put(KEY_EXPENSE_RECURRING_END_DATE, expense.getRecurringEndDate());
 
         int rowsAffected = db.update(TABLE_EXPENSES, values, KEY_ID + "=?",
                 new String[]{String.valueOf(expense.getId())});
@@ -829,6 +844,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             masterValues.put(KEY_EXPENSE_TYPE, expense.getType());
             masterValues.put(KEY_EXPENSE_RECURRENCE_PERIOD, expense.getRecurrencePeriod());
             masterValues.put(KEY_EXPENSE_NEXT_OCCURRENCE, expense.getNextOccurrenceDate());
+            masterValues.put(KEY_EXPENSE_RECURRING_END_DATE, expense.getRecurringEndDate());
             // DON'T update date - master keeps original date
 
             int masterUpdated = db.update(TABLE_EXPENSES, masterValues,
@@ -902,6 +918,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int groupIdIndex = cursor.getColumnIndex(KEY_EXPENSE_RECURRING_GROUP_ID);
         int groupId = (groupIdIndex >= 0) ? cursor.getInt(groupIdIndex) : 0;
 
+        int endDateIndex = cursor.getColumnIndex(KEY_EXPENSE_RECURRING_END_DATE);
+        long endDate = (endDateIndex >= 0) ? cursor.getLong(endDateIndex) : 0;
+
         Expense expense = new Expense(
                 cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID)),
                 cursor.getInt(cursor.getColumnIndexOrThrow(KEY_EXPENSE_USER_ID)),
@@ -919,6 +938,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         expense.setRecurrencePeriod(period);
         expense.setNextOccurrenceDate(nextOcc);
         expense.setRecurringGroupId(groupId);
+        expense.setRecurringEndDate(endDate);
 
         return expense;
     }
